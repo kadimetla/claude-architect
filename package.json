@@ -1,23 +1,15 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Project Overview
-
-Course materials and starter code for the **Claude Certified Architect: Foundations (CCA-F) Crash Course**, a 4-hour live training that prepares learners for Anthropic's first professional certification. The repo contains study guides, code examples, configuration templates, and practice scenarios aligned to all five CCA-F exam domains.
-
-## Coding Standards
-
-- All Python code must include docstrings explaining the CCA-F exam concept being demonstrated
-- Comments should explain WHY, not WHAT (these are teaching materials)
-- Every file header references the specific CCA-F Domain and Task Statement it covers
-- Use type hints in all Python function signatures
-- Error handling must follow the structured error response pattern from Domain 2
-
-## What NOT to Commit
-
-- The CCA-F Exam Guide PDF (Anthropic Confidential - NTK)
-- Pearson proposal documents
-- API keys, tokens, or credentials
-- Personal contact information
-- Actual exam questions or answers
+{
+  "name": "cca-f",
+  "version": "1.0.0",
+  "description": "Claude Certified Architect: Foundations (CCA-F) Crash Course materials",
+  "scripts": {
+    "test": "echo \"Run practice scenarios in the practice-scenarios/ directory\""
+  },
+  "keywords": ["claude", "anthropic", "certification", "mcp", "agent-sdk", "claude-code"],
+  "author": "Tim Warner <tim@techtrainertim.com> (https://techtrainertim.com)",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@modelcontextprotocol/sdk": "^1.12.0"
+  }
+}
