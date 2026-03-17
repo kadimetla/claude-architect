@@ -1,0 +1,17 @@
+# Domain 4: Prompt Engineering & Structured Output (20%)
+
+## Explicit Criteria > Vague Instructions
+
+"Flag comments where claimed behavior contradicts code" beats "check comments are accurate."
+
+## JSON Schema via tool_use
+
+Most reliable structured output. Eliminates syntax errors, not semantic errors. Use nullable fields to prevent fabrication.
+
+## Validation-Retry Loops
+
+Append specific errors on retry. Works for format issues. Does NOT work when info is absent from source.
+
+## Batch Processing
+
+Message Batches API: 50% savings, up to 24h. Good for overnight. Bad for blocking pre-merge.

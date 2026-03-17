@@ -1,0 +1,94 @@
+# Claude Certified Architect: Foundations (CCA-F) Crash Course
+
+<!-- <img src="images/cover.png" alt="CCA-F Crash Course Cover" width="700"/> -->
+
+The first third-party exam prep for Anthropic's first professional certification. Four hours of hands-on architecture labs covering every CCA-F exam domain.
+
+**Instructor:** Tim Warner | [LinkedIn](https://linkedin.com/in/timothywarner) | [TechTrainerTim.com](https://techtrainertim.com)
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.10+ and Node.js 18+
+- [Anthropic API key](https://console.anthropic.com) with active billing
+- Claude Pro or Team subscription (for Claude Code)
+- VS Code with the Claude Code extension
+
+### Setup
+
+```bash
+git clone https://github.com/timothywarner-org/cca-f.git
+cd cca-f
+npm install
+```
+
+---
+
+## Course Structure (4 x 50 Minutes)
+
+| Lesson | Topic | CCA-F Domain | Weight |
+|--------|-------|--------------|--------|
+| **1** | Building AI Agents That Use Tools | Agentic Architecture & Orchestration | 27% |
+| **2** | Tool Design, MCP, and Claude Code | Tool Design & MCP (18%) + Claude Code (20%) | 38% |
+| **3** | Prompt Engineering and Structured Output | Prompt Engineering & Structured Output | 20% |
+| **4** | Context Management, Reliability, Exam Strategy | Context Management & Reliability (15%) + Exam Prep | 15%+ |
+
+The exam uses six scenario-based contexts: customer support agents, multi-agent research, Claude Code in CI/CD, developer productivity tools, structured data extraction, and code generation. We build real solutions for each.
+
+---
+
+## About the CCA-F Exam
+
+| Detail | Info |
+|--------|------|
+| **Format** | 60 multiple-choice questions, scenario-based |
+| **Duration** | 120 minutes, proctored via ProctorFree |
+| **Passing score** | 720 out of 1000 |
+| **Attempts** | One attempt per registration |
+| **Cost** | $99 per attempt |
+| **Access** | Currently through the [Claude Partner Network](https://www.anthropic.com/news/claude-partner-network) |
+
+---
+
+## Recommended Preparation
+
+Anthropic Academy's free courses are a great way to prepare (not required, but helpful):
+
+- [Building with the Claude API](https://academy.anthropic.com)
+- [Introduction to Model Context Protocol](https://academy.anthropic.com)
+- [Claude Code in Action](https://academy.anthropic.com)
+
+On O'Reilly:
+
+- **Read:** [Quick Start Guide to Large Language Models, 2nd Ed](https://www.oreilly.com/library/view/quick-start-guide/9780135346570/) by Sinan Ozdemir
+- **Attend:** [Context Engineering with MCP](https://www.oreilly.com/live-events/context-engineering-with-mcp/0642572241292/) by Tim Warner
+- **Watch:** [Exam AI-900 Microsoft Azure AI Fundamentals](https://www.oreilly.com/library/view/exam-ai-900-microsoft/9780138202781/) by Tim Warner
+
+---
+
+## Your Instructor
+
+### Tim Warner
+
+**Microsoft MVP** - Azure AI and Cloud/Datacenter Management (6+ years)
+**Microsoft Certified Trainer** (25+ years)
+
+- Website: [techtrainertim.com](https://techtrainertim.com)
+- GitHub: [@timothywarner](https://github.com/timothywarner)
+- LinkedIn: [linkedin.com/in/timothywarner](https://www.linkedin.com/in/timothywarner/)
+- YouTube: [youtube.com/timothywarner](https://youtube.com/timothywarner)
+
+---
+
+## License
+
+MIT License - 2026 Timothy Warner
+
+Claude Certified Architect is a certification program by Anthropic, PBC. This repo is an independent study resource and is not affiliated with or endorsed by Anthropic.
+
+---
+
+**Now go build Claude architectures that actually ship.**
