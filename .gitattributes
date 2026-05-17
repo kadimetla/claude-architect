@@ -1,0 +1,19 @@
+# Normalize all text files to LF in the repository, regardless of OS.
+# Git auto-detects text vs binary. Working trees on Windows still get CRLF
+# via core.autocrlf, but what's committed stays LF for clean diffs.
+* text=auto eol=lf
+
+# Explicitly mark common binaries so Git doesn't try to text-process them.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.docx binary
+*.xlsx binary
+*.pptx binary
+*.ipynb binary
