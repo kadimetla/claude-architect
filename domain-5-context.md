@@ -89,9 +89,9 @@ When synthesis agents combine outputs from multiple subagents, the financial age
 
 ## Demo anchor
 
-See **COURSE-FLOW.md Segment 4** for the live walkthrough. Code references:
+The two load-bearing Domain 5 concepts (case-facts pinning + tool-output pruning, and escalation triage) are taught live in **COURSE-FLOW.md Segment 3** alongside Domain 4. The compaction demo is **post-class self-study**, not a live segment. The Segment 4 capstone is the CCA-F cert briefing + practice questions; see [`./CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md). Code references:
 
-- `private/claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb`, primary compaction demo
+- `private/claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb`, self-study lab (run after class)
 - `private/claude-cookbooks-main/tool_use/memory_cookbook.ipynb`, memory and recall patterns
 - `private/claude-cookbooks-main/managed_agents/CMA_gate_human_in_the_loop.ipynb`, human review gating
 - `private/claude-cookbooks-main/managed_agents/CMA_remember_user_preferences.ipynb`, preference persistence

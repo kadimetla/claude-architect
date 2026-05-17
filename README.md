@@ -1,12 +1,26 @@
+<img src="images/cover.png" alt="Claude Architect Foundations cover" width="400">
+
 # Claude Architect Foundations - O'Reilly Live Training
 
-Reference architectures, code examples, and practice scenarios for the **Claude Architect** role. This 4-hour O'Reilly Media live training is **skills-first**: it teaches the production patterns that define a Claude Architect (agentic orchestration, tool design with MCP, Claude Code workflows, prompt engineering, context management) and describes the CCA-F certification structure without teaching to specific exam items.
+[![Website TechTrainerTim.com](https://img.shields.io/badge/Website-TechTrainerTim.com-0a66c2)](https://techtrainertim.com)
+[![LinkedIn timothywarner](https://img.shields.io/badge/LinkedIn-timothywarner-0a66c2?logo=linkedin)](https://www.linkedin.com/in/timothywarner/)
+[![GitHub timothywarner-org](https://img.shields.io/badge/GitHub-timothywarner--org-181717?logo=github)](https://github.com/timothywarner-org)
+[![O'Reilly Author Page](https://img.shields.io/badge/O'Reilly-Author%20Page-cf2f1d)](https://learning.oreilly.com/search/?query=Tim%20Warner)
+[![YouTube TechTrainerTim](https://img.shields.io/badge/YouTube-TechTrainerTim-ff0000?logo=youtube&logoColor=white)](https://www.youtube.com/c/TechTrainerTim)
+[![Microsoft MVP 2026](https://img.shields.io/badge/Microsoft%20MVP-2026-blueviolet?logo=microsoft&logoColor=white)](https://mvp.microsoft.com/en-us/PublicProfile/5004754)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> The Claude Certified Architect: Foundations (CCA-F) exam from Anthropic is not yet publicly available. The five reference files in this repo map to the published 5-domain exam blueprint, so you have the study scaffold ready for when the exam ships.
+**Contact:** [Website](https://techtrainertim.com) | [LinkedIn](https://www.linkedin.com/in/timothywarner/) | [GitHub](https://github.com/timothywarner-org) | [O'Reilly](https://learning.oreilly.com/search/?query=Tim%20Warner) | [YouTube](https://www.youtube.com/c/TechTrainerTim)
+
+---
+
+Reference architectures, code examples, and practice scenarios for the **Claude Architect** role. This 4-hour O'Reilly Media live training is **skills-first** for Segments 1-3, then closes with a **CCA-F certification capstone** in Segment 4 (cert briefing + weighted practice questions). It teaches the production patterns that define a Claude Architect (agentic orchestration, tool design with MCP, Claude Code workflows, prompt engineering, context management) and gives you a runway to Anthropic's CCA-F exam.
+
+> Anthropic's **Claude Certified Architect: Foundations (CCA-F)** exam is currently restricted to Anthropic partners. The five reference files in this repo map to the published 5-domain exam blueprint, and [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md) walks through exam mechanics, prep stack, and a week-before punchlist.
 
 ## What is a Claude Architect?
 
-The Claude Architect is an emerging job role focused on designing and building production-grade applications with Claude Code, the Claude Agent SDK, the Claude API, and Model Context Protocol (MCP). Organizations across the Claude Partner Network are hiring for this skillset.
+The Claude Architect is an emerging job role focused on designing and building production-grade applications with **Claude Code**, the **Claude Agent SDK**, the **Claude API**, and **Model Context Protocol (MCP)**. Organizations across the Claude Partner Network are hiring for this skillset.
 
 ## Course at a glance
 
@@ -14,20 +28,22 @@ The Claude Architect is an emerging job role focused on designing and building p
 |---|---|---|---|
 | 1 | 50 min | Building AI Agents That Use Tools | Customer support agent with hook-enforced policy |
 | 2 | 50 min | Tool Design, Integration, and Claude Code Workflows | MCP config walkthrough + Claude Code hierarchy demo |
-| 3 | 50 min | Prompt Engineering and Structured Output | Invoice extractor with Pydantic + validation retry |
-| 4 | 50 min | Context Management, Reliability, and Production Strategy | Compaction demo + production triage exercise |
+| 3 | 50 min | Structured Output, Context, and Production Reliability | Invoice extractor with retry + triage scorecard |
+| 4 | 50 min | CCA-F Certification Capstone | Cert briefing + 10 weighted practice questions + take-home punchlist |
 
 Total: 4 hours (4 × 50-min segments + 3 × 10-min breaks). Instructors and learners should start at **[COURSE-FLOW.md](./COURSE-FLOW.md)**.
 
-## Core competency areas
+## CCA-F exam blueprint (the five core competencies)
 
-| Domain | Reference file | Focus |
-|---|---|---|
-| 1 - Agentic Architecture & Orchestration | [domain-1-agentic.md](./domain-1-agentic.md) | Agentic loops, multi-agent coordination, hooks, session management |
-| 2 - Tool Design & MCP Integration | [domain-2-tools-mcp.md](./domain-2-tools-mcp.md) | Tool descriptions, structured errors, scoped distribution, MCP config |
-| 3 - Claude Code Configuration & Workflows | [domain-3-claude-code.md](./domain-3-claude-code.md) | CLAUDE.md hierarchy, skills, slash commands, plan mode, CI/CD |
-| 4 - Prompt Engineering & Structured Output | [domain-4-prompts.md](./domain-4-prompts.md) | Explicit criteria, few-shot prompting, JSON schemas via tool use, batch API |
-| 5 - Context Management & Reliability | [domain-5-context.md](./domain-5-context.md) | Context preservation, escalation, error propagation, provenance |
+| Domain | Weight | Reference file | Focus |
+|---|---|---|---|
+| 1 - Agentic Architecture & Orchestration | **27%** | [domain-1-agentic.md](./domain-1-agentic.md) | Agentic loops, multi-agent coordination, hooks, session management |
+| 2 - Tool Design & MCP Integration | 18% | [domain-2-tools-mcp.md](./domain-2-tools-mcp.md) | Tool descriptions, structured errors, scoped distribution, MCP config |
+| 3 - Claude Code Configuration & Workflows | 20% | [domain-3-claude-code.md](./domain-3-claude-code.md) | CLAUDE.md hierarchy, skills, slash commands, plan mode, CI/CD |
+| 4 - Prompt Engineering & Structured Output | 20% | [domain-4-prompts.md](./domain-4-prompts.md) | Explicit criteria, few-shot prompting, JSON schemas via tool use, batch API |
+| 5 - Context Management & Reliability | 15% | [domain-5-context.md](./domain-5-context.md) | Context preservation, escalation, error propagation, provenance |
+
+**Exam mechanics:** 60 multiple-choice questions, 120 minutes, scaled 100-1000 with **720 passing**, proctored via ProctorFree, **one attempt only**, $99 (partner discount available). See [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md) for the full briefing.
 
 ## Repository layout
 
@@ -35,7 +51,10 @@ Total: 4 hours (4 × 50-min segments + 3 × 10-min breaks). Instructors and lear
 claude-architect/
 ├── INSTRUCTOR-SETUP.md         # Multi-day setup arc (machine config, env vars, repo clone, backup plans)
 ├── COURSE-FLOW.md              # Master instructor punchlist (4 segments × 50 min)
-├── PRE-CLASS-CHECKLIST.md      # Instructor pre-flight (PowerShell, 35 checks)
+├── PRE-CLASS-CHECKLIST.md      # Instructor pre-flight (PowerShell)
+├── CERT-PROGRAM-BRIEFING.md    # Segment 4 talk-track: exam mechanics, domain weights, week-before punchlist
+├── PRACTICE-QUESTIONS.md       # 60-question community-sourced practice bank (cohort take-home)
+├── practice-questions.json     # Machine-readable practice-question source
 ├── domain-1-agentic.md         # Reference: Agentic Architecture & Orchestration
 ├── domain-2-tools-mcp.md       # Reference: Tool Design & MCP Integration
 ├── domain-3-claude-code.md     # Reference: Claude Code Configuration & Workflows
@@ -48,8 +67,7 @@ claude-architect/
 ├── SKILL.md                    # Example slash-command / skill definition
 ├── CLAUDE.md                   # Claude Code project instructions for this repo
 └── scripts/
-    ├── voice-lint.ps1          # Enforce Tim's voice rules across all MD files
-    └── preflight.ps1           # Instructor pre-flight automation (mirrors PRE-CLASS-CHECKLIST)
+    └── extract-practice-questions.py   # Build-time extractor for the practice-question files
 ```
 
 ## Getting started
@@ -74,16 +92,17 @@ npm install
 1. **Read [COURSE-FLOW.md](./COURSE-FLOW.md)** for the full 4-segment teaching arc.
 2. **Walk the five `domain-*.md` reference files** in order. Each maps to a course segment and points at runnable cookbook notebooks.
 3. **Run the demo notebooks** in your own environment. The course depends on Anthropic's official cookbooks (`private/claude-cookbooks-main/`).
-4. **Build something.** The reference architectures only land when you wire one of these patterns into a real workflow.
+4. **Work through [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md)** and the [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) bank if you're aiming at the CCA-F exam.
+5. **Build something.** The reference architectures only land when you wire one of these patterns into a real workflow.
 
-## Practice scenarios
+## Practice scenarios (CCA-F exam pool)
 
-Each scenario frames a realistic production context that a Claude Architect would encounter. These map to the six exam scenarios in the CCA-F blueprint:
+Each scenario frames a realistic production context that a Claude Architect would encounter. The CCA-F exam draws **4 scenarios at random from a pool of 6**:
 
 | # | Scenario | Primary competencies |
 |---|---|---|
 | 1 | Customer Support Resolution Agent | Domains 1, 2, 5 |
-| 2 | Claude Code for Software Development | Domains 3, 5 |
+| 2 | Code Generation with Claude Code | Domains 3, 5 |
 | 3 | Multi-Agent Research System | Domains 1, 2, 5 |
 | 4 | Developer Productivity Tooling | Domains 1, 2, 3 |
 | 5 | CI/CD Integration with Claude Code | Domains 3, 4 |
@@ -125,11 +144,17 @@ Send request -> Check stop_reason -> "tool_use"? Execute tool, append tool_resul
 
 ## About the instructor
 
-**Tim Warner** is a technical trainer and content creator specializing in cloud and AI technologies. Microsoft MVP (Azure AI), Pluralsight Principal Author (200+ courses, 1M+ learners), Microsoft Press / Pearson senior content developer, O'Reilly Live Learning instructor.
+**Tim Warner** is a Microsoft MVP (Azure AI), Pluralsight Principal Author (200+ courses, 1M+ learners), Microsoft Press / Pearson senior content developer, and O'Reilly Live Learning instructor with 28+ years on the Microsoft stack. He teaches Feynman-style: first principles, no fluff, real demos.
 
-- Web: [TechTrainerTim.com](https://techtrainertim.com)
-- Email: [tim@techtrainertim.com](mailto:tim@techtrainertim.com)
+- Website: [TechTrainerTim.com](https://techtrainertim.com)
+- LinkedIn: [@timothywarner](https://www.linkedin.com/in/timothywarner/)
 - GitHub: [@timothywarner-org](https://github.com/timothywarner-org)
+- YouTube: [TechTrainerTim](https://www.youtube.com/c/TechTrainerTim)
+- O'Reilly: [Author page](https://learning.oreilly.com/search/?query=Tim%20Warner)
+
+## Disclaimer
+
+This is an **unofficial study guide** built around Anthropic's publicly documented CCA-F exam blueprint. Practice questions in [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) are community-sourced from [Paul Larionov's study repo](https://github.com/paullarionov/claude-certified-architect) and are intended for **calibration only**, not as exam predictors. The authoritative source for exam content, registration, and policy is **Anthropic** (see the [public CCA-F page](https://anthropic.skilljar.com/) and the Exam Policy). Use Anthropic's own Practice Exam to gauge readiness before scheduling.
 
 ## Contributing
 
@@ -138,3 +163,7 @@ Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
 ## License
 
 MIT - see [LICENSE](LICENSE).
+
+---
+
+*Found this useful? Open an issue with questions or feedback - I read every one.*

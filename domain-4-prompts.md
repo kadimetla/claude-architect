@@ -140,12 +140,12 @@ Cost is roughly **3x baseline** but catches systematic biases that a single pass
 
 ## Demo anchor
 
-See **COURSE-FLOW.md Segment 3** for the live build (invoice extractor). Code references:
+See **COURSE-FLOW.md Segment 3** for the live build (invoice extractor). Segment 3 now also covers Domain 5 (context preservation, escalation triage), so the demo is tightened to a single notebook on screen. Code references:
 
-- `private/claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` - primary structured-output pattern
-- `private/claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` - Pydantic + tool_use integration
-- `private/claude-cookbooks-main/patterns/agents/evaluator_optimizer.ipynb` - multi-pass review pattern
-- `private/claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel extraction
+- `private/claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` - primary structured-output pattern, opened live
+- `private/claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` - Pydantic + tool_use integration, referenced inline (not opened live)
+- `private/claude-cookbooks-main/patterns/agents/evaluator_optimizer.ipynb` - multi-pass review pattern, self-study
+- `private/claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel extraction, self-study
 
 ## Production tips (Tim's voice)
 

@@ -146,7 +146,11 @@ Expect: account info, no rate-limit warnings.
 
 ## Phase 2: Repo setup (one-time per machine)
 
-### 2.1 Clone the repo
+### 2.1 The course repo (this one)
+
+`claude-architect` is **your** repo - the source of truth for this course. Everything in COURSE-FLOW.md, every domain reference, every demo anchor, every npm script lives here. You author it, you ship it.
+
+On a brand-new machine (e.g. fresh laptop, replacement hardware), clone it:
 
 ```powershell
 git clone https://github.com/timothywarner-org/claude-architect.git C:\github\claude-architect
@@ -154,11 +158,11 @@ cd C:\github\claude-architect
 npm install
 ```
 
-Expect: `node_modules/` appears, no errors.
+Expect: `node_modules/` appears, no errors. On any machine where you've already cloned it, skip to 2.2.
 
-### 2.2 Pull the private cookbooks
+### 2.2 Pull the Anthropic cookbook into `private/`
 
-The training depends on **Anthropic's official cookbook** (gitignored, lives at `private/claude-cookbooks-main/`). Without it, every Demo: block in COURSE-FLOW.md is broken.
+The training depends on **Anthropic's official cookbook** - external content, vendored locally at `private/claude-cookbooks-main/` and gitignored (we don't redistribute Anthropic's repo through ours). Without it, every Demo: block in COURSE-FLOW.md is broken.
 
 ```powershell
 git clone https://github.com/anthropics/anthropic-cookbook.git C:\github\claude-architect\private\claude-cookbooks-main
@@ -178,15 +182,15 @@ Verify the five demo notebooks exist:
 
 Expect `True` for all five.
 
-### 2.3 Optional: pull the third-party CCA study repo
+### 2.3 Optional: pull the community CCA study repo
 
-This is community-contributed material (multi-language guides, practical_test HTML). **Not authoritative** because the exam isn't public yet. Useful for context, not for citation:
+> **Note the name.** `claude-certified-architect` is a **separate repo** from your course package `claude-architect`. Community-contributed study material (multi-language guides, practical_test HTML), mirrored under your personal GitHub for convenience. **Not authoritative** - the CCA-F exam isn't public yet. Useful as a reference for community framing, not for citation in your course.
 
 ```powershell
 git clone https://github.com/timothywarner/claude-certified-architect.git C:\github\claude-architect\private\claude-certified-architect-main
 ```
 
-(Adjust the URL if the third-party source moves. If you skip this clone, nothing in the live course breaks.)
+If you skip this clone, nothing in the live course breaks.
 
 ### 2.4 Verify `.gitignore` protects confidential content
 

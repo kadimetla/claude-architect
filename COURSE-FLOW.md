@@ -8,8 +8,8 @@ The 4-hour instructor punchlist for the O'Reilly live training. Skills-first, de
 |---------|----------|-------|-----------------|
 | 1 | 50 min | Building AI Agents That Use Tools | A customer support agent with hook-enforced policy |
 | 2 | 50 min | Tool Design, Integration, and Claude Code Workflows | An audited MCP + CLAUDE.md project configuration |
-| 3 | 50 min | Prompt Engineering and Structured Output | An invoice extractor with schema validation and retry |
-| 4 | 50 min | Context Management, Reliability, and Production Strategy | A production reliability triage scorecard |
+| 3 | 50 min | Structured Output, Context, and Production Reliability | An invoice extractor with retry, plus a triage scorecard |
+| 4 | 50 min | CCA-F Certification Capstone | Cert briefing + 10 weighted practice questions + take-home punchlist |
 
 **Total class time:** 4 hours (4 x 50-min segments + 3 x 10-min breaks).
 
@@ -17,7 +17,7 @@ The 4-hour instructor punchlist for the O'Reilly live training. Skills-first, de
 
 ## Course roadmap
 
-We move outside-in. **Segment 1** builds an **agent** that decides what to do. **Segment 2** drops down into the **tools** that agent uses, and the Claude Code surface where you author them on a real team. **Segment 3** tightens what comes out, with **prompts** and **structured output schemas** that don't lie. **Segment 4** answers the production question: when context windows fill and one bad tool result poisons the chain, what holds the system together.
+We move outside-in. **Segment 1** builds an **agent** that decides what to do. **Segment 2** drops down into the **tools** that agent uses, and the Claude Code surface where you author them on a real team. **Segment 3** tightens what comes out, with **prompts**, **structured output schemas**, and the **context-and-escalation** patterns that keep long sessions honest. **Segment 4** is the **CCA-F certification capstone**: a briefing on Anthropic's exam program plus a weighted practice-question session so you leave knowing your weakest domain.
 
 ## Prerequisites
 
@@ -211,131 +211,52 @@ Anticipated questions:
 
 ---
 
-## Segment 3 - Prompt Engineering and Structured Output
+## Segment 3 - Structured Output, Context, and Production Reliability
 
 **Duration:** 50 minutes (40 content + 5 exercise + 5 Q&A)
-**Maps to:** Domain 4 (Reference: [`./domain-4-prompts.md`](./domain-4-prompts.md))
+**Maps to:** Domain 4 (Reference: [`./domain-4-prompts.md`](./domain-4-prompts.md)) and Domain 5 (Reference: [`./domain-5-context.md`](./domain-5-context.md))
 
 ### Learning objectives
 
 By the end of this segment, attendees will be able to:
 
 - Write **precise prompts** that specify format, edge cases, and missing-data behavior up front
-- Use the **forced-tool-call pattern** to enforce a Pydantic-derived JSON schema on model output
-- Build a **validation + retry loop** that surfaces the error back to the model on `ValidationError`
-- Distinguish failures that **retries fix** (format, parse, schema) from failures that **retries don't fix** (knowledge gaps, ambiguous source data)
+- Use the **forced-tool-call pattern** to enforce a Pydantic-derived JSON schema with a validation + retry ceiling
+- Preserve **case facts** and prune **verbose tool outputs** so long conversations stay coherent
+- Distinguish **explicit human requests** (escalate now) from **sentiment signals** (don't escalate on frustration alone)
 
 ### Topics covered
 
-1. **Precise prompts: explicit criteria and few-shot** (8 minutes)
-   - Be explicit about: **format**, **edge cases**, **what to do if a field is missing**, **what to do if multiple interpretations exist**. The model will pick reasonable defaults; reasonable defaults are not your defaults.
+1. **Precise prompts and the forced-tool-call pattern** (8 minutes)
+   - Be explicit about: **format**, **edge cases**, **what to do if a field is missing**, **what to do if multiple interpretations exist**. The model picks reasonable defaults; reasonable defaults are not your defaults.
    - **Two or three input-output examples** beat almost any temperature change. Few-shot pins behavior more reliably than instructions.
-   - **Anti-pattern callout:** "Be accurate" is not a prompt. It's a wish. Replace with a checklist of acceptance criteria.
+   - The structured-output pattern: define a **Pydantic model** -> convert to **JSON Schema** (Pydantic does this for free) -> register as a tool's `input_schema` -> set `tool_choice: {"type": "tool", "name": "<schema_tool>"}` -> the model must return data matching the schema. `strict: true` enforces validation at the API boundary.
+   - **Anti-pattern callout:** "Be accurate" is not a prompt. It is a wish. Replace with a checklist of acceptance criteria.
 
-2. **JSON schema enforcement via tool use** (7 minutes)
-   - The pattern: define a **Pydantic model** -> convert to **JSON Schema** (Pydantic does this for free) -> register as a tool's `input_schema` -> set `tool_choice: {"type": "tool", "name": "<schema_tool>"}` -> the model must return data matching the schema.
-   - `strict: true` parameter enforces schema validation at the API boundary, so you fail fast on the rare cases where the model tries to drift.
-   - This is the canonical way to get **typed output** out of Claude. No regex, no JSON repair libraries, no praying.
+2. **Case-facts pinning and tool-output pruning** (7 minutes)
+   - **Case-facts block at the top.** Pin the unchanging context (account ID, product, environment) at the start of the conversation. The model attends harder to the top and bottom of the window.
+   - **Summarize early resolved turns.** Once a sub-issue is resolved, replace its turns with a one-line summary. Keep verbatim only the **active issue**.
+   - **Prune verbose tool outputs.** When a tool returns 8KB of JSON and you used three fields, strip the rest before appending to context. The model does not need the noise; your token bill does not need the bloat.
+   - **Compaction as a fallback, not a strategy.** When the window pressure hits, structured summarization preserves case facts verbatim and discards noise. The cookbook notebook `automatic-context-compaction.ipynb` is the reference; run it after class as a self-study lab.
 
-3. **Validation and retry loops; when retries do and don't help** (5 minutes)
-   - **Retries help when:** format errors, JSON parse failures, schema mismatches, missing required fields. The model often "knew" the answer and just got the shape wrong.
-   - **Retries don't help when:** knowledge gaps, genuinely ambiguous source data, hallucinated citations ("et al." with no real source). Looping just burns tokens.
-   - **The pattern:** on `ValidationError`, append the error string back as a user turn ("Your previous response failed validation: X. Return only valid JSON matching the schema."), retry **once**, then escalate.
+3. **Escalation triage** (7 minutes)
+   - **Honor explicit requests for human immediately.** "I want a human NOW" -> escalate. Do **not** ask for clarification first. Do **not** try one more tool call. The customer told you what they want.
+   - **Never escalate on sentiment alone.** Frustration is not complexity. The right signals are **policy** (refund > $500, account closure), **complexity** (multi-system failure), **risk** (security, compliance), and **explicit request**.
+   - **Pass a structured summary on escalation**, not the raw transcript. Human agents do not want to read 40 turns. They want: who, what, what has been tried, what is blocked.
 
-### Demo: Invoice extractor live build (20 minutes)
+### Demo: Invoice extractor with retry loop (18 minutes)
 
 **Live demo:**
-1. Open `C:/github/claude-architect/private/claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` and `tool_use_with_pydantic.ipynb` side by side.
+1. Open `C:/github/claude-architect/private/claude-cookbooks-main/tool_use/extracting_structured_json.ipynb`. Pydantic patterns from `tool_use_with_pydantic.ipynb` get referenced inline; one notebook on screen keeps the demo tight.
 2. Build a Pydantic `Invoice` model with required fields (`invoice_number`, `vendor`, `total`) and `Optional[]` fields (`po_number`, `notes`, `due_date`). Show the auto-generated JSON Schema.
 3. Register the schema as a tool. Set `tool_choice: {"type": "tool", "name": "extract_invoice"}`. Model **must** call this tool.
 4. Run on three sample invoices in order:
    - **Clean invoice:** all fields present. Schema validates first try. Show the typed `Invoice` object.
    - **Missing one field:** no PO number. The `Optional[str]` field comes back `None`. No retry needed. Schema is doing the work.
    - **Ambiguous line item:** a hand-written charge that could be parsed two ways. First pass fails validation. Catch the `ValidationError`. Append the error back as a user turn. Retry. Second pass succeeds.
-5. Show the loop ceiling: hard-code `max_retries = 1`. Demonstrate that without the ceiling, a genuinely bad source document burns 20 calls in a row.
+5. Show the loop ceiling: hard-code `max_retries = 1`. Without the ceiling, a genuinely bad source document burns 20 calls in a row.
 
-**What attendees see:** Structured output isn't magic. It's a tool definition, a forced `tool_choice`, and a small validation loop with a ceiling. Once you wire it once, you copy the pattern.
-
-### Exercise (5 minutes)
-**Prompt:** Design a Pydantic schema for an **extraction task of your choice** (resume parser, expense report, support ticket - dealer's choice). Use **`Optional[]`** for nullable fields. Use **`Literal["high","medium","low"]`** for a `confidence` field so the model is forced to self-report when it's guessing.
-**Deliverable:** Paste the Pydantic class in chat. Five fields minimum, at least one Optional, at least one Literal.
-
-### Q&A (5 minutes)
-
-Anticipated questions:
-- "Can I use this for arbitrarily nested schemas?" -> Yes, Pydantic handles nesting and JSON Schema handles nesting. The model handles 2-3 levels well. Past that, split into two extraction calls.
-- "What about streaming structured output?" -> You can stream the tool_use deltas, but you validate at the end. Don't try to parse partial JSON.
-- "When should I prefer a regex over schema extraction?" -> When the format is deterministic (phone numbers, ISO dates). Don't pay the model to do what `re` does in microseconds.
-
-### Key takeaways
-- **Precise prompts plus few-shot** beat temperature tuning every time.
-- **Forced tool calls + Pydantic schemas** are the canonical structured output pattern.
-- **Retry once on validation errors**, escalate on knowledge gaps. Loops without ceilings burn tokens and your goodwill.
-
-### Bridge to Segment 4
-> "We have agents, tools, prompts. Production is where context windows fill up and one bad tool result poisons the chain. Last segment is about not breaking when scale arrives."
-
----
-
-## Segment 4 - Context Management, Reliability, and Production Strategy
-
-**Duration:** 50 minutes (40 content + 5 exercise + 5 Q&A)
-**Maps to:** Domain 5 (Reference: [`./domain-5-context.md`](./domain-5-context.md))
-
-### Learning objectives
-
-By the end of this segment, attendees will be able to:
-
-- Preserve **case facts** and prune **verbose tool outputs** so long conversations stay coherent
-- Distinguish **explicit human requests** (escalate now) from **sentiment signals** (don't escalate on frustration alone)
-- Design **error propagation** so subagents return structured context and the coordinator decides retry / fail / escalate
-- Preserve **provenance** in synthesis tasks so every claim ties back to a source
-
-### Topics covered
-
-1. **Context preservation across long interactions** (8 minutes)
-   - **Case-facts block at the top.** Pin the unchanging context (account ID, product, environment) at the start of the conversation. The model attends harder to the top and bottom of the window.
-   - **Summarize early resolved turns.** Once a sub-issue is resolved, replace its turns with a one-line summary. Keep verbatim only the **active issue**.
-   - **Prune verbose tool outputs.** When a tool returns 8KB of JSON and you only used three fields, strip the rest before appending to context. The model doesn't need the noise; your token bill doesn't need the bloat.
-
-2. **Escalation design** (7 minutes)
-   - **Honor explicit requests for human immediately.** "I want a human NOW" -> escalate. Do **not** ask for clarification first. Do **not** try one more tool call. Customer told you what they want.
-   - **Never escalate on sentiment alone.** Frustration is not complexity. The right signals are **policy** (refund > $500, account closure), **complexity** (multi-system failure), **risk** (security, compliance), and **explicit request**.
-   - **Pass a structured summary on escalation**, not the raw transcript. Human agents don't want to read 40 turns. They want: who, what, what's been tried, what's blocked.
-
-3. **Error propagation in multi-agent systems** (5 minutes)
-   - **Subagents return structured error context.** Use the same `errorCategory` + `isRetryable` shape from Segment 2.
-   - **The parent coordinator decides** retry / fail / escalate. Subagents don't retry across system boundaries; that's the parent's job.
-   - **Never silently suppress errors.** Swallowing an exception so the demo doesn't crash is how you ship a system that lies confidently.
-
-4. **Provenance and source attribution** (5 minutes)
-   - **Synthesis agents must preserve claim-source mappings** from subagents. If a subagent fetched a doc, the claim that comes out of synthesis cites that doc.
-   - **Cite publication dates** when synthesizing across time-sensitive sources. A 2019 best practice and a 2025 best practice are not the same artifact.
-   - **Anti-pattern callout:** "According to recent research..." with no link is a fabrication waiting to happen.
-
-### Demo: Automatic context compaction (10 minutes)
-
-**Live demo:**
-1. Open `C:/github/claude-architect/private/claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb`.
-2. Run a long conversation (15+ turns) with deliberately verbose tool outputs. Watch the context-window meter climb.
-3. Trigger the compaction event. Show the before/after token counts and the summarization output.
-4. Run a follow-up query that depends on something from turn 2. Verify it still works post-compaction. This is the **memory survives compaction** moment.
-
-**What attendees see:** Compaction is not magic forgetting. It's structured summarization with the **case facts** preserved verbatim. Done right, the model loses noise and keeps signal.
-
-### About the CCA-F certification (2 minutes)
-
-> Anthropic's **Claude Certified Architect: Foundations (CCA-F)** exam isn't publicly available yet. When it lands, here's the 5-domain blueprint to study against. The reference files in this repo map today's skills back to those domains.
-
-| Domain | Topic | Reference file |
-|--------|-------|----------------|
-| 1 | Agentic Architecture & Orchestration | [`./domain-1-agentic.md`](./domain-1-agentic.md) |
-| 2 | Tool Design & MCP Integration | [`./domain-2-tools-mcp.md`](./domain-2-tools-mcp.md) |
-| 3 | Claude Code Configuration & Workflows | [`./domain-3-claude-code.md`](./domain-3-claude-code.md) |
-| 4 | Prompt Engineering & Structured Output | [`./domain-4-prompts.md`](./domain-4-prompts.md) |
-| 5 | Context Management & Reliability | [`./domain-5-context.md`](./domain-5-context.md) |
-
-Tim hasn't sat the exam yet. Frame it as "here's the structure to study when it lands." Watch the certification page for availability.
+**What attendees see:** Structured output is not magic. It is a tool definition, a forced `tool_choice`, and a small validation loop with a ceiling. Once you wire it, you copy the pattern.
 
 ### Exercise: Triage scorecard (5 minutes)
 
@@ -352,19 +273,95 @@ Tim hasn't sat the exam yet. Frame it as "here's the structure to study when it 
 - (a) Tighten **tool descriptions** and/or **scope tools per agent**; consider `tool_choice` to force the right call.
 - (b) **Application-layer intercept** via a **PreToolUse hook**, not a prompt instruction. Policy is code, not vibes.
 - (c) **Require structured claim-source mappings** from subagents; coordinator preserves them through synthesis.
-- (d) **Escalate on policy, complexity, risk, or explicit request - not on sentiment.** Frustration is not a routing signal.
+- (d) **Escalate on policy, complexity, risk, or explicit request, not on sentiment.** Frustration is not a routing signal.
 
-### Final Q&A and wrap (8 minutes)
+### Q&A (5 minutes)
 
 Anticipated questions:
-- "How do I monitor an agent in production?" -> Log every `stop_reason`, every tool call, every hook block. Build a dashboard on those three streams before you ship.
-- "When do I split a monolithic agent into coordinator + subagents?" -> When subtasks have independent success criteria, when context bloat hurts answer quality, or when you want per-agent tool scope. Don't split for theoretical purity.
-- "What's the cost story for prompt caching?" -> `cache_control: {"type": "ephemeral", "ttl": "5m"}` on system prompts and large tool definitions. Hits run roughly 90% cheaper. Run the math before assuming caching is free; cache writes cost more than reads.
+- "Can I use forced tool calls for arbitrarily nested schemas?" -> Yes. Pydantic handles nesting, JSON Schema handles nesting. The model handles 2-3 levels well. Past that, split into two extraction calls.
+- "When should I prefer regex over schema extraction?" -> When the format is deterministic (phone numbers, ISO dates). Do not pay the model to do what `re` does in microseconds.
+- "How aggressive should I be with tool-output pruning?" -> Strip anything you did not consume. If a downstream turn needs it, fetch it again. Tokens you saved are tokens you can spend on better reasoning.
 
 ### Key takeaways
-- **Long-running context** survives via case-facts pinning, summarization of resolved turns, and pruning verbose tool outputs.
-- **Escalation** triggers on policy, complexity, risk, or explicit request. Sentiment is not a signal.
-- **Provenance and structured errors** travel up from subagents to the coordinator. Silent suppression is a production bug.
+- **Forced tool calls + Pydantic schemas + a max-retry ceiling** are the canonical structured output pattern.
+- **Case-facts pinning + tool-output pruning** keep long conversations coherent without burning tokens. Compaction (`automatic-context-compaction.ipynb`) is the post-class self-study lab.
+- **Escalation triggers on policy, complexity, risk, or explicit request.** Sentiment is not a signal.
+- Further self-study: [`./domain-5-context.md`](./domain-5-context.md) covers error propagation, provenance preservation, and confidence calibration that this segment did not have time for.
+
+### Bridge to Segment 4
+> "You now have the skills. The exam is how you signal them. Last segment is the certification debrief: what's on it, what Anthropic expects, and ten practice questions to calibrate where you stand."
+
+---
+
+## Segment 4 - CCA-F Certification Capstone
+
+**Duration:** 50 minutes (12 briefing + 28 practice questions + 10 Q&A and close)
+**Maps to:** All five CCA-F domains. References [`./CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md) and [`./PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md).
+
+### Learning objectives
+
+By the end of this segment, attendees will be able to:
+
+- Name the **CCA-F exam mechanics** (60 questions, 120 minutes, $99, one attempt, 720 passing score)
+- Recall the **five domain weights** and which two account for 38% of the score
+- Identify their **weakest domain** based on the live practice-question session and what to study before sitting the exam
+- Build their own **week-before-the-exam punchlist** from the briefing template
+
+### Cert program briefing (12 minutes)
+
+**Live delivery:** Tim freestyles over [`./CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md) projected on screen. Hit these load-bearing facts at minimum:
+
+1. **What CCA-F is.** Anthropic's first official certification. ~301 level. Targets architects already shipping with the Agent SDK, Claude Code, Claude API, and MCP.
+2. **Exam mechanics.** 60 multiple-choice. 120 minutes. Single session. No breaks. Scaled 100-1000, **passing is 720**, no penalty for guessing. ProctorFree, English, results in 2 business days.
+3. **Cost and access.** $99. Currently restricted to Anthropic partners (claude.com/partners). **One attempt only** - this is the policy that catches people.
+4. **Scenario structure.** Pool of 6 scenarios, exam draws 4 at random. Each scenario frames a set of questions in a realistic production context.
+5. **Domain weights.** D1 (Agentic) 27%, D3 (Claude Code) 20%, D4 (Prompts) 20%, D2 (Tools/MCP) 18%, D5 (Context) 15%. The 27% domain is the biggest single lever.
+6. **The prep stack.** Four free Anthropic Academy courses (Claude 101, Building with the API, Intro to MCP, Claude Code in Action), the Exam Guide PDF (downloaded after registering), and the Anthropic Practice Exam (target >900/1000 before scheduling).
+7. **Tim's week-before punchlist.** Walk the cohort through the 13-item checklist at the end of the briefing.
+
+Encourage cohort to download the briefing from the repo and use the punchlist verbatim.
+
+### Practice questions: weighted live sample (28 minutes)
+
+**Setup:** Open `C:/github/claude-architect/private/claude-certified-architect-main/practical_test_en.html` in a browser tab. The UI has a scoreboard and per-question reveal; use it for live delivery. Cohort gets the full 60-question [`./PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) as take-home.
+
+**Source disclaimer to read aloud once:** "These questions are community-sourced from Paul Larionov's study repo. They are calibration practice, not exam predictors. Treat them as a self-assessment, not a guarantee."
+
+**Question count selected for live: 10**, weighted to mirror the exam blueprint:
+
+| Domain | Live questions | Why this count |
+|---|---|---|
+| D1 Agentic Architecture | 3 | 27% weight, biggest lever |
+| D2 Tool Design + MCP | 2 | 18% weight |
+| D3 Claude Code | 2 | 20% weight, combines with D2 for the 38% block |
+| D4 Prompts + Structured Output | 2 | 20% weight |
+| D5 Context + Reliability | 1 | 15% weight, also touched in Segment 3 |
+
+**Delivery format per question** (target ~2.5 minutes each):
+1. Read the situation aloud. Display the question and four options.
+2. Cohort votes A/B/C/D in chat. Give 30 seconds.
+3. Reveal the correct answer. Walk through why the distractors are plausible-but-wrong.
+4. Color the correct answer with a production tip from the matching `domain-N-*.md` reference file.
+
+**Selection rule:** pick questions where the explanation transfers a load-bearing concept, not trivia. Skip questions whose answers depend on memorizing a specific config flag; favor questions that test architectural judgment. The 10 chosen questions get logged in the rehearsal pass; mark them in `PRACTICE-QUESTIONS.md` margin notes if useful.
+
+### Final Q&A and course close (10 minutes)
+
+Anticipated questions to invite:
+
+- "How do I monitor an agent in production?" -> Log every `stop_reason`, every tool call, every hook block. Build a dashboard on those three streams before you ship.
+- "When do I split a monolithic agent into coordinator + subagents?" -> When subtasks have independent success criteria, when context bloat hurts answer quality, or when you want per-agent tool scope. Do not split for theoretical purity.
+- "What is the cost story for prompt caching?" -> `cache_control: {"type": "ephemeral", "ttl": "5m"}` on system prompts and large tool definitions. Hits run roughly 90% cheaper. Run the math before assuming caching is free; cache writes cost more than reads.
+- "How do I know when I am ready to sit the exam?" -> When the Anthropic Practice Exam scores >900/1000 cold, and when you can rebuild Demo 1 from memory in 30 minutes.
+- "What is the renewal path?" -> Anthropic reserves the right to retire and refresh exams. Per the public Exam Policy, certifications tied to beta products may expire when the production exam goes live. Watch the cert page.
+
+**Close with:** "You came in to learn Claude architecture. You leave with skills mapped to five exam domains, a cert briefing, 60 practice questions, and a week-before punchlist. The exam is one signal. The skills are the product. Go ship something that does not lie."
+
+### Key takeaways
+- **CCA-F is 60 questions / 120 minutes / 720 passing / one attempt.** Plan the prep accordingly.
+- **D1 + D3 + D4 = 67% of the exam.** D2 is 18%, D5 is 15%. Weight your study time the same way.
+- **Practice with the Anthropic Practice Exam, not just community questions.** Target >900/1000 before scheduling.
+- **`CERT-PROGRAM-BRIEFING.md` is your take-home.** The week-before punchlist tells you exactly what to do.
 
 ---
 
@@ -377,34 +374,14 @@ Anticipated questions:
 - [x] An **invoice extraction pipeline** with schema enforcement and validation retry
 - [x] A **production reliability mental model**: context, escalation, errors, provenance
 
-### About the CCA-F certification (2-minute mention)
-
-Anthropic's **Claude Certified Architect: Foundations** exam isn't publicly available yet. When it lands, here's the 5-domain blueprint to study against:
-
-| Domain | Topic | Reference file |
-|--------|-------|----------------|
-| 1 | Agentic Architecture & Orchestration | [`./domain-1-agentic.md`](./domain-1-agentic.md) |
-| 2 | Tool Design & MCP Integration | [`./domain-2-tools-mcp.md`](./domain-2-tools-mcp.md) |
-| 3 | Claude Code Configuration & Workflows | [`./domain-3-claude-code.md`](./domain-3-claude-code.md) |
-| 4 | Prompt Engineering & Structured Output | [`./domain-4-prompts.md`](./domain-4-prompts.md) |
-| 5 | Context Management & Reliability | [`./domain-5-context.md`](./domain-5-context.md) |
-
-This course teaches the **skills behind those domains**. The reference files map skills back to exam objectives when you're ready.
-
 ### Taking it further
 
-1. **This week:** wire one of today's agents into a real production workflow. Don't let the demo code die in a notebook.
+1. **This week:** wire one of today's agents into a real production workflow. Do not let the demo code die in a notebook.
 2. **Next:** read the 5 domain reference files in this repo for deeper dives on each area.
-3. **Ongoing:** watch Anthropic's certification page for exam availability: https://anthropic.skilljar.com/
+3. **Toward the exam:** work through [`./CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md), take the Anthropic Practice Exam (target >900/1000), then schedule. Remember it is one attempt only.
+4. **Calibration practice:** use [`./PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) (community-sourced, calibration only) to self-assess between Anthropic Practice Exam attempts.
 
-### Final Q&A
-
-Standing questions to invite:
-- "How do I monitor an agent in production?"
-- "When do I split a monolithic agent?"
-- "What's the cost story for prompt caching?"
-
-Thanks for spending four hours. Now go ship something that doesn't lie.
+Thanks for spending four hours. Now go ship something that does not lie.
 
 Next Best Steps:
 1) Walk the four demos end-to-end on your laptop before class to time them against the segment budgets.

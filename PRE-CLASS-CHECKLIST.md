@@ -104,17 +104,41 @@
   ```
   **Expect:** `True`
 
-- [ ] **Segment 3 Pydantic notebook**
+- [ ] **Pydantic notebook (reference only, not live)**
   ```powershell
   Test-Path C:/github/claude-architect/private/claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb
   ```
-  **Expect:** `True`
+  **Expect:** `True`. Pydantic patterns are referenced inline in the Segment 3 demo; the notebook itself is not opened live.
 
-- [ ] **Segment 4 compaction notebook**
+- [ ] **Compaction notebook (self-study reference, not live)**
   ```powershell
   Test-Path C:/github/claude-architect/private/claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb
   ```
-  **Expect:** `True`
+  **Expect:** `True`. Demoted from live demo in the restructure; linked from Segment 3 Key Takeaways for cohort self-study after class.
+
+- [ ] **CCA-F cert briefing exists**
+  ```powershell
+  Test-Path C:/github/claude-architect/CERT-PROGRAM-BRIEFING.md
+  ```
+  **Expect:** `True`. Tim talks over this live during the Segment 4 cert capstone (12 min block).
+
+- [ ] **Practice questions Markdown exists**
+  ```powershell
+  Test-Path C:/github/claude-architect/PRACTICE-QUESTIONS.md
+  ```
+  **Expect:** `True`. The 60-question cohort take-home file.
+
+- [ ] **Practice questions JSON parses to 60 entries**
+  ```powershell
+  python -c "import json; print(len(json.load(open(r'C:/github/claude-architect/practice-questions.json', encoding='utf-8'))))"
+  ```
+  **Expect:** `60`
+
+- [ ] **Live practice-question UI loads** (the community HTML used live in Segment 4)
+  ```powershell
+  Test-Path C:/github/claude-architect/private/claude-certified-architect-main/practical_test_en.html
+  ```
+  **Expect:** `True`. Open in a browser tab before Segment 4 starts.
 
 ## 5. MCP configuration
 
