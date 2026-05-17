@@ -1,48 +1,65 @@
-# Claude Architect: Foundations Live Training
+# Claude Architect Foundations - O'Reilly Live Training
 
-Reference architectures, code examples, and practice scenarios for the **Claude Architect** role. This 4-hour intensive covers the five core competency areas that define a production-ready Claude Architect: agentic orchestration, tool design with MCP, Claude Code workflows, prompt engineering, and context management.
+Reference architectures, code examples, and practice scenarios for the **Claude Architect** role. This 4-hour O'Reilly Media live training is **skills-first**: it teaches the production patterns that define a Claude Architect (agentic orchestration, tool design with MCP, Claude Code workflows, prompt engineering, context management) and describes the CCA-F certification structure without teaching to specific exam items.
 
-## What Is a Claude Architect?
+> The Claude Certified Architect: Foundations (CCA-F) exam from Anthropic is not yet publicly available. The five reference files in this repo map to the published 5-domain exam blueprint, so you have the study scaffold ready for when the exam ships.
 
-The Claude Architect is an emerging job role focused on designing and building production-grade applications with Claude Code, the Claude Agent SDK, the Claude API, and Model Context Protocol (MCP). Organizations across the Claude Partner Network — including Accenture, Deloitte, and Cognizant — are hiring for this skillset.
+## What is a Claude Architect?
 
-## Core Competency Areas
+The Claude Architect is an emerging job role focused on designing and building production-grade applications with Claude Code, the Claude Agent SDK, the Claude API, and Model Context Protocol (MCP). Organizations across the Claude Partner Network are hiring for this skillset.
 
-| Competency | Focus |
-|------------|-------|
-| Agentic Architecture & Orchestration | Agentic loops, multi-agent coordination, hooks, session management |
-| Tool Design & MCP Integration | Tool descriptions, structured errors, scoped tool distribution, MCP config |
-| Claude Code Configuration & Workflows | CLAUDE.md hierarchy, slash commands, skills, plan mode, CI/CD integration |
-| Prompt Engineering & Structured Output | Explicit criteria, few-shot prompting, tool_use with JSON schemas, batch API |
-| Context Management & Reliability | Context preservation, escalation patterns, error propagation, provenance |
+## Course at a glance
 
-## Repository Structure
+| Segment | Duration | Topic | Key deliverable |
+|---|---|---|---|
+| 1 | 50 min | Building AI Agents That Use Tools | Customer support agent with hook-enforced policy |
+| 2 | 50 min | Tool Design, Integration, and Claude Code Workflows | MCP config walkthrough + Claude Code hierarchy demo |
+| 3 | 50 min | Prompt Engineering and Structured Output | Invoice extractor with Pydantic + validation retry |
+| 4 | 50 min | Context Management, Reliability, and Production Strategy | Compaction demo + production triage exercise |
+
+Total: 4 hours (4 × 50-min segments + 3 × 10-min breaks). Instructors and learners should start at **[COURSE-FLOW.md](./COURSE-FLOW.md)**.
+
+## Core competency areas
+
+| Domain | Reference file | Focus |
+|---|---|---|
+| 1 - Agentic Architecture & Orchestration | [domain-1-agentic.md](./domain-1-agentic.md) | Agentic loops, multi-agent coordination, hooks, session management |
+| 2 - Tool Design & MCP Integration | [domain-2-tools-mcp.md](./domain-2-tools-mcp.md) | Tool descriptions, structured errors, scoped distribution, MCP config |
+| 3 - Claude Code Configuration & Workflows | [domain-3-claude-code.md](./domain-3-claude-code.md) | CLAUDE.md hierarchy, skills, slash commands, plan mode, CI/CD |
+| 4 - Prompt Engineering & Structured Output | [domain-4-prompts.md](./domain-4-prompts.md) | Explicit criteria, few-shot prompting, JSON schemas via tool use, batch API |
+| 5 - Context Management & Reliability | [domain-5-context.md](./domain-5-context.md) | Context preservation, escalation, error propagation, provenance |
+
+## Repository layout
 
 ```text
 claude-architect/
-├── domain-1-agentic.md          # Reference: Agentic Architecture & Orchestration
-├── domain-2-tools-mcp.md        # Reference: Tool Design & MCP Integration
-├── domain-4-prompts.md          # Reference: Claude Code Configuration & Workflows
-├── domain-5-context.md          # Reference: Context Management & Reliability
-├── hooks-example.py             # Agent SDK hooks: compliance enforcement, data normalization
-├── testing.md                   # Coordinator-subagent pattern: multi-agent orchestration
-├── scenario-cicd-integration.md # Codebase analysis skill with frontmatter config
-├── SKILL.md                     # Example SKILL.md with context:fork and allowed-tools
-├── CLAUDE.md                    # Claude Code project instructions
-├── CLAUDE.md.example            # Template showing CLAUDE.md best practices
-├── settings.json                # VS Code workspace settings
-├── markdownlint.json            # Markdown linting configuration
-└── package.json                 # Project metadata and Anthropic SDK dependencies
+├── INSTRUCTOR-SETUP.md         # Multi-day setup arc (machine config, env vars, repo clone, backup plans)
+├── COURSE-FLOW.md              # Master instructor punchlist (4 segments × 50 min)
+├── PRE-CLASS-CHECKLIST.md      # Instructor pre-flight (PowerShell, 35 checks)
+├── domain-1-agentic.md         # Reference: Agentic Architecture & Orchestration
+├── domain-2-tools-mcp.md       # Reference: Tool Design & MCP Integration
+├── domain-3-claude-code.md     # Reference: Claude Code Configuration & Workflows
+├── domain-4-prompts.md         # Reference: Prompt Engineering & Structured Output
+├── domain-5-context.md         # Reference: Context Management & Reliability
+├── .mcp.json                   # Segment 2 Demo A anchor (4 servers, 3 transports)
+├── hooks-example.py            # Agent SDK hooks: compliance enforcement
+├── testing.md                  # Coordinator-subagent test patterns
+├── scenario-cicd-integration.md # Codebase analysis skill with frontmatter
+├── SKILL.md                    # Example slash-command / skill definition
+├── CLAUDE.md                   # Claude Code project instructions for this repo
+└── scripts/
+    ├── voice-lint.ps1          # Enforce Tim's voice rules across all MD files
+    └── preflight.ps1           # Instructor pre-flight automation (mirrors PRE-CLASS-CHECKLIST)
 ```
 
-## Getting Started
+## Getting started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+ (for Anthropic SDK examples)
-- [Python](https://www.python.org/) 3.11+ (for hook and agent examples)
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed and authenticated
-- An [Anthropic API key](https://console.anthropic.com/)
+- [Node.js](https://nodejs.org/) 18+ for Anthropic SDK examples
+- [Python](https://www.python.org/) 3.13+ for hooks and cookbook notebooks
+- [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed and authenticated
+- An [Anthropic API key](https://console.anthropic.com/) set as `ANTHROPIC_API_KEY`
 
 ### Setup
 
@@ -52,72 +69,63 @@ cd claude-architect
 npm install
 ```
 
-### Recommended Learning Path
+### Recommended learning path
 
-1. **Read the reference guides** — Start with Agentic Architecture (the highest-demand competency), then work through Claude Code Workflows, Prompt Engineering, Tool Design & MCP, and Context Management.
-2. **Review the code examples** — `hooks-example.py` and `testing.md` demonstrate key production patterns.
-3. **Explore the configuration templates** — `CLAUDE.md.example`, `SKILL.md`, and `scenario-cicd-integration.md` show real Claude Code configuration patterns.
-4. **Practice hands-on** — Build an agent with the Claude Agent SDK. Configure Claude Code for a project. Design MCP tools. Applied judgment beats memorization every time.
+1. **Read [COURSE-FLOW.md](./COURSE-FLOW.md)** for the full 4-segment teaching arc.
+2. **Walk the five `domain-*.md` reference files** in order. Each maps to a course segment and points at runnable cookbook notebooks.
+3. **Run the demo notebooks** in your own environment. The course depends on Anthropic's official cookbooks (`private/claude-cookbooks-main/`).
+4. **Build something.** The reference architectures only land when you wire one of these patterns into a real workflow.
 
-## Practice Scenarios
+## Practice scenarios
 
-Each scenario frames a realistic production context that a Claude Architect would encounter:
+Each scenario frames a realistic production context that a Claude Architect would encounter. These map to the six exam scenarios in the CCA-F blueprint:
 
-| # | Scenario | Primary Competencies |
-|---|----------|---------------------|
-| 1 | Customer Support Resolution Agent | Agentic Architecture, Tool Design, Context Management |
-| 2 | Code Generation with Claude Code | Claude Code Workflows, Context Management |
-| 3 | Multi-Agent Research System | Agentic Architecture, Tool Design, Context Management |
-| 4 | Developer Productivity with Claude | Tool Design, Claude Code Workflows, Agentic Architecture |
-| 5 | Claude Code for Continuous Integration | Claude Code Workflows, Prompt Engineering |
-| 6 | Structured Data Extraction | Prompt Engineering, Context Management |
+| # | Scenario | Primary competencies |
+|---|---|---|
+| 1 | Customer Support Resolution Agent | Domains 1, 2, 5 |
+| 2 | Claude Code for Software Development | Domains 3, 5 |
+| 3 | Multi-Agent Research System | Domains 1, 2, 5 |
+| 4 | Developer Productivity Tooling | Domains 1, 2, 3 |
+| 5 | CI/CD Integration with Claude Code | Domains 3, 4 |
+| 6 | Structured Data Extraction Pipeline | Domains 4, 5 |
 
-## Key Concepts Quick Reference
+## Key concepts quick reference
 
-### Agentic Loop
+### Agentic loop
 
+```text
+Send request -> Check stop_reason -> "tool_use"? Execute tool, append tool_result, loop
+                                  -> "end_turn"? Done
+                                  -> "pause_turn"? Resume in next request
 ```
-Send request -> Check stop_reason -> "tool_use"? Execute tool, loop back
-                                  -> "end_turn"? Present response, done
-```
 
-### Tool Selection
+### Tool selection
 
-- **Descriptions drive selection** — detailed descriptions > clever tool names
-- **4-5 tools per agent max** — more tools = worse selection reliability
-- **Structured errors** — `errorCategory`, `isRetryable`, human-readable message
+- **Descriptions drive selection.** Detailed descriptions beat clever tool names.
+- **Cap at 4-5 tools per agent.** More tools degrade selection accuracy.
+- **Structured errors as tool_result content.** Never raise exceptions from tool implementations.
 
-### Claude Code Config
+### Claude Code configuration
 
-- **User-level** `~/.claude/CLAUDE.md` — personal, not shared
-- **Project-level** `.claude/CLAUDE.md` or root — team-wide, committed
-- **Path rules** `.claude/rules/*.md` with YAML frontmatter `paths` globs
-- **CI/CD** — use `-p` flag for non-interactive mode
+- **User-level** `~/.claude/CLAUDE.md` for personal defaults
+- **Project-level** `./CLAUDE.md` at repo root for team conventions
+- **Subtree** `<subdir>/CLAUDE.md` loads on demand
+- **`claude -p`** for headless / CI/CD usage
 
-### Structured Output
+### Structured output
 
-- **`tool_use` with JSON schemas** = guaranteed schema compliance (no syntax errors)
-- **`tool_choice: "any"`** = force tool call (no conversational text)
-- **Few-shot examples** = most effective technique for consistent output
+- **`tool_use` with JSON schema = guaranteed schema compliance.** Define output as a tool's `input_schema`, force the model to call it with `tool_choice: {"type": "tool", "name": "..."}`.
+- **Few-shot examples > temperature.** Two or three input-output pairs beat tuning sampling parameters.
 
-### Context & Reliability
+### Context and reliability
 
-- Extract facts into persistent "case facts" block
-- Trim verbose tool outputs before they accumulate
-- Escalate on: customer request, policy gaps, no progress. Not on: sentiment, self-reported confidence.
+- Pin case-facts at the top of long sessions
+- Summarize resolved turns; keep verbatim history only for the active issue
+- Escalate on explicit human request, policy gaps, or low confidence - never on sentiment alone
 
-## Recommended Learning
+## About the instructor
 
-Complete these Anthropic Academy courses to build your Claude Architect foundation:
-
-- Building with the Claude API
-- Introduction to Model Context Protocol
-- Claude Code in Action
-- Claude 101
-
-## About the Instructor
-
-**Tim Warner** is a technical trainer and content creator specializing in cloud and AI technologies. He delivers live training, writes production-focused learning materials, and builds hands-on labs that make complex concepts accessible.
+**Tim Warner** is a technical trainer and content creator specializing in cloud and AI technologies. Microsoft MVP (Azure AI), Pluralsight Principal Author (200+ courses, 1M+ learners), Microsoft Press / Pearson senior content developer, O'Reilly Live Learning instructor.
 
 - Web: [TechTrainerTim.com](https://techtrainertim.com)
 - Email: [tim@techtrainertim.com](mailto:tim@techtrainertim.com)
@@ -125,8 +133,8 @@ Complete these Anthropic Academy courses to build your Claude Architect foundati
 
 ## Contributing
 
-Contributions are welcome. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+MIT - see [LICENSE](LICENSE).

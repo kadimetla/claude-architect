@@ -1,13 +1,27 @@
 {
-  "name": "cca-f",
+  "name": "claude-architect",
   "version": "1.0.0",
-  "description": "Claude Certified Architect: Foundations (CCA-F) Crash Course materials",
+  "description": "Reference materials and demo assets for the Claude Architect Foundations 4-hour O'Reilly live training",
   "scripts": {
-    "test": "echo \"Run practice scenarios in the practice-scenarios/ directory\""
+    "lint:voice": "pwsh -NoProfile -File ./scripts/voice-lint.ps1",
+    "preflight": "pwsh -NoProfile -File ./scripts/preflight.ps1"
   },
-  "keywords": ["claude", "anthropic", "certification", "mcp", "agent-sdk", "claude-code"],
+  "keywords": [
+    "claude",
+    "anthropic",
+    "claude-architect",
+    "mcp",
+    "claude-agent-sdk",
+    "claude-code",
+    "oreilly",
+    "live-training"
+  ],
   "author": "Tim Warner <tim@techtrainertim.com> (https://techtrainertim.com)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timothywarner-org/claude-architect.git"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "@modelcontextprotocol/sdk": "^1.12.0"
