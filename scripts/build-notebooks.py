@@ -12,6 +12,7 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
 import sys
 from pathlib import Path
 
@@ -50,11 +51,16 @@ def _build_one(slug: str) -> Path:
         },
         "language_info": {"name": "python"},
     })
-    for kind, source in cells:
+    for index, (kind, source) in enumerate(cells):
+        # Deterministic cell IDs prevent phantom git diffs on rebuild.
+        # Per nbformat spec, cell IDs are 1-64 chars, [a-zA-Z0-9_-].
+        cell_id = hashlib.sha256(
+            f"{slug}:{index}:{source}".encode("utf-8")
+        ).hexdigest()[:16]
         if kind == "md":
-            nb.cells.append(new_markdown_cell(source))
+            nb.cells.append(new_markdown_cell(source, id=cell_id))
         elif kind == "code":
-            nb.cells.append(new_code_cell(source))
+            nb.cells.append(new_code_cell(source, id=cell_id))
         else:
             raise ValueError(f"unknown cell kind: {kind!r}")
     out = NB_DIR / f"{slug}.ipynb"

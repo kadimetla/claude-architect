@@ -1,4 +1,4 @@
-# NOTICE — Vendored copy of Anthropic Claude Cookbooks
+# NOTICE - Vendored copy of Anthropic Claude Cookbooks
 
 This directory (`claude-cookbooks-main/`) is a **vendored copy of Anthropic's official Claude Cookbooks**, distributed under the MIT License. It is **not authored by Tim Warner** and is **not part of the original work** in the `claude-architect` repository.
 
@@ -25,7 +25,7 @@ The MIT License (full text in `./LICENSE`) requires that the copyright notice an
 - **You can read, run, modify, and redistribute** these notebooks under MIT.
 - **Credit Anthropic** for the original work in any redistribution.
 - **Treat these notebooks as authoritative** for the Claude API and Agent SDK patterns they demonstrate. They are written by Anthropic engineers.
-- **Treat the `notebooks/` directory at the repo root as the course content** — those are Tim Warner's teaching notebooks, written specifically for the Claude Architect Foundations training.
+- **Treat the `notebooks/` directory at the repo root as the course content.** Those are Tim Warner's teaching notebooks, written specifically for the Claude Architect Foundations training.
 
 ## Refreshing this snapshot
 
