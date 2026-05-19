@@ -26,6 +26,10 @@ The repo ships these artifacts:
 - `scripts/extract-practice-questions.py` - build-time extractor that regenerates the two practice-question files from the upstream HTML
 - `.mcp.json` - Segment 2 MCP config anchor (4 servers, 3 transports, env-var expansion)
 - `hooks-example.py` - real PreToolUse / PostToolUse reference cited from Segment 1
+- `coordinator-subagent-sketch.py` - Domain 1 coordinator-subagent scaffold (renamed from the old `testing.md`)
+- `examples/mcp_cli/` - vendored reference MCP CLI app from Anthropic's Skilljar course (Segment 2 anchor; separate uv project with its own `pyproject.toml`, `uv.lock`, and `.python-version` pinning 3.13). Attribution in `examples/mcp_cli/NOTICE.md`.
+- `claude-cookbooks-main/` - vendored copy of Anthropic's official Claude Cookbooks (MIT, Copyright (c) 2023 Anthropic). Attribution in `claude-cookbooks-main/NOTICE.md`.
+- `slides/warner-claude-architect-may-2026.pptx` - course deck, built by `scripts/build-deck.py`
 
 ## How this repo bootstraps (read before running anything)
 
@@ -97,7 +101,7 @@ Expect zero matches. The 2026-05-16 build leaked 18 em dashes into `domain-2-too
 |---|---|
 | Shell | **PowerShell 7+** (Bash only as fallback) |
 | OS | **Windows 11** (the live training runs here) |
-| Runtime | **Node.js 18+** for SDK examples, **Python 3.13+** (verified on 3.14.4) for notebooks |
+| Runtime | **Node.js 18+** for SDK examples, **Python 3.13+** for notebooks (`examples/mcp_cli/` pinned to 3.13 via `.python-version` because the committed `jiter` wheel has no 3.14 build) |
 | Cloud | **Azure** when cloud comes up |
 
 ## What NOT to commit
@@ -146,17 +150,19 @@ python -c "import json; print(len(json.load(open('practice-questions.json', enco
 python scripts/build-notebooks.py
 
 # Smoke test all five notebooks against the API (budget ~$1)
-jupyter nbconvert --to notebook --execute notebooks/segment-0-pre-flight.ipynb --output _smoke-0.ipynb
-jupyter nbconvert --to notebook --execute notebooks/segment-1-customer-support-agent.ipynb --output _smoke-1.ipynb
-jupyter nbconvert --to notebook --execute notebooks/segment-2-tool-design-and-mcp.ipynb --output _smoke-2.ipynb
-jupyter nbconvert --to notebook --execute notebooks/segment-3-invoice-extractor.ipynb --output _smoke-3.ipynb
-jupyter nbconvert --to notebook --execute notebooks/segment-4-cca-f-capstone.ipynb --output _smoke-4.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-0-pre-flight.ipynb --output _smoke-0.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-1-customer-support-agent.ipynb --output _smoke-1.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-2-tool-design-and-mcp.ipynb --output _smoke-2.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-3-invoice-extractor.ipynb --output _smoke-3.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-4-cca-f-capstone.ipynb --output _smoke-4.ipynb
 
 # Regenerate practice questions from upstream HTML (run only after the community repo updates)
 python scripts/extract-practice-questions.py
 ```
 
-There is no build, no test suite, no lint command (the `npm test` script is a placeholder). The repo's "tests" are the verification commands above plus the live PRE-CLASS-CHECKLIST run-through.
+There is no build or test suite, but `package.json` ships two real scripts: `npm run lint:voice` (runs the voice-lint sweep above) and `npm run preflight` (executes `scripts/preflight.ps1`). The repo's "tests" are these scripts plus the live PRE-CLASS-CHECKLIST run-through.
+
+`scripts/build-notebooks.py` is **idempotent** (deterministic cell IDs via sha256). A second run with no source changes produces byte-identical `.ipynb` files; if `git status` reports modifications after a rebuild, real content changed.
 
 ## When in doubt
 

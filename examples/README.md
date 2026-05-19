@@ -11,5 +11,5 @@ Curated reference applications that complement the five teaching notebooks in `.
 ## Conventions
 
 - Every example with an external source ships a `NOTICE.md` at its root that names the source, attribution, and any modifications.
-- Examples are runnable on their own (each has its own `pyproject.toml` or `requirements.txt`). They do not share the parent repo's notebook environment.
+- Examples are runnable on their own (each has its own `pyproject.toml` and `.python-version` where applicable). They do not share the parent repo's notebook environment.
 - Examples are not auto-tested by the course smoke tests; they are study material, not class deliverables.

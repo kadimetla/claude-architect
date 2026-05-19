@@ -146,7 +146,7 @@ Expect: account info, no rate-limit warnings.
 - **O'Reilly instructor console** - https://learning.oreilly.com/live-events/ (your specific event link from the prep email)
 - **Anthropic docs** - https://docs.claude.com/en/home - for grounding questions during Q&A
 - **Anthropic API console** - https://console.anthropic.com/ - for live rate-limit / usage check
-- **Cookbook GitHub** - https://github.com/anthropics/anthropic-cookbook - in case a notebook differs from the local clone
+- **Cookbook GitHub** - https://github.com/anthropics/claude-cookbooks - upstream of the vendored `claude-cookbooks-main/` snapshot, in case you need to verify a notebook against the latest version
 
 ---
 
@@ -265,16 +265,26 @@ After bumping pins, regenerate `notebooks/requirements.txt` so the pip fallback 
 uv export --project notebooks --no-hashes --no-emit-project --output-file notebooks/requirements.txt
 ```
 
-### 3.4 Dry-run every demo notebook
+### 3.4 Dry-run every teaching notebook
 
-Open each notebook in VS Code, **Run All Cells**, verify no errors:
+Open each notebook in VS Code, **Run All Cells**, verify no errors. The class is taught from these five; cookbook notebooks at `claude-cookbooks-main/...` are post-class self-study, not part of this dry-run.
 
 | Segment | Notebook | Expected runtime |
 |---|---|---|
-| 1 | `tool_use/customer_service_agent.ipynb` | 1-2 min |
-| 3 | `tool_use/extracting_structured_json.ipynb` | 1-2 min |
-| 3 | `tool_use/tool_use_with_pydantic.ipynb` | 1-2 min |
-| 4 | `tool_use/automatic-context-compaction.ipynb` | 2-3 min |
+| 0 | `notebooks/segment-0-pre-flight.ipynb` | < 1 min (optional pre-flight) |
+| 1 | `notebooks/segment-1-customer-support-agent.ipynb` | 2-3 min |
+| 2 | `notebooks/segment-2-tool-design-and-mcp.ipynb` | 2-3 min |
+| 3 | `notebooks/segment-3-invoice-extractor.ipynb` | 2-3 min |
+| 4 | `notebooks/segment-4-cca-f-capstone.ipynb` | < 1 min (no live API calls) |
+
+Or run all five from PowerShell in one shot:
+
+```powershell
+foreach ($n in 'segment-0-pre-flight','segment-1-customer-support-agent','segment-2-tool-design-and-mcp','segment-3-invoice-extractor','segment-4-cca-f-capstone') {
+    uv run --project notebooks jupyter nbconvert --to notebook --execute "notebooks/$n.ipynb" --output "_smoke-$n.ipynb"
+}
+Remove-Item notebooks/_smoke-*.ipynb
+```
 
 If any notebook errors, fix it now. Notebooks are easier to repair on a quiet Sunday than 5 minutes before going live.
 
