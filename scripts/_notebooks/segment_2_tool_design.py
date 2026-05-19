@@ -27,6 +27,8 @@ def cells() -> list[tuple[str, str]]:
         ("code", _structured_error_code),
         ("md", _demo_mcp_config_md),
         ("code", _mcp_config_code),
+        ("md", _mcp_server_source_md),
+        ("code", _mcp_server_source_code),
         ("md", _demo_claude_md_hierarchy_md),
         ("code", _claude_md_hierarchy_code),
         ("md", _demo_tool_caching_md),
@@ -56,6 +58,7 @@ _lo_md = """\
 - Use **`tool_choice`** modes (`auto`, `any`, `tool`, `none`) to constrain agent behavior
 - Return **structured tool errors** so the model can decide to retry, reformulate, or escalate
 - Configure **`.mcp.json`** for stdio, SSE, and HTTP transports with `${ENV_VAR}` expansion
+- Read a real **MCP server's source code** (`examples/mcp_cli/mcp_server.py`) and identify the FastMCP `@tool`, `@resource`, `@prompt` decorators and the stdio entrypoint
 - Reason about the **CLAUDE.md hierarchy** (user, project, subtree, local) and its precedence
 - Cache **tool definitions** with `cache_control` to amortize a large tool list across requests
 - Run Claude Code **non-interactively** with `claude -p` for CI/CD
@@ -328,6 +331,37 @@ for name, spec in servers.items():
     print()
 """
 
+_mcp_server_source_md = """\
+## What an MCP server actually looks like (source code, not config)
+
+`.mcp.json` told us the **client side**: which servers to start, what transport, which env vars. The **server side** is real Python. We did not stand one up in a Jupyter kernel because the stdio handshake cross-talks with the notebook's own stdio, but we can read the source of a complete, runnable example.
+
+`../examples/mcp_cli/mcp_server.py` is a **FastMCP** server: ~95 lines, exposes six dummy documents as resources, plus a `read_doc_contents` tool, an `edit_document` tool, and a `format` prompt. It runs over **stdio** when invoked by an MCP client. This is the exact shape your `.mcp.json` stdio servers conform to.
+
+This code is reference material from Anthropic's "Claude with the Anthropic API" Skilljar course. Attribution lives at [`../examples/mcp_cli/NOTICE.md`](../examples/mcp_cli/NOTICE.md). After class, run it locally with `uv run main.py` from `examples/mcp_cli/` to see the same client-server protocol round-trip in your own terminal.
+
+The next cell prints the file so you can read the key idioms inline: `@mcp.tool(...)`, `@mcp.resource(...)`, `@mcp.prompt(...)`, and the trailing `mcp.run(transport="stdio")`.
+"""
+
+_mcp_server_source_code = """\
+mcp_server_path = REPO_ROOT / "examples" / "mcp_cli" / "mcp_server.py"
+if not mcp_server_path.exists():
+    print(f"[skip] {mcp_server_path} not found; see examples/mcp_cli/NOTICE.md")
+else:
+    source = mcp_server_path.read_text(encoding="utf-8")
+    # Walk the structurally interesting lines, not the whole 95-line file
+    for i, line in enumerate(source.splitlines(), start=1):
+        stripped = line.strip()
+        if (stripped.startswith("@mcp.")
+                or stripped.startswith("def ")
+                or stripped.startswith("mcp = FastMCP")
+                or stripped.startswith("mcp.run(")):
+            print(f"  L{i:>3}: {line}")
+    print()
+    print(f"Total file: {len(source.splitlines())} lines at {mcp_server_path}")
+    print("Tools, resources, prompts: three FastMCP primitives, one stdio entrypoint.")
+"""
+
 _demo_claude_md_hierarchy_md = """\
 ## CLAUDE.md hierarchy walk
 
@@ -479,6 +513,9 @@ _key_takeaways_md = """\
 - `../claude-cookbooks-main/tool_use/tool_choice.ipynb` (the four modes, runnable)
 - `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` (parallel + caching, runnable)
 - `../claude-cookbooks-main/tool_use/customer_service_agent.ipynb` (Anthropic's reference for the Segment 1 agent shape)
+
+**Reference application for further study:**
+- `../examples/mcp_cli/` - complete MCP CLI app (stdio FastMCP server + client + interactive chat). Reference material from Anthropic's "Claude with the Anthropic API" Skilljar course; attribution in `../examples/mcp_cli/NOTICE.md`. Run it locally to see the same protocol round-trip we walked as config-as-data.
 """
 
 _bridge_md = """\

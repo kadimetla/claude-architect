@@ -189,9 +189,9 @@ By the end of this segment, attendees will be able to:
 4. Run the notebook cell that loads `.mcp.json` and pretty-prints transport + env-var refs for every server. This is config-as-data; no MCP client invocation needed.
 5. Show what happens when `${GITHUB_TOKEN}` is unset: server fails to start with a readable error. Set it, restart, server comes up.
 6. Run the **tool-caching cell**: same `OPINIONATED_WEATHER` tool with `cache_control: {"type": "ephemeral"}` on it, called twice. Point at the printed counters - `cache_creation_input_tokens` on call 1, `cache_read_input_tokens` on call 2. This is the same shape Segment 3 will reuse on the system block.
-7. Optional side-trip: open `claude-cookbooks-main/managed_agents/cma-mcp/` to show what an MCP server's source code looks like (vs. the client config we just walked). Two sides of the same protocol.
+7. **MCP server source walkthrough** (built into the notebook): the cell after the `.mcp.json` walk reads `examples/mcp_cli/mcp_server.py` and prints the structurally interesting lines (the `@mcp.tool`, `@mcp.resource`, `@mcp.prompt` decorators, plus `mcp.run(transport="stdio")`). The cohort sees a real FastMCP server's source, not just the client config. Reference app comes from Anthropic's "Claude with the Anthropic API" Skilljar course; attribution in `examples/mcp_cli/NOTICE.md`. Optional deeper dive: open `claude-cookbooks-main/managed_agents/cma-mcp/` for Anthropic's cookbook-side example.
 
-**What attendees see:** MCP config is plain JSON with three transport shapes and one variable-expansion rule. The hard part isn't the syntax, it's deciding which tools each agent should see.
+**What attendees see:** MCP config is plain JSON with three transport shapes and one variable-expansion rule. The server side is a small Python file with three FastMCP decorators and a stdio entrypoint. The hard part isn't the syntax, it's deciding which tools each agent should see.
 
 5. **Claude Code instruction hierarchy** (5 minutes)
    - The four CLAUDE.md tiers, in precedence order:

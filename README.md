@@ -73,8 +73,12 @@ claude-architect/
 │   ├── segment-3-invoice-extractor.ipynb
 │   └── segment-4-cca-f-capstone.ipynb
 ├── claude-cookbooks-main/      # Vendored snapshot of Anthropic's official Claude Cookbooks (MIT, Copyright (c) 2023 Anthropic). See claude-cookbooks-main/NOTICE.md
+├── examples/                   # Curated reference applications (study material, not core course)
+│   └── mcp_cli/                # Reference MCP CLI (FastMCP server + client + chat), from Anthropic's Skilljar course. See examples/mcp_cli/NOTICE.md
+├── slides/                     # Course slide deck (rebuilt from scripts/build-deck.py)
 └── scripts/
     ├── build-notebooks.py                 # Rebuilds the five teaching notebooks from source
+    ├── build-deck.py                      # Rebuilds the slide deck
     └── extract-practice-questions.py      # Build-time extractor for the practice-question files
 ```
 
@@ -165,12 +169,13 @@ Send request -> Check stop_reason -> "tool_use"? Execute tool, append tool_resul
 
 ## Attribution and licensing
 
-This repo bundles two distinct bodies of work. The split matters for attribution and for reuse:
+This repo bundles three distinct bodies of work. The split matters for attribution and for reuse:
 
 - **Original content by Tim Warner.** Everything in [`notebooks/`](./notebooks/), the five [`domain-*.md`](./domain-1-agentic.md) reference files, [`COURSE-FLOW.md`](./COURSE-FLOW.md), [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md), [`PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md), [`INSTRUCTOR-SETUP.md`](./INSTRUCTOR-SETUP.md), [`CLAUDE.md`](./CLAUDE.md), and everything under [`scripts/`](./scripts/) is authored by Tim Warner and licensed under MIT via this repo's [`LICENSE`](./LICENSE) file.
 - **Vendored Anthropic content.** [`claude-cookbooks-main/`](./claude-cookbooks-main/) is a vendored copy of Anthropic's official [Claude Cookbooks](https://github.com/anthropics/claude-cookbooks), MIT licensed, **Copyright (c) 2023 Anthropic**. Full attribution, upstream commit reference, and the unmodified MIT license live in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md) and [`claude-cookbooks-main/LICENSE`](./claude-cookbooks-main/LICENSE). It is committed here so learners get the entire reference library on `git clone` without a second clone step.
+- **Reference application from Anthropic's Skilljar course.** [`examples/mcp_cli/`](./examples/mcp_cli/) is a complete MCP CLI application (stdio FastMCP server + client + interactive chat with `@doc-id` retrieval and `/prompt-name` commands) distributed as starter material with Anthropic's [Claude with the Anthropic API](https://anthropic.skilljar.com/claude-with-the-anthropic-api/) Skilljar course. Treated as Anthropic-authored instructional reference; full attribution and the two minor modifications (rename `.env` to `.env.example`, add `NOTICE.md`) are documented in [`examples/mcp_cli/NOTICE.md`](./examples/mcp_cli/NOTICE.md). Segment 2 of the course opens its `mcp_server.py` source during Demo A.
 - **Community-sourced practice bank.** [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) is community-sourced from Paul Larionov's study repo (see the [Disclaimer](#disclaimer) below for the full provenance and calibration-only framing).
-- **Point-in-time snapshot, not a submodule.** [`claude-cookbooks-main/`](./claude-cookbooks-main/) is a static snapshot, not a git submodule. Learners who want to refresh it against upstream can follow the refresh command documented in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md).
+- **Point-in-time snapshots, not submodules.** Both [`claude-cookbooks-main/`](./claude-cookbooks-main/) and [`examples/mcp_cli/`](./examples/mcp_cli/) are static snapshots, not git submodules. Refresh procedures are documented in each directory's `NOTICE.md`.
 
 ## Disclaimer
 

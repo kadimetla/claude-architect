@@ -188,6 +188,24 @@ git clone https://github.com/timothywarner/claude-certified-architect.git C:\git
 
 If you skip this clone, nothing in the live course breaks.
 
+### 2.4 Verify the bundled MCP reference app
+
+Segment 2's MCP server-source walkthrough cell reads from [`./examples/mcp_cli/`](./examples/mcp_cli/), a reference MCP CLI app from Anthropic's [Claude with the Anthropic API](https://anthropic.skilljar.com/claude-with-the-anthropic-api/) Skilljar course (attribution in [`./examples/mcp_cli/NOTICE.md`](./examples/mcp_cli/NOTICE.md)). It ships with the repo; no separate clone.
+
+Verify the entrypoints are present:
+
+```powershell
+@(
+  'main.py',
+  'mcp_server.py',
+  'mcp_client.py',
+  'NOTICE.md',
+  'pyproject.toml'
+) | ForEach-Object { "$_ : $(Test-Path "C:/github/claude-architect/examples/mcp_cli/$_")" }
+```
+
+Expect `True` for all five. The app is **not required** to be runnable during class - Segment 2 only reads `mcp_server.py` as source, not as a running process. If you want to run it as a post-class lab, the setup is documented in [`./examples/mcp_cli/README.md`](./examples/mcp_cli/README.md) (uv venv, copy `.env.example` to `.env`, paste your `ANTHROPIC_API_KEY`, `uv run main.py`).
+
 ### 2.4 Verify `.gitignore` protects confidential content
 
 The `research/` directory holds the Anthropic-Confidential CCA-F Exam Guide PDF and its markdown conversion. **Must not be committed.**

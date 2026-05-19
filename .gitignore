@@ -151,6 +151,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# Belt-and-suspenders: any .env anywhere under examples/ (subdir gitignores already cover the main case)
+examples/**/.env
+
 # Spyder project settings
 .spyderproject
 .spyproject

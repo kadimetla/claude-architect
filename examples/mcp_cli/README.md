@@ -1,0 +1,123 @@
+# MCP Chat
+
+MCP Chat is a command-line interface application that enables interactive chat capabilities with Claude through the Anthropic API. The application supports document retrieval, command-based prompts, and extensible tool integrations via the **Model Context Protocol** (MCP).
+
+> **Attribution:** This code is reference material from Anthropic's [Claude with the Anthropic API](https://anthropic.skilljar.com/claude-with-the-anthropic-api/) Skilljar course, vendored here as study material for the Claude Architect Foundations training. See [`./NOTICE.md`](./NOTICE.md) for full attribution and modifications.
+
+## Prerequisites
+
+- Python 3.10+ (the upstream README said 3.9+; `pyproject.toml` pins `>=3.10`)
+- An Anthropic API key from https://console.anthropic.com
+
+## Setup
+
+### Step 1: Configure the environment variables
+
+1. Copy `.env.example` to `.env` and fill in your API key:
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+   The committed template has the variables you need:
+
+   ```
+   CLAUDE_MODEL="claude-sonnet-4-5"
+   ANTHROPIC_API_KEY=""  # paste your key here
+   USE_UV=1              # set to 0 if not using uv
+   ```
+
+   The `.env` file is gitignored.
+
+### Step 2: Install dependencies
+
+#### Option 1: Setup with uv (Recommended)
+
+[uv](https://github.com/astral-sh/uv) is a fast Python package installer and resolver.
+
+1. Install uv, if not already installed:
+
+```bash
+pip install uv
+```
+
+2. Create and activate a virtual environment:
+
+```bash
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
+3. Install dependencies:
+
+```bash
+uv pip install -e .
+```
+
+4. Run the project
+
+```bash
+uv run main.py
+```
+
+#### Option 2: Setup without uv
+
+1. Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
+2. Install dependencies:
+
+```bash
+pip install anthropic python-dotenv prompt-toolkit "mcp[cli]==1.8.0"
+```
+
+3. Run the project
+
+```bash
+python main.py
+```
+
+## Usage
+
+### Basic Interaction
+
+Simply type your message and press Enter to chat with the model.
+
+### Document Retrieval
+
+Use the @ symbol followed by a document ID to include document content in your query:
+
+```
+> Tell me about @deposition.md
+```
+
+### Commands
+
+Use the / prefix to execute commands defined in the MCP server:
+
+```
+> /summarize deposition.md
+```
+
+Commands will auto-complete when you press Tab.
+
+## Development
+
+### Adding New Documents
+
+Edit the `mcp_server.py` file to add new documents to the `docs` dictionary.
+
+### Implementing MCP Features
+
+To fully implement the MCP features:
+
+1. Complete the TODOs in `mcp_server.py`
+2. Implement the missing functionality in `mcp_client.py`
+
+### Linting and Typing Check
+
+There are no lint or type checks implemented.
