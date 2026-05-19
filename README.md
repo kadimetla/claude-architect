@@ -66,8 +66,16 @@ claude-architect/
 ├── scenario-cicd-integration.md # Codebase analysis skill with frontmatter
 ├── SKILL.md                    # Example slash-command / skill definition
 ├── CLAUDE.md                   # Claude Code project instructions for this repo
+├── notebooks/                  # Tim's five teaching notebooks (the class is taught from these)
+│   ├── segment-0-pre-flight.ipynb
+│   ├── segment-1-customer-support-agent.ipynb
+│   ├── segment-2-tool-design-and-mcp.ipynb
+│   ├── segment-3-invoice-extractor.ipynb
+│   └── segment-4-cca-f-capstone.ipynb
+├── claude-cookbooks-main/      # Vendored snapshot of Anthropic's official Claude Cookbooks (MIT, Copyright (c) 2023 Anthropic). See claude-cookbooks-main/NOTICE.md
 └── scripts/
-    └── extract-practice-questions.py   # Build-time extractor for the practice-question files
+    ├── build-notebooks.py                 # Rebuilds the five teaching notebooks from source
+    └── extract-practice-questions.py      # Build-time extractor for the practice-question files
 ```
 
 ## Getting started
@@ -78,20 +86,23 @@ claude-architect/
 - [Python](https://www.python.org/) 3.13+ for hooks and cookbook notebooks
 - [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed and authenticated
 - An [Anthropic API key](https://console.anthropic.com/) set as `ANTHROPIC_API_KEY`
+- **VS Code** with the **Python** and **Jupyter** extensions (the five teaching notebooks open here)
 
 ### Setup
 
-```bash
+```powershell
 git clone https://github.com/timothywarner-org/claude-architect.git
 cd claude-architect
-npm install
+pip install -r notebooks/requirements.txt
 ```
+
+That is the entire learner setup. The Anthropic cookbook ships in the repo at `claude-cookbooks-main/`, so you do not need a second clone. Instructors who run the voice-lint scripts also need `npm install`; learners do not.
 
 ### Recommended learning path
 
 1. **Read [COURSE-FLOW.md](./COURSE-FLOW.md)** for the full 4-segment teaching arc.
 2. **Walk the five `domain-*.md` reference files** in order. Each maps to a course segment and points at runnable cookbook notebooks.
-3. **Run the demo notebooks** in your own environment. The course depends on Anthropic's official cookbooks (`private/claude-cookbooks-main/`).
+3. **Run the five teaching notebooks in [`notebooks/`](./notebooks/)** in order. These are the primary teaching surface - markdown cells carry the concepts, code cells run the demos. Anthropic's official cookbooks ship alongside in [`claude-cookbooks-main/`](./claude-cookbooks-main/) as the bundled-in reference library (full attribution in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md)).
 4. **Work through [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md)** and the [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) bank if you're aiming at the CCA-F exam.
 5. **Build something.** The reference architectures only land when you wire one of these patterns into a real workflow.
 
@@ -151,6 +162,15 @@ Send request -> Check stop_reason -> "tool_use"? Execute tool, append tool_resul
 - GitHub: [@timothywarner-org](https://github.com/timothywarner-org)
 - YouTube: [TechTrainerTim](https://www.youtube.com/c/TechTrainerTim)
 - O'Reilly: [Author page](https://learning.oreilly.com/search/?query=Tim%20Warner)
+
+## Attribution and licensing
+
+This repo bundles two distinct bodies of work. The split matters for attribution and for reuse:
+
+- **Original content by Tim Warner.** Everything in [`notebooks/`](./notebooks/), the five [`domain-*.md`](./domain-1-agentic.md) reference files, [`COURSE-FLOW.md`](./COURSE-FLOW.md), [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md), [`PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md), [`INSTRUCTOR-SETUP.md`](./INSTRUCTOR-SETUP.md), [`CLAUDE.md`](./CLAUDE.md), and everything under [`scripts/`](./scripts/) is authored by Tim Warner and licensed under MIT via this repo's [`LICENSE`](./LICENSE) file.
+- **Vendored Anthropic content.** [`claude-cookbooks-main/`](./claude-cookbooks-main/) is a vendored copy of Anthropic's official [Claude Cookbooks](https://github.com/anthropics/claude-cookbooks), MIT licensed, **Copyright (c) 2023 Anthropic**. Full attribution, upstream commit reference, and the unmodified MIT license live in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md) and [`claude-cookbooks-main/LICENSE`](./claude-cookbooks-main/LICENSE). It is committed here so learners get the entire reference library on `git clone` without a second clone step.
+- **Community-sourced practice bank.** [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) is community-sourced from Paul Larionov's study repo (see the [Disclaimer](#disclaimer) below for the full provenance and calibration-only framing).
+- **Point-in-time snapshot, not a submodule.** [`claude-cookbooks-main/`](./claude-cookbooks-main/) is a static snapshot, not a git submodule. Learners who want to refresh it against upstream can follow the refresh command documented in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md).
 
 ## Disclaimer
 

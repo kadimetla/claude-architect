@@ -14,6 +14,10 @@ The five teaching notebooks that back the four-hour O'Reilly live training. The 
 
 Each segment notebook ships with **Learning Objectives**, **Concept** markdown cells, **Demo** code cells, **Exercise** prompts, **Key Takeaways**, and a **Bridge to next segment**. The four-hour class is the five notebooks in order plus three ten-minute breaks.
 
+## Cookbook anchor (optional self-study)
+
+Several notebook cells cite Anthropic's official cookbook with `../claude-cookbooks-main/...` paths. The cookbook is **vendored at the repo root** (MIT, Copyright (c) 2023 Anthropic, see [`../claude-cookbooks-main/NOTICE.md`](../claude-cookbooks-main/NOTICE.md)). You get the whole reference library on `git clone`, no second clone required. Every code cell in `notebooks/` runs independently of the cookbook; the citations open Anthropic's authoritative notebooks for deeper study.
+
 ## Install
 
 ```powershell

@@ -33,7 +33,7 @@ This repo has no application layer. The architecture IS the teaching choreograph
 
 - **`COURSE-FLOW.md` is the orchestrator.** Every demo block points at a real file path. Every segment maps to one or more CCA-F domains. The 4 teaching segments compress 5 exam domains (Segment 2 covers Domains 2 + 3, the heaviest pairing at 38% of exam weight).
 - **`domain-*.md` files are reference scaffolds**, not lesson plans. They expand the 80-word teaching topics in COURSE-FLOW into ~1000-word references with cookbook anchors, production tips, and Anthropic docs links.
-- **`private/claude-cookbooks-main/`** (gitignored) is Anthropic's official cookbook. Every Demo: in COURSE-FLOW points at a notebook there. Treat as authoritative.
+- **`claude-cookbooks-main/`** is Anthropic's official cookbook, **vendored at the repo root** (committed, MIT, Copyright (c) 2023 Anthropic, attribution in `claude-cookbooks-main/NOTICE.md`). Notebooks cite it with `../claude-cookbooks-main/...` paths. Every Demo: in COURSE-FLOW points at a notebook there. Treat as authoritative.
 - **`private/claude-certified-architect-main/`** (gitignored) is a **separate community study repo** (note: name is close to this course package but the repos are distinct - `claude-certified-architect` is community-contributed, `claude-architect` is Tim's). Multi-language guides + practical_test HTMLs. **Not authoritative** because the exam isn't public yet. Use for context, not citation.
 - **`research/`** holds Anthropic-Confidential source material (CCA-F Exam Guide PDF + markdown conversions). See "What NOT to commit" below.
 
@@ -147,4 +147,4 @@ There is no build, no test suite, no lint command (the `npm test` script is a pl
 ## When in doubt
 
 - For Anthropic docs grounding, use Context7 MCP: `/websites/platform_claude_en_api` (Claude API docs) and `/websites/code_claude` (Claude Code docs) are the two authoritative library IDs.
-- For demo questions, prefer Anthropic-authored notebooks in `private/claude-cookbooks-main/` over the community-authored `private/claude-certified-architect-main/` repo.
+- For demo questions, prefer Anthropic-authored notebooks in `claude-cookbooks-main/` over the community-authored `private/claude-certified-architect-main/` repo.

@@ -160,15 +160,11 @@ npm install
 
 Expect: `node_modules/` appears, no errors. On any machine where you've already cloned it, skip to 2.2.
 
-### 2.2 Pull the Anthropic cookbook into `private/`
+### 2.2 Verify the bundled Anthropic cookbook
 
-The training depends on **Anthropic's official cookbook** - external content, vendored locally at `private/claude-cookbooks-main/` and gitignored (we don't redistribute Anthropic's repo through ours). Without it, every Demo: block in COURSE-FLOW.md is broken.
+The training cites **Anthropic's official cookbook**, which is **vendored at `claude-cookbooks-main/` and committed to this repo** (MIT, Copyright (c) 2023 Anthropic, attribution in [`./claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md)). You get it automatically on the `git clone` from 2.1. No second clone required.
 
-```powershell
-git clone https://github.com/anthropics/anthropic-cookbook.git C:\github\claude-architect\private\claude-cookbooks-main
-```
-
-Verify the five demo notebooks exist:
+Verify the five referenced cookbook notebooks are present:
 
 ```powershell
 @(
@@ -177,10 +173,10 @@ Verify the five demo notebooks exist:
   'tool_use/tool_use_with_pydantic.ipynb',
   'tool_use/automatic-context-compaction.ipynb',
   'managed_agents/cma-mcp/README.md'
-) | ForEach-Object { "$_ : $(Test-Path "C:/github/claude-architect/private/claude-cookbooks-main/$_")" }
+) | ForEach-Object { "$_ : $(Test-Path "C:/github/claude-architect/claude-cookbooks-main/$_")" }
 ```
 
-Expect `True` for all five.
+Expect `True` for all five. If anything reports `False`, your `git clone` was incomplete; re-pull from `origin/main`.
 
 ### 2.3 Optional: pull the community CCA study repo
 
@@ -224,16 +220,11 @@ git pull
 npm install
 ```
 
-### 3.2 Pull cookbook updates
+### 3.2 Refresh the bundled cookbook (only if upstream changed materially)
 
-Anthropic ships new notebooks routinely. Stale cookbooks are a top-3 cause of demo failures:
+The cookbook at `claude-cookbooks-main/` is a **point-in-time snapshot, not a git submodule**. You only refresh it when Anthropic ships material changes you want to teach. To refresh, follow the procedure documented in [`./claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md), commit the result to `claude-architect`, and re-run 3.4 below.
 
-```powershell
-cd C:\github\claude-architect\private\claude-cookbooks-main
-git pull
-```
-
-If a notebook **referenced by COURSE-FLOW.md** changes signature or imports, the matching `domain-*.md` reference may also need a refresh. Check by running the notebook end-to-end (see 3.4).
+If a notebook **referenced by COURSE-FLOW.md** changes signature or imports after a refresh, the matching `domain-*.md` reference may also need a refresh.
 
 ### 3.3 Refresh Python deps
 

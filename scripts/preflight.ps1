@@ -99,13 +99,13 @@ try {
 
 # 4. Demo file inventory
 $demoFiles = @{
-    'Segment 1 customer_service_agent.ipynb'  = 'private/claude-cookbooks-main/tool_use/customer_service_agent.ipynb'
+    'Segment 1 customer_service_agent.ipynb'  = 'claude-cookbooks-main/tool_use/customer_service_agent.ipynb'
     'Segment 1 hooks-example.py'              = 'hooks-example.py'
     'Segment 2 .mcp.json (repo root)'         = '.mcp.json'
     'Segment 2 CLAUDE.md (repo root)'         = 'CLAUDE.md'
-    'Segment 3 extracting_structured_json'    = 'private/claude-cookbooks-main/tool_use/extracting_structured_json.ipynb'
-    'Segment 3 tool_use_with_pydantic'        = 'private/claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb'
-    'Segment 4 automatic-context-compaction'  = 'private/claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb'
+    'Segment 3 extracting_structured_json'    = 'claude-cookbooks-main/tool_use/extracting_structured_json.ipynb'
+    'Segment 3 tool_use_with_pydantic'        = 'claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb'
+    'Segment 4 automatic-context-compaction'  = 'claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb'
 }
 foreach ($entry in $demoFiles.GetEnumerator()) {
     $full = Join-Path $RepoRoot $entry.Value

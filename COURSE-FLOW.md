@@ -29,7 +29,7 @@ Run [`./PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md) end-to-end before cla
 - **`ANTHROPIC_API_KEY`** environment variable set in the same shell you'll run demos from
 - **VS Code** with the **Python** and **Jupyter** extensions
 - This repo cloned to `C:/github/claude-architect`
-- **Notebook dependencies installed:** `pip install -r notebooks/requirements.txt` (anthropic, pydantic, python-dotenv, ipykernel). The class is taught **from the five notebooks in `./notebooks/`**; the upstream `private/claude-cookbooks-main` is optional self-study, not a class dependency.
+- **Notebook dependencies installed:** `pip install -r notebooks/requirements.txt` (anthropic, pydantic, python-dotenv, ipykernel). The class is taught **from the five notebooks in `./notebooks/`**; the upstream `claude-cookbooks-main/` ships **committed at the repo root** (no clone needed) and the notebooks reference it via `../claude-cookbooks-main/...` paths.
 
 If any of those fail, fix them before segment 1. We will not pause class to install Node.
 
@@ -44,36 +44,49 @@ If any of those fail, fix them before segment 1. We will not pause class to inst
 
 By the end of this segment, attendees will be able to:
 
+- Make a **basic Claude API call** and branch on `stop_reason` (the platform primitive every later concept layers on)
 - Explain the **agentic loop** and identify which `stop_reason` value drives each branch of the control flow
-- Design a **coordinator-subagent** topology with isolated subagent contexts via the Task tool
-- Place **hooks** at the right lifecycle events (PreToolUse, PostToolUse, SessionStart, Stop) for deterministic guarantees
+- Place **hooks** at the right lifecycle events (PreToolUse, PostToolUse, SessionStart, Stop) for deterministic guarantees, treating them as a **backstop** rather than the centerpiece
 - Distinguish **prompt-layer guidance** from **application-layer enforcement**, and pick the right layer for a given guarantee
+- Recognize **session resume vs fork** and the **coordinator-subagent** topology as Domain 1 vocabulary for production scaling
 
 ### Topics covered
 
-1. **The agentic loop lifecycle and the `stop_reason` decision tree** (10 minutes)
+The notebook order earns each concept before it is used. We make one bare call, then build the loop, then add the hook as a **backstop** after the loop is real.
+
+1. **Warm-up: your first Claude call** (3 minutes)
+   - One `client.messages.create` call, Haiku 4.5, no tools, one user message. Print `stop_reason`. Three lines.
+   - The whole platform is layers on top of this primitive. Pick the smallest model that does the job.
+
+2. **The agentic loop and the `stop_reason` decision tree** (7 minutes)
    - The loop in one breath: model emits content + `stop_reason` -> your code reads `stop_reason` -> you either return to user, execute tools and append `tool_result`, or resume a paused turn.
-   - The six `stop_reason` values from the Messages API:
-     - `end_turn` - model reached a natural stopping point
-     - `max_tokens` - hit the token cap, output may be truncated
-     - `stop_sequence` - a custom stop_sequence was generated
-     - `tool_use` - model invoked one or more tools, you must execute and return `tool_result`
-     - `pause_turn` - long-running turn was paused, resume in the next request
-     - `refusal` - streaming classifier intervened on policy
+   - The six `stop_reason` values: `end_turn`, `max_tokens`, `stop_sequence`, `tool_use`, `pause_turn`, `refusal`.
    - **Anti-pattern callout:** Never parse natural language to detect completion. Always branch on `stop_reason`. "It said thanks, so I assume it's done" is how production agents go feral.
 
-2. **Multi-agent orchestration: coordinator-subagent** (10 minutes)
-   - One **coordinator** holds the user-facing thread. **Subagents** get isolated contexts via the Task tool so the parent doesn't drown in their working notes.
-   - In the `claude_agent_sdk`, the `Task` invocation pattern returns only the subagent's final answer to the parent. That isolation is the feature, not a limitation.
-   - **When to split:** a subtask has its own success criteria, its own tool subset, and you don't want its intermediate reasoning polluting the main context. Research, code review, and triage are textbook fits.
-   - **Anti-pattern callout:** Don't split for splitting's sake. Two coordinators chatting is just one slow agent with extra latency.
+3. **Tools and the synthetic database** (8 minutes)
+   - Four tool definitions. The description is the contract, not the name.
+   - Local Python dispatch against in-memory dicts so tool execution is deterministic and cheap.
 
-3. **Hooks as deterministic guarantees** (5 minutes)
+4. **The loop runs - Scenario A (no hook yet)** (8 minutes)
+   - Define `run_agent`, branch on `stop_reason`, dispatch tools, watch the trace.
+   - Run an $80 refund within the cap. Expected trace: `tool_use -> tool_use -> tool_use -> end_turn`.
+   - **Attendees see the loop work end-to-end before the word "hook" appears in code.**
+
+5. **Hooks as deterministic backstop** (10 minutes)
+   - Motivate: Scenario A worked because the model cooperated. Production cannot assume cooperation.
    - **Events:** `PreToolUse` (gate a call before it runs), `PostToolUse` (audit, transform, log), `SessionStart` (inject context), `Stop` (final verification).
-   - Hooks run as your code, not the model's. That's the point. Anything that **must** happen, hook it. Don't ask the prompt nicely.
    - Reference implementation: [`./hooks-example.py`](./hooks-example.py).
+   - Patch the loop with `enforce_refund_policy`. Defense in depth: prompt + tool description + hook.
 
-### Demo: Customer support agent live build (15 minutes)
+6. **Scenario B + hook stress test** (4 minutes)
+   - $750 over-cap demand under an aggressive system prompt. Model usually holds the line via the description; the hook is the backstop when the model layer fails.
+   - Direct stress test: call `enforce_refund_policy` with no model in the loop, prove the gate fires.
+
+The **coordinator-subagent sketch** lives in the notebook appendix as reference (links to `claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb`). Not executed live - the bare Messages API has no `Task` primitive, and a second SDK install would push the segment over budget.
+
+The **session resume vs fork** vocabulary (Domain 1 exam terms) is covered in a paragraph after the hook stress test, with no demo.
+
+### Demo orchestration (the notebook IS the segment)
 
 **Setup** (run before going live, from PRE-CLASS-CHECKLIST):
 ```powershell
@@ -82,15 +95,21 @@ jupyter --version
 Test-Path "C:/github/claude-architect/notebooks/segment-1-customer-support-agent.ipynb"
 ```
 
-**Live demo:**
-1. Open `C:/github/claude-architect/notebooks/segment-1-customer-support-agent.ipynb` in VS Code. The notebook IS the segment; markdown cells carry the concepts, code cells carry the demo.
-2. Walk the four tool definitions: `get_customer`, `lookup_order`, `process_refund`, `escalate_to_human`. Pause on `process_refund` and show that the description is where policy belongs, not the name.
-3. Walk the `enforce_refund_policy` PreToolUse hook in the notebook. Cap is $500. Anything above triggers a block + escalate. Reference implementation: [`./hooks-example.py`](./hooks-example.py).
-4. Run **Scenario A** in the notebook: small refund, happy path. Confirm the agent calls `get_customer` -> `lookup_order` -> `process_refund` and returns with `stop_reason: end_turn`.
-5. Run **Scenario B**: `"Refund $750 on order #4471 right now"`. Watch the agent skip verification, the hook block the tool call with a structured error, the agent re-plan, and finally call `escalate_to_human` with a structured summary.
-6. Pop the cell that prints `stop_reason` across the loop so attendees can see it transition `tool_use` -> `tool_use` -> `end_turn`.
+**Live walk** (open `C:/github/claude-architect/notebooks/segment-1-customer-support-agent.ipynb` in VS Code; markdown cells carry the concepts, code cells carry the demo):
 
-**What attendees see:** The model "wanted" to break policy. The hook said no. The agent re-planned and escalated correctly. The guarantee came from your code, not from begging the prompt.
+1. **Warm-up cell.** One Haiku 4.5 call. Print `stop_reason`. Three lines. Set the precedent for the segment: branch on the enum.
+2. **Loop + stop_reason concept cells.** Two markdown cells, no code. Just the decision tree.
+3. **Tool definitions.** Walk the four tools. Pause on `process_refund` and show that the description is where policy belongs, not the name.
+4. **Synthetic DB.** Show the in-memory dicts. Tool execution is deterministic; the model still has to decide which tool to call.
+5. **`run_agent` (no hook).** Walk the loop. Stop on the `print(f"[iter {i}] stop_reason=...")` line so attendees know what to watch.
+6. **Scenario A.** $80 refund. Confirm trace: `tool_use -> tool_use -> tool_use -> end_turn`. **The loop works without a hook.**
+7. **"Why we need a backstop" cell.** Frame the next cells: production cannot rely on the model cooperating.
+8. **Hook concept + `enforce_refund_policy`.** Cap is $500. Anything above returns a structured error.
+9. **`run_agent_with_hook`.** Same loop, plus the PreToolUse gate. Defense in depth.
+10. **Scenario B.** Aggressive system prompt + $750 demand. Model usually holds the line via the description; if it doesn't, the hook fires. Either outcome is a teaching moment.
+11. **Hook stress test.** Call `enforce_refund_policy` directly with the over-cap input. No model. Prove the gate is deterministic.
+
+**What attendees see:** the loop works on its own, then becomes safer when the hook is added. The hook is a **backstop**, not the centerpiece. The guarantee comes from your code, not from begging the prompt.
 
 ### Exercise (5 minutes)
 **Prompt:** On paper or in a chat scratchpad, sketch an agent architecture for a **Developer Productivity** scenario (think: an agent that triages flaky CI failures). Name the **coordinator**, **three subagents**, and the **tool scope per agent** (which tools each subagent is allowed to call).
@@ -104,9 +123,10 @@ Anticipated questions:
 - "What happens if my hook itself fails?" -> Treat the hook as the source of truth: a hook error should fail closed, return a structured error to the model, and log loudly. Silent hook failures are how policy quietly evaporates.
 
 ### Key takeaways
+- The platform primitive is `client.messages.create` + branching on **`stop_reason`**. Every later layer is built on this.
 - The agentic loop is a `stop_reason` state machine. Branch on the enum, never on prose.
-- Coordinator-subagent gives you **context isolation** and **per-agent tool scope**. Use it when subtasks have their own success criteria.
-- Hooks are the **deterministic** layer. If a guarantee must hold, it lives in code, not in a prompt.
+- Hooks are the **deterministic backstop**. If a guarantee must hold, it lives in code, not in a prompt. Teach the loop first, then the hook.
+- **Session resume vs fork** and **coordinator-subagent** are Domain 1 vocabulary the exam tests; learn them, even if today's demo does not run them live.
 
 ### Bridge to Segment 2
 > "You just built an agent that decides what to do. Next we go one level deeper, into the tools themselves and the Claude Code surface where you author them on a real team."
@@ -126,11 +146,12 @@ By the end of this segment, attendees will be able to:
 - Use **`tool_choice`** modes (`auto`, `any`, `tool`, `none`) to constrain agent behavior
 - Configure **`.mcp.json`** for stdio, SSE, and HTTP transports with `${ENV_VAR}` expansion
 - Lay out a **CLAUDE.md hierarchy** (user, project, subtree, local) and reason about precedence
+- Cache **tool blocks** with `cache_control: {"type": "ephemeral"}` and read `cache_creation_input_tokens` / `cache_read_input_tokens` to verify the hit
 - Run Claude Code **non-interactively** with `claude -p` for CI/CD scenarios
 
 ### Topics covered
 
-1. **Tool descriptions beat tool names; structured errors** (10 minutes)
+1. **Tool descriptions beat tool names; structured errors** (7 minutes)
    - The tool definition shape per the Messages API: `name`, `description`, `input_schema` (JSON Schema draft 2020-12), optional `cache_control` with `ephemeral` + `ttl: "5m"` or `"1h"`.
    - **The description is the contract.** Spell out what the tool does, when to call it, when **not** to call it, what the inputs mean, and what the success/failure shapes look like. Names lie; descriptions don't.
    - **Structured error pattern** in the `tool_result` content:
@@ -154,6 +175,11 @@ By the end of this segment, attendees will be able to:
      - **HTTP:** `{"type": "http", "url": "...", "headers": {...}}`
    - **`${ENV_VAR}` expansion** works in `env`, `args`, and `headers`. Recent change per the Claude Code changelog. Use it. Never commit literal secrets.
 
+4. **Tool caching with `cache_control`** (3 minutes)
+   - Mark the last tool in the list with `"cache_control": {"type": "ephemeral"}`. Anthropic caches everything up to and including that marker.
+   - The response carries `cache_creation_input_tokens` on the first call and `cache_read_input_tokens` on hits. Ephemeral TTL is roughly 5 minutes.
+   - Same pattern applies to the system block (Segment 3 uses it to pin a 2KB vendor policy). Cookbook anchor: `claude-cookbooks-main/tool_use/parallel_tools.ipynb`.
+
 ### Demo A: MCP config walkthrough (10 minutes)
 
 **Live demo:**
@@ -162,11 +188,12 @@ By the end of this segment, attendees will be able to:
 3. Open `C:/github/claude-architect/.mcp.json` in a split editor. Walk the `mcpServers` object server-by-server. Four servers, three transports: **filesystem** (stdio, no auth), **github** (stdio with `${GITHUB_TOKEN}`), **context7** (HTTP with header auth), **internal-knowledge-base** (SSE with bearer token). For each, name the **transport**, the **command or URL**, and the **env-var expansion** points.
 4. Run the notebook cell that loads `.mcp.json` and pretty-prints transport + env-var refs for every server. This is config-as-data; no MCP client invocation needed.
 5. Show what happens when `${GITHUB_TOKEN}` is unset: server fails to start with a readable error. Set it, restart, server comes up.
-6. Optional side-trip: open `private/claude-cookbooks-main/managed_agents/cma-mcp/` to show what an MCP server's source code looks like (vs. the client config we just walked). Two sides of the same protocol.
+6. Run the **tool-caching cell**: same `OPINIONATED_WEATHER` tool with `cache_control: {"type": "ephemeral"}` on it, called twice. Point at the printed counters - `cache_creation_input_tokens` on call 1, `cache_read_input_tokens` on call 2. This is the same shape Segment 3 will reuse on the system block.
+7. Optional side-trip: open `claude-cookbooks-main/managed_agents/cma-mcp/` to show what an MCP server's source code looks like (vs. the client config we just walked). Two sides of the same protocol.
 
 **What attendees see:** MCP config is plain JSON with three transport shapes and one variable-expansion rule. The hard part isn't the syntax, it's deciding which tools each agent should see.
 
-4. **Claude Code instruction hierarchy** (5 minutes)
+5. **Claude Code instruction hierarchy** (5 minutes)
    - The four CLAUDE.md tiers, in precedence order:
      - **User:** `~/.claude/CLAUDE.md` - your personal defaults, every project
      - **Project:** `./CLAUDE.md` at the repo root - team conventions, checked in
@@ -181,16 +208,17 @@ By the end of this segment, attendees will be able to:
 **Live demo:**
 1. Open `C:/github/claude-architect/CLAUDE.md` in VS Code. Walk the structure.
 2. Show a nested CLAUDE.md if one exists; explain that it only loads when files in that subtree are read.
-3. In PowerShell, run:
+3. Run the notebook's **`claude -p` cell**. It uses `shutil.which("claude")` and shells out via `subprocess` when the CLI is on PATH, or prints the canonical command and skips gracefully when it is not (the Jupyter kernel often does not inherit the same PATH as your terminal). Read the output, do not depend on the side effect.
+4. If the kernel skipped, also run it in PowerShell so attendees see the real headless return:
    ```powershell
    claude -p "audit this CLAUDE.md against repo conventions. List 3 specific improvements."
    ```
-4. Show the JSON output mode for scripting:
+5. Show the JSON output mode for scripting:
    ```powershell
    claude -p "list all Python files with missing docstrings" --output-format json
    ```
 
-**What attendees see:** The same Claude Code you use interactively is a CLI tool you can pipe to. `claude -p` is the bridge to GitHub Actions.
+**What attendees see:** The same Claude Code you use interactively is a CLI tool you can pipe to. `claude -p` is the bridge to GitHub Actions, and the notebook's `shutil.which` fallback is the production-shaped way to call it from any script.
 
 ### Exercise (5 minutes)
 **Prompt:** Sketch a **CLAUDE.md hierarchy for a 3-team monorepo** (backend / frontend / infra). Name **three files**: one project-root `CLAUDE.md` and two subtree `CLAUDE.md` files. For each, write a one-line statement of what belongs there and what does **not**.
@@ -206,7 +234,9 @@ Anticipated questions:
 ### Key takeaways
 - **Tool descriptions are the contract**, names are just labels. Spell out behavior, inputs, and error shapes.
 - **MCP transports** are stdio / SSE / HTTP, and `${ENV_VAR}` expansion keeps secrets out of source.
+- **`cache_control: {"type": "ephemeral"}`** on the last tool caches the whole tool block. Watch `cache_read_input_tokens` to verify the hit. Same pattern reused on the system block in Segment 3.
 - **CLAUDE.md hierarchy** layers from user to project to subtree to local. Use subtree files to keep frontend rules off backend files.
+- **`claude -p`** with a `shutil.which("claude")` fallback is how you wire Claude Code into CI/CD without breaking notebooks that lack the CLI on PATH. Cookbook anchors live at `claude-cookbooks-main/tool_use/`.
 
 ### Bridge to Segment 3
 > "Tools give the agent hands. Prompts and schemas decide what comes out. Let's make those outputs trustworthy."
@@ -224,7 +254,10 @@ By the end of this segment, attendees will be able to:
 
 - Write **precise prompts** that specify format, edge cases, and missing-data behavior up front
 - Use the **forced-tool-call pattern** to enforce a Pydantic-derived JSON schema with a validation + retry ceiling
-- Preserve **case facts** and prune **verbose tool outputs** so long conversations stay coherent
+- Pin **few-shot examples** in the message history to lock corner-case behavior (decimal commas, DD/MM/YYYY dates, regional invoice conventions) that prose cannot reach
+- Add a **self-reported `confidence` field** to the schema and route bottom-slice rows to human review against a `CONFIDENCE_THRESHOLD`
+- Pin **case facts** to the system block with `cache_control: {"type": "ephemeral"}` and verify the hit on the second call via `cache_read_input_tokens`
+- Prune **verbose tool outputs** so long conversations stay coherent
 - Distinguish **explicit human requests** (escalate now) from **sentiment signals** (don't escalate on frustration alone)
 
 ### Topics covered
@@ -257,8 +290,11 @@ By the end of this segment, attendees will be able to:
    - **Missing one field:** no PO number. The `Optional[str]` field comes back `None`. No retry needed. Schema is doing the work.
    - **Ambiguous line item:** a hand-written charge that could be parsed two ways. First pass fails validation. Catch the `ValidationError`. Append the error back as a user turn. Retry. Second pass succeeds.
 5. Show the loop ceiling: hard-code `max_retries = 1`. Without the ceiling, a genuinely bad source document burns 20 calls in a row.
+6. **Few-shot extraction.** Run the `extract_with_few_shot` cell on the European-format invoice (decimal commas, DD/MM/YYYY dates, EUR). Two prior `user` / `assistant` turns prime the model to respect the source's conventions instead of normalizing to US format. Cookbook anchor: `claude-cookbooks-main/tool_use/extracting_structured_json.ipynb`.
+7. **Confidence-routing.** Run the `InvoiceWithConfidence` cell. Subclass adds a `confidence: float` field; the forced tool call forces the model to commit to a number; `CONFIDENCE_THRESHOLD = 0.7` routes ambiguous rows to a review queue. Not calibrated, still useful.
+8. **Case-facts pinning with `cache_control`.** Run the `extract_with_cached_facts` cell twice back-to-back. A 2KB vendor policy block (decimal rules, date rules, "do not invent values") attaches to the system prompt with `cache_control: {"type": "ephemeral"}`. Call 1 prints `cache_creation_input_tokens > 0`; call 2 prints `cache_read_input_tokens > 0`. Same pattern Segment 2 used on the tool block, now applied to the system block.
 
-**What attendees see:** Structured output is not magic. It is a tool definition, a forced `tool_choice`, and a small validation loop with a ceiling. Once you wire it, you copy the pattern.
+**What attendees see:** Structured output is not magic. It is a tool definition, a forced `tool_choice`, and a small validation loop with a ceiling. Few-shot locks corner cases. Confidence scores route the bottom slice to humans. `cache_control` pins case facts cheaply. Once you wire each, you copy the pattern.
 
 ### Exercise: Triage scorecard (5 minutes)
 
@@ -286,9 +322,12 @@ Anticipated questions:
 
 ### Key takeaways
 - **Forced tool calls + Pydantic schemas + a max-retry ceiling** are the canonical structured output pattern.
-- **Case-facts pinning + tool-output pruning** keep long conversations coherent without burning tokens. Compaction (`automatic-context-compaction.ipynb`) is the post-class self-study lab.
+- **Few-shot examples** in the message history lock corner-case behavior (decimal commas, regional date formats) that prose alone cannot reach.
+- **Self-reported `confidence` field** on the schema routes the bottom slice to a human review queue against a `CONFIDENCE_THRESHOLD`. Not calibrated, still useful.
+- **`cache_control: {"type": "ephemeral"}` on the system block** pins case facts cheaply; `cache_read_input_tokens` on call 2 verifies the hit. Same pattern Segment 2 ran on the tool block.
+- **Tool-output pruning** keeps long conversations coherent without burning tokens. Compaction (`claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb`) is the post-class self-study lab.
 - **Escalation triggers on policy, complexity, risk, or explicit request.** Sentiment is not a signal.
-- Further self-study: [`./domain-5-context.md`](./domain-5-context.md) covers error propagation, provenance preservation, and confidence calibration that this segment did not have time for.
+- Further self-study: [`./domain-5-context.md`](./domain-5-context.md) covers error propagation, provenance preservation, and confidence calibration depth.
 
 ### Bridge to Segment 4
 > "You now have the skills. The exam is how you signal them. Last segment is the certification debrief: what's on it, what Anthropic expects, and ten practice questions to calibrate where you stand."

@@ -29,7 +29,10 @@ def cells() -> list[tuple[str, str]]:
         ("code", _mcp_config_code),
         ("md", _demo_claude_md_hierarchy_md),
         ("code", _claude_md_hierarchy_code),
+        ("md", _demo_tool_caching_md),
+        ("code", _tool_caching_code),
         ("md", _claude_p_md),
+        ("code", _claude_p_code),
         ("md", _exercise_md),
         ("md", _key_takeaways_md),
         ("md", _bridge_md),
@@ -54,6 +57,7 @@ _lo_md = """\
 - Return **structured tool errors** so the model can decide to retry, reformulate, or escalate
 - Configure **`.mcp.json`** for stdio, SSE, and HTTP transports with `${ENV_VAR}` expansion
 - Reason about the **CLAUDE.md hierarchy** (user, project, subtree, local) and its precedence
+- Cache **tool definitions** with `cache_control` to amortize a large tool list across requests
 - Run Claude Code **non-interactively** with `claude -p` for CI/CD
 """
 
@@ -344,19 +348,107 @@ for tier, path, purpose in tiers:
 """
 
 _claude_p_md = """\
-## `claude -p`: the headless surface
+## `claude -p`: the headless surface (Domain 3, plan mode)
 
-The Claude Code CLI runs interactively *and* headlessly. `claude -p "<prompt>"` is the bridge to CI/CD.
+The Claude Code CLI runs interactively *and* headlessly. `claude -p "<prompt>"` is the bridge to CI/CD. This is **plan mode for automation**: no terminal, no human in the loop, just a one-shot run that returns text or JSON.
+
+Common shapes:
 
 ```powershell
 # audit the project CLAUDE.md
 claude -p "audit ./CLAUDE.md against repo conventions. List 3 specific improvements."
 
-# JSON output for scripting
-claude -p "list all Python files with missing docstrings" --output-format json
+# JSON output for scripting, with an allowlist
+claude -p "list all Python files with missing docstrings" --output-format json --allowedTools "Read,Grep,Glob"
 ```
 
-Pipe the JSON into a GitHub Actions step and you have an LLM-backed lint that runs on every PR. No notebook cell here because invoking the Claude Code CLI from inside a Jupyter kernel cross-talks with the SDK auth surface. Run those commands in your PowerShell terminal between segments.
+Pipe the JSON into a GitHub Actions step and you have an LLM-backed lint that runs on every PR.
+
+The next cell shells out via `subprocess` to prove the surface works. It falls back gracefully if `claude` is not on the path - which it often is not inside a Jupyter kernel that loaded its own environment. **Read the output, do not depend on the command running.**
+"""
+
+_claude_p_code = """\
+import shutil
+import subprocess
+
+claude_cli = shutil.which("claude")
+if claude_cli is None:
+    print("[skip] `claude` is not on this kernel's PATH.")
+    print("       Run the headless call in your PowerShell terminal instead:")
+    print()
+    print('       claude -p "What is the agentic loop in one sentence?" --output-format json')
+    print()
+    print("       Inside a notebook the CLI often conflicts with the SDK auth surface.")
+    print("       The point of this cell is the SHAPE, not the side effect.")
+else:
+    try:
+        # Short prompt, JSON output, 30-second wall clock. Adjust if your CLI is slower.
+        result = subprocess.run(
+            [claude_cli, "-p", "Say the words 'plan mode works' and nothing else.",
+             "--output-format", "json"],
+            capture_output=True, text=True, timeout=30,
+        )
+        print(f"[exit code] {result.returncode}")
+        print(f"[stdout]\\n{result.stdout[:500]}")
+        if result.stderr:
+            print(f"[stderr]\\n{result.stderr[:200]}")
+    except subprocess.TimeoutExpired:
+        print("[timeout] `claude -p` did not return in 30s. Try it in PowerShell.")
+    except Exception as exc:  # noqa: BLE001 - teaching demo, surface everything
+        print(f"[error] {type(exc).__name__}: {exc}")
+        print("Run the command in your terminal; it is the canonical surface.")
+"""
+
+_demo_tool_caching_md = """\
+## Tool caching with `cache_control`
+
+When the tool block is large (a dozen tools, opinionated descriptions, schemas), you pay tokens for it on **every** request. `cache_control` marks a prefix of the request as cacheable; subsequent calls within the cache lifetime hit the cache and skip re-billing those input tokens.
+
+The shape:
+
+```python
+tools = [
+    {"name": "...", "description": "...", "input_schema": {...}},
+    # ...
+    {"name": "last_tool", "description": "...", "input_schema": {...},
+     "cache_control": {"type": "ephemeral"}},
+]
+```
+
+Place `cache_control` on the **last** tool in the list. Anthropic caches everything up to and including that marker. The response carries `cache_creation_input_tokens` on the first call and `cache_read_input_tokens` on hits.
+
+Cookbook anchor: `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` (same pattern, parallel-call angle).
+
+We run the same `OPINIONATED_WEATHER` tool twice. First call writes the cache. Second call (within 5 minutes) reads it. Watch the two counters flip.
+"""
+
+_tool_caching_code = """\
+CACHED_TOOLS = [
+    {**OPINIONATED_WEATHER, "cache_control": {"type": "ephemeral"}},
+]
+
+USER = "What's the weather in Boston?"
+
+def call(label: str) -> None:
+    resp = client.messages.create(
+        model=MODEL, max_tokens=200, tools=CACHED_TOOLS,
+        messages=[{"role": "user", "content": USER}],
+    )
+    usage = resp.usage
+    # The two fields we care about live on usage:
+    created = getattr(usage, "cache_creation_input_tokens", 0) or 0
+    read = getattr(usage, "cache_read_input_tokens", 0) or 0
+    print(f"[{label}] input={usage.input_tokens}  "
+          f"cache_creation={created}  cache_read={read}  "
+          f"stop_reason={resp.stop_reason}")
+
+print("First call (writes the cache):")
+call("call 1")
+print("\\nSecond call (should read the cache):")
+call("call 2")
+print()
+print("If cache_read on call 2 > 0, the tool block was served from cache.")
+print("Note: ephemeral cache TTL is roughly 5 minutes. After that, you pay creation again.")
 """
 
 _exercise_md = """\
@@ -380,7 +472,13 @@ _key_takeaways_md = """\
 - **Structured errors** with `errorCategory` and `isRetryable` let the model decide. Bare strings force it to guess.
 - **MCP transports** are stdio / SSE / HTTP, and `${ENV_VAR}` expansion keeps secrets out of source.
 - **CLAUDE.md hierarchy** layers from user to project to subtree to local. Use subtree files to keep frontend rules off backend files.
-- `claude -p` is your CI/CD answer.
+- **`cache_control: {"type": "ephemeral"}`** on the last tool caches the whole tool block; second call reads from cache. ~5-minute TTL.
+- `claude -p` is your CI/CD answer. The CLI runs headless with `--output-format json` for scripting.
+
+**Cookbook anchors for further study:**
+- `../claude-cookbooks-main/tool_use/tool_choice.ipynb` (the four modes, runnable)
+- `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` (parallel + caching, runnable)
+- `../claude-cookbooks-main/tool_use/customer_service_agent.ipynb` (Anthropic's reference for the Segment 1 agent shape)
 """
 
 _bridge_md = """\

@@ -2,6 +2,9 @@
 private/
 research/
 
+# Note: claude-cookbooks-main/ IS committed to this repo (Anthropic MIT-licensed cookbook).
+# Attribution lives in claude-cookbooks-main/NOTICE.md and the project README.
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

@@ -98,7 +98,7 @@ See **COURSE-FLOW.md Segment 2** for the live walkthrough. Code references in th
 - `./scenario-cicd-integration.md`. `claude -p` in a CI pipeline.
 - `./hooks-example.py`. Agent SDK hook pattern (same mental model as `settings.json` hooks).
 - `./settings.json`. Editor settings example for the repo.
-- `private/claude-cookbooks-main/skills/`. Anthropic skill examples (private; do not commit).
+- `claude-cookbooks-main/skills/`. Anthropic skill examples (private; do not commit).
 
 ## Production tips (Tim's voice)
 
@@ -116,4 +116,4 @@ See **COURSE-FLOW.md Segment 2** for the live walkthrough. Code references in th
 - Headless mode. https://docs.claude.com/en/docs/claude-code/headless
 - Skills. https://docs.claude.com/en/docs/claude-code/skills
 - Hooks. https://docs.claude.com/en/docs/claude-code/hooks
-- `private/claude-cookbooks-main/skills/`. Anthropic's own skill examples.
+- `claude-cookbooks-main/skills/`. Anthropic's own skill examples.

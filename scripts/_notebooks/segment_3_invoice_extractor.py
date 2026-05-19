@@ -29,6 +29,12 @@ def cells() -> list[tuple[str, str]]:
         ("code", _missing_code),
         ("md", _demo_ambiguous_md),
         ("code", _ambiguous_code),
+        ("md", _demo_few_shot_md),
+        ("code", _few_shot_code),
+        ("md", _demo_confidence_md),
+        ("code", _confidence_code),
+        ("md", _demo_case_facts_md),
+        ("code", _case_facts_code),
         ("md", _demo_pruning_md),
         ("code", _pruning_code),
         ("md", _exercise_md),
@@ -52,7 +58,9 @@ _lo_md = """\
 
 - Write **precise prompts** that specify format, edge cases, and missing-data behavior up front
 - Use the **forced-tool-call pattern** to enforce a Pydantic-derived JSON schema, with a max-retry ceiling
-- Preserve **case facts** and prune **verbose tool outputs** so long conversations stay coherent
+- Pin **few-shot examples** to lock in corner-case behavior that prose alone cannot describe
+- Attach a **per-row confidence score** and route low-confidence rows to a human review queue
+- Preserve **case facts** via `cache_control` on the system block, and prune **verbose tool outputs** so long conversations stay coherent
 - Distinguish **explicit human requests** (escalate now) from **sentiment signals** (don't escalate on frustration alone)
 """
 
@@ -357,6 +365,219 @@ except RuntimeError as exc:
     print("This is the correct behavior when a genuinely bad source exhausts retries.")
 """
 
+_demo_few_shot_md = """\
+## Few-shot: pinning corner cases (Domain 4)
+
+Prose instructions describe behavior. **Examples lock it.** When the corner case is one the model gets wrong without examples - subtle numeric formatting, regional date formats, optional fields the model wants to invent - two or three worked examples in the user turn move the needle more than any temperature change.
+
+The shape: include a small `system` block plus a chat of past `user` / `assistant` turns where the assistant called the tool *correctly*. The model imitates.
+
+Cookbook anchor: `../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` (Anthropic's structured-extraction reference).
+
+Below we extract a tricky invoice with European-format dates (`15/05/2026` is day-month-year, not month-day-year). Without examples the model often returns `2026-05-15`. With examples it returns `2026-05-15` only when the source confirms it - and `2026-05-15` is correct here only by coincidence; the real lesson is that the assistant turn we hand-craft shows the model how to disambiguate.
+"""
+
+_few_shot_code = """\
+TRICKY_INVOICE = '''
+EUROVOX SOUND GMBH
+Rechnung INV-2026-0701
+Kunde: Warner Co.
+Datum: 15/05/2026   Faellig: 14/06/2026
+
+Bezeichnung                        Menge    Preis     Summe
+Mikrofon-Vorverstaerker (Class A)     1     480,00    480,00
+Versand (DHL Express)                                  35,00
+                                                    --------
+                                     TOTAL EUR        515,00
+
+Hinweis: Zahlung per Ueberweisung. 30 Tage netto.
+'''
+
+FEW_SHOT_HISTORY = [
+    {
+        "role": "user",
+        "content": "Extract the invoice from this text:\\n\\nINV-2025-0099, Vendor: SoundTrek BV, Total EUR 240,50, Date: 03/04/2025 (DD/MM/YYYY)",
+    },
+    {
+        "role": "assistant",
+        "content": [{
+            "type": "tool_use",
+            "id": "shot-1",
+            "name": "extract_invoice",
+            "input": {
+                "invoice_number": "INV-2025-0099",
+                "vendor": "SoundTrek BV",
+                "total": 240.50,
+                "po_number": None,
+                "notes": None,
+                "due_date": None,
+            },
+        }],
+    },
+    {
+        "role": "user",
+        "content": [{
+            "type": "tool_result",
+            "tool_use_id": "shot-1",
+            "content": "OK",
+        }],
+    },
+]
+
+
+def extract_with_few_shot(raw_text: str) -> Invoice:
+    \"\"\"Same forced-tool-call pattern, but with a few-shot history attached.\"\"\"
+    messages = list(FEW_SHOT_HISTORY) + [
+        {"role": "user", "content": f"Extract the invoice from this text:\\n\\n{raw_text}"}
+    ]
+    resp = client.messages.create(
+        model=MODEL, max_tokens=600, system=SYSTEM_PROMPT,
+        tools=[EXTRACT_TOOL],
+        tool_choice={"type": "tool", "name": "extract_invoice"},
+        messages=messages,
+    )
+    print(f"  [few-shot] stop_reason={resp.stop_reason}")
+    tool_block = next(b for b in resp.content if b.type == "tool_use")
+    return Invoice(**tool_block.input)
+
+
+print("--- Few-shot extraction on a European-format invoice ---")
+invoice = extract_with_few_shot(TRICKY_INVOICE)
+print(invoice.model_dump_json(indent=2))
+print()
+print("Note the decimal comma (515,00 EUR) and the DD/MM/YYYY date format.")
+print("Few-shot examples teach the model to respect the source's conventions.")
+"""
+
+_demo_confidence_md = """\
+## Confidence scores: routing low-confidence rows to a human
+
+For high-stakes extractions, you do not just want the values - you want a **self-reported confidence** so you can route the bottom 5% to a review queue.
+
+The trick: add a `confidence: float` field (0.0 to 1.0) to the Pydantic model. The forced tool call forces the model to commit to a number. Then your downstream code reads the score and routes.
+
+This is **cheap and load-bearing**. It is not calibrated (the model is biased toward overconfidence), but it is *useful*: the lowest-confidence rows really are the ones most worth a second look.
+"""
+
+_confidence_code = """\
+class InvoiceWithConfidence(Invoice):
+    \"\"\"Same fields as Invoice plus a self-reported confidence score.\"\"\"
+    confidence: float = Field(
+        ge=0.0, le=1.0,
+        description=(
+            "Self-reported confidence in this extraction, 0.0 to 1.0. "
+            "Lower the score when fields are ambiguous, handwritten, or "
+            "you had to guess a missing-but-required value."
+        ),
+    )
+
+
+EXTRACT_WITH_CONFIDENCE = {
+    "name": "extract_invoice",
+    "description": EXTRACT_TOOL["description"] + (
+        " Always include a confidence score. Use < 0.6 when any required "
+        "field was ambiguous, < 0.8 when optional fields had to be inferred."
+    ),
+    "input_schema": InvoiceWithConfidence.model_json_schema(),
+}
+
+CONFIDENCE_THRESHOLD = 0.7
+
+
+def extract_with_confidence(raw_text: str) -> InvoiceWithConfidence:
+    resp = client.messages.create(
+        model=MODEL, max_tokens=600, system=SYSTEM_PROMPT,
+        tools=[EXTRACT_WITH_CONFIDENCE],
+        tool_choice={"type": "tool", "name": "extract_invoice"},
+        messages=[{"role": "user", "content": f"Extract the invoice from this text:\\n\\n{raw_text}"}],
+    )
+    tool_block = next(b for b in resp.content if b.type == "tool_use")
+    return InvoiceWithConfidence(**tool_block.input)
+
+
+for label, text in [("clean", CLEAN_INVOICE), ("ambiguous", AMBIGUOUS_INVOICE)]:
+    print(f"--- {label} ---")
+    try:
+        inv = extract_with_confidence(text)
+        verdict = "HUMAN REVIEW" if inv.confidence < CONFIDENCE_THRESHOLD else "auto-approve"
+        print(f"  confidence={inv.confidence:.2f}  -> {verdict}")
+        print(f"  total={inv.total}, vendor={inv.vendor}")
+    except Exception as exc:  # noqa: BLE001 - teaching demo
+        print(f"  [error] {type(exc).__name__}: {exc}")
+    print()
+"""
+
+_demo_case_facts_md = """\
+## Pinning case facts with `cache_control` (Domain 5)
+
+A long extraction session re-reads the same policy text on every call: vendor rules, currency rules, the company's "do not invent values" prompt. That is wasted tokens.
+
+`cache_control` on the system block tells Anthropic: cache everything up to this point. The next call within the cache lifetime reads from cache instead of re-billing. Same idea as Segment 2's tool caching, applied to the **system prompt** rather than the tool list.
+
+Cookbook anchor: `../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb` (the complementary fallback when caching alone is not enough).
+
+We define a 2KB "vendor policy" block, attach `cache_control`, and run two extractions back-to-back. Watch `cache_creation_input_tokens` on call 1 and `cache_read_input_tokens` on call 2.
+"""
+
+_case_facts_code = """\
+VENDOR_POLICY = (
+    "VENDOR POLICY (apply to every invoice extraction)\\n\\n"
+    "1. Decimal commas: European invoices use comma as decimal separator. "
+    "   '515,00 EUR' means 515.00 EUR, not 51500.\\n"
+    "2. Date formats: DD/MM/YYYY for EU vendors, MM/DD/YYYY for US vendors. "
+    "   When in doubt, use the ISO 8601 form in your output.\\n"
+    "3. PO numbers: only fill po_number if the invoice prints one explicitly. "
+    "   Do not infer from the customer's order history.\\n"
+    "4. Totals: always the final 'TOTAL DUE' line, not a subtotal. "
+    "   If multiple totals appear, pick the one labeled DUE.\\n"
+    "5. Notes: include only the literal memo text. Do not paraphrase.\\n"
+    "6. Currency: store the numeric amount in `total`. Mention the currency "
+    "   in `notes` if it is not USD.\\n"
+    "7. Confidence: lower the score whenever you applied rule 1, 2, or 4 "
+    "   under ambiguity.\\n"
+    "\\n"
+    "DO NOT INVENT VALUES. Optional fields with no source evidence stay null."
+)
+
+CACHED_SYSTEM = [
+    {
+        "type": "text",
+        "text": SYSTEM_PROMPT + "\\n\\n" + VENDOR_POLICY,
+        "cache_control": {"type": "ephemeral"},
+    },
+]
+
+
+def extract_with_cached_facts(raw_text: str) -> tuple[Invoice, dict]:
+    resp = client.messages.create(
+        model=MODEL, max_tokens=600,
+        system=CACHED_SYSTEM,
+        tools=[EXTRACT_TOOL],
+        tool_choice={"type": "tool", "name": "extract_invoice"},
+        messages=[{"role": "user", "content": f"Extract the invoice from this text:\\n\\n{raw_text}"}],
+    )
+    tool_block = next(b for b in resp.content if b.type == "tool_use")
+    usage = resp.usage
+    counters = {
+        "input_tokens": usage.input_tokens,
+        "cache_creation": getattr(usage, "cache_creation_input_tokens", 0) or 0,
+        "cache_read": getattr(usage, "cache_read_input_tokens", 0) or 0,
+    }
+    return Invoice(**tool_block.input), counters
+
+
+print("Call 1 (writes the cache):")
+_, c1 = extract_with_cached_facts(CLEAN_INVOICE)
+print(f"  {c1}")
+print()
+print("Call 2 (should hit the cache):")
+_, c2 = extract_with_cached_facts(MISSING_PO_INVOICE)
+print(f"  {c2}")
+print()
+print("cache_read > 0 on call 2 means the 2KB vendor policy was served from cache.")
+print("Pattern works on system blocks, tool blocks, and large user-turn prefixes.")
+"""
+
 _demo_pruning_md = """\
 ## Sidebar: tool-output pruning (not executed)
 
@@ -414,9 +635,16 @@ _key_takeaways_md = """\
 ## Key takeaways
 
 - **Forced tool calls + Pydantic schemas + max-retry ceiling** are the canonical structured-output pattern.
-- **Case facts pinned at the top + tool-output pruning** keep long conversations coherent without burning tokens. Compaction is a fallback.
+- **Few-shot examples** in the message history lock corner-case behavior that prose alone cannot reach.
+- **Self-reported `confidence` field** routes the bottom slice to a human review queue. Not calibrated, still useful.
+- **`cache_control` on the system block** pins case facts cheaply; subsequent calls hit cache. Pruning + compaction are the fallbacks.
 - **Escalation triggers on policy, complexity, risk, or explicit request**. Sentiment is not a signal.
-- Further self-study: [`../domain-5-context.md`](../domain-5-context.md) covers error propagation, provenance preservation, and confidence calibration.
+
+**Cookbook anchors for further study:**
+- `../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` (few-shot + structured extraction)
+- `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` (Pydantic-as-schema reference)
+- `../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb` (compaction as a fallback)
+- [`../domain-5-context.md`](../domain-5-context.md) for error propagation, provenance, and confidence calibration depth.
 """
 
 _bridge_md = """\

@@ -91,12 +91,12 @@ When synthesis agents combine outputs from multiple subagents, the financial age
 
 The two load-bearing Domain 5 concepts (case-facts pinning + tool-output pruning, and escalation triage) are taught live in **COURSE-FLOW.md Segment 3** alongside Domain 4. The compaction demo is **post-class self-study**, not a live segment. The Segment 4 capstone is the CCA-F cert briefing + practice questions; see [`./CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md). Code references:
 
-- `private/claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb`, self-study lab (run after class)
-- `private/claude-cookbooks-main/tool_use/memory_cookbook.ipynb`, memory and recall patterns
-- `private/claude-cookbooks-main/managed_agents/CMA_gate_human_in_the_loop.ipynb`, human review gating
-- `private/claude-cookbooks-main/managed_agents/CMA_remember_user_preferences.ipynb`, preference persistence
-- `private/claude-cookbooks-main/claude_agent_sdk/02_The_observability_agent.ipynb`, observability for production agents
-- `private/claude-cookbooks-main/claude_agent_sdk/03_The_site_reliability_agent.ipynb`, SRE patterns
+- `claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb`, self-study lab (run after class)
+- `claude-cookbooks-main/tool_use/memory_cookbook.ipynb`, memory and recall patterns
+- `claude-cookbooks-main/managed_agents/CMA_gate_human_in_the_loop.ipynb`, human review gating
+- `claude-cookbooks-main/managed_agents/CMA_remember_user_preferences.ipynb`, preference persistence
+- `claude-cookbooks-main/claude_agent_sdk/02_The_observability_agent.ipynb`, observability for production agents
+- `claude-cookbooks-main/claude_agent_sdk/03_The_site_reliability_agent.ipynb`, SRE patterns
 
 ## Production tips (Tim's voice)
 
@@ -112,5 +112,5 @@ The two load-bearing Domain 5 concepts (case-facts pinning + tool-output pruning
 - Anthropic: Context management, https://docs.claude.com/en/docs/build-with-claude/context-windows
 - Anthropic: Prompt caching, https://docs.claude.com/en/docs/build-with-claude/prompt-caching
 - Anthropic: Memory tool, https://docs.claude.com/en/docs/agents-and-tools/tool-use/memory-tool
-- `private/claude-cookbooks-main/claude_agent_sdk/`, 8 production agent notebooks with reliability patterns
-- `private/claude-cookbooks-main/managed_agents/`, managed agent reliability examples
+- `claude-cookbooks-main/claude_agent_sdk/`, 8 production agent notebooks with reliability patterns
+- `claude-cookbooks-main/managed_agents/`, managed agent reliability examples

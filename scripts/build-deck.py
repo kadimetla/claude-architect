@@ -132,7 +132,7 @@ SLIDES: list[tuple[str, str, list[str] | None, str | None]] = [
         LAYOUT_BLANK,
         "DEMO: Customer support agent (15 min)",
         None,
-        "Open private/claude-cookbooks-main/tool_use/customer_service_agent.ipynb. Wire 4 tools. Add the refund-cap hook from hooks-example.py. Audience sees: agent skips verification -> hook blocks -> agent re-plans -> escalates. The aha moment is when the hook fires.",
+        "Open claude-cookbooks-main/tool_use/customer_service_agent.ipynb. Wire 4 tools. Add the refund-cap hook from hooks-example.py. Audience sees: agent skips verification -> hook blocks -> agent re-plans -> escalates. The aha moment is when the hook fires.",
     ),
     (
         LAYOUT_CONTENT,
