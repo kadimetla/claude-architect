@@ -27,6 +27,20 @@ The repo ships these artifacts:
 - `.mcp.json` - Segment 2 MCP config anchor (4 servers, 3 transports, env-var expansion)
 - `hooks-example.py` - real PreToolUse / PostToolUse reference cited from Segment 1
 
+## How this repo bootstraps (read before running anything)
+
+The canonical learner setup is **one command** from the repo root:
+
+```powershell
+uv run --project notebooks jupyter lab notebooks/
+```
+
+`uv run` auto-creates `notebooks/.venv/` on first invocation (~20s cold, including 107 packages from `notebooks/uv.lock`) and reuses it on every subsequent run (~1.5s warm). Do **not** suggest `pip install` first - `uv run` is the canonical entry point. Pinned deps live in `notebooks/pyproject.toml`; `notebooks/requirements.txt` is a generated pip-fallback for boxes without `uv`, kept in sync via `uv export`.
+
+Smoke tests run via `uv run` too: `uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-0-pre-flight.ipynb --output _smoke-0.ipynb` (budget ~$0.05 per notebook against the live API). Builder scripts (`scripts/build-notebooks.py` and `scripts/_notebooks/*.py`) are pure Python with no third-party deps; they run with the system Python directly, no venv required.
+
+`examples/mcp_cli/` is a **separate uv project** with its own `pyproject.toml` and `uv.lock`. Bootstrap it independently with `cd examples/mcp_cli && uv run main.py`. Intentional separation: it is reference code from Anthropic's Skilljar course (see `examples/mcp_cli/NOTICE.md`), not part of the notebook environment.
+
 ## Architecture: how the pieces fit
 
 This repo has no application layer. The architecture IS the teaching choreography:
