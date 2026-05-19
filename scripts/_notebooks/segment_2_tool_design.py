@@ -438,52 +438,133 @@ _demo_tool_caching_md = """\
 
 When the tool block is large (a dozen tools, opinionated descriptions, schemas), you pay tokens for it on **every** request. `cache_control` marks a prefix of the request as cacheable; subsequent calls within the cache lifetime hit the cache and skip re-billing those input tokens.
 
-The shape:
+Anthropic supports two patterns. **Automatic caching** (recommended) is a single top-level kwarg on `messages.create()` that lets the SDK place the cache breakpoint for you. **Explicit breakpoints** put `cache_control` on individual content or tool blocks for fine-grained control (up to 4 breakpoints per request). We demo the automatic pattern because it is one line and it is what Anthropic's own cookbook recommends.
 
 ```python
-tools = [
-    {"name": "...", "description": "...", "input_schema": {...}},
-    # ...
-    {"name": "last_tool", "description": "...", "input_schema": {...},
-     "cache_control": {"type": "ephemeral"}},
-]
+# Automatic caching - one kwarg, breakpoint placed for you
+resp = client.messages.create(
+    model=MODEL,
+    cache_control={"type": "ephemeral"},
+    tools=tools,
+    messages=[{"role": "user", "content": prompt}],
+)
 ```
 
-Place `cache_control` on the **last** tool in the list. Anthropic caches everything up to and including that marker. The response carries `cache_creation_input_tokens` on the first call and `cache_read_input_tokens` on hits.
+The response carries `cache_creation_input_tokens` when the cache is written and `cache_read_input_tokens` when it is hit. When caching engages, `input_tokens` drops dramatically because the tool block is no longer counted as fresh input.
 
-Cookbook anchor: `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` (same pattern, parallel-call angle).
+**The minimum-size gotcha is real.** On Sonnet 4.x the cacheable prefix must clear **1024 tokens**; on **Haiku 4.5** and **Opus** it is **4096 tokens** (per the Anthropic cookbook). Below the floor, `cache_control` is silently ignored - no creation, no reads, no warning. A single small tool plus a short prompt will *look* like caching is broken when really the request never crossed the threshold. Production tool blocks routinely carry a dozen opinionated tools, which is exactly when caching pays for itself.
 
-We run the same `OPINIONATED_WEATHER` tool twice. First call writes the cache. Second call (within 5 minutes) reads it. Watch the two counters flip.
+Cookbook anchor: `../claude-cookbooks-main/misc/prompt_caching.ipynb` (Anthropic's canonical caching walkthrough; `cache_control` as kwarg, multi-turn, and explicit breakpoints).
+
+We run a **four-tool** block (weather + forecast + air quality + sun times) twice with `cache_control` as a top-level kwarg. First call writes the cache. Second call reads it. Watch the counters flip.
 """
 
-_tool_caching_code = """\
-CACHED_TOOLS = [
-    {**OPINIONATED_WEATHER, "cache_control": {"type": "ephemeral"}},
+_tool_caching_code = '''\
+# Sonnet 4.x will not cache a prefix below 1024 input tokens. A single weather
+# tool plus a short prompt sits around 700, so cache_control silently no-ops.
+# Production tool blocks carry a dozen tools; we simulate that with three more
+# opinionated definitions to push the prefix past the floor.
+
+OPINIONATED_FORECAST = {
+    "name": "get_forecast",
+    "description": (
+        "Return a multi-day weather forecast for a city. Days 1-7 are supported. "
+        "Returns daily high/low in Celsius, conditions, precipitation probability, "
+        "and wind speed in km/h. Call when the user asks about future weather "
+        "beyond today. Do NOT call for current conditions - use get_weather. "
+        "If the city is ambiguous, ask the user to disambiguate BEFORE calling. "
+        "Forecasts past day 7 are not supported; tell the user instead of calling."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "city": {"type": "string", "description": "City name"},
+            "region": {"type": "string", "description": "Optional state/country"},
+            "days": {"type": "integer", "minimum": 1, "maximum": 7,
+                     "description": "Number of forecast days, 1-7"},
+        },
+        "required": ["city", "days"],
+    },
+}
+
+OPINIONATED_AIR_QUALITY = {
+    "name": "get_air_quality",
+    "description": (
+        "Return the current air-quality index (AQI) and dominant pollutant for a "
+        "city. AQI is reported on the US EPA scale (0-500). Call when the user "
+        "asks about air quality, smog, pollen, or whether it is safe to exercise "
+        "outdoors. Do NOT call for general weather - use get_weather. AQI data "
+        "is updated hourly; do not promise real-time precision finer than that. "
+        "If no monitoring station exists within 50km of the city, return a "
+        "policy error and explain coverage gaps instead of inventing a number."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "city": {"type": "string", "description": "City name"},
+            "region": {"type": "string", "description": "Optional state/country"},
+        },
+        "required": ["city"],
+    },
+}
+
+OPINIONATED_SUN_TIMES = {
+    "name": "get_sun_times",
+    "description": (
+        "Return sunrise, sunset, civil twilight start, and civil twilight end "
+        "for a city on a specific date. All times returned in the city's local "
+        "timezone as ISO 8601 strings. Call when the user asks about daylight, "
+        "golden hour, dawn, dusk, or solar event timing. Do NOT call for "
+        "general weather or moon phases. Dates more than 100 years in the "
+        "future are not supported; return a permanent error in that case."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "city": {"type": "string"},
+            "region": {"type": "string"},
+            "date": {"type": "string", "description": "ISO 8601 date, YYYY-MM-DD"},
+        },
+        "required": ["city", "date"],
+    },
+}
+
+# Four-tool block, no per-tool cache_control marker. We engage caching via the
+# top-level cache_control kwarg on messages.create() - the "automatic caching"
+# pattern from Anthropic's cookbook. The SDK places the breakpoint for us.
+TOOLS = [
+    OPINIONATED_WEATHER,
+    OPINIONATED_FORECAST,
+    OPINIONATED_AIR_QUALITY,
+    OPINIONATED_SUN_TIMES,
 ]
 
 USER = "What's the weather in Boston?"
 
 def call(label: str) -> None:
     resp = client.messages.create(
-        model=MODEL, max_tokens=200, tools=CACHED_TOOLS,
+        model=MODEL,
+        max_tokens=200,
+        cache_control={"type": "ephemeral"},  # automatic caching
+        tools=TOOLS,
         messages=[{"role": "user", "content": USER}],
     )
     usage = resp.usage
-    # The two fields we care about live on usage:
     created = getattr(usage, "cache_creation_input_tokens", 0) or 0
     read = getattr(usage, "cache_read_input_tokens", 0) or 0
     print(f"[{label}] input={usage.input_tokens}  "
           f"cache_creation={created}  cache_read={read}  "
           f"stop_reason={resp.stop_reason}")
 
-print("First call (writes the cache):")
+print("Call 1 (writes the cache):")
 call("call 1")
-print("\\nSecond call (should read the cache):")
+print("\\nCall 2 (reads from cache; input_tokens drops, cache_read > 0):")
 call("call 2")
 print()
-print("If cache_read on call 2 > 0, the tool block was served from cache.")
-print("Note: ephemeral cache TTL is roughly 5 minutes. After that, you pay creation again.")
-"""
+print("Expected shape: call 1 cache_creation > 0, call 2 cache_read > 0.")
+print("Minimum cacheable prefix on Sonnet 4.x is 1024 tokens; on Haiku 4.5/Opus it is 4096.")
+print("Below the floor, cache_control is silently ignored. Ephemeral TTL is ~5 minutes.")
+'''
 
 _exercise_md = """\
 ## Exercise (5 minutes)
@@ -506,7 +587,7 @@ _key_takeaways_md = """\
 - **Structured errors** with `errorCategory` and `isRetryable` let the model decide. Bare strings force it to guess.
 - **MCP transports** are stdio / SSE / HTTP, and `${ENV_VAR}` expansion keeps secrets out of source.
 - **CLAUDE.md hierarchy** layers from user to project to subtree to local. Use subtree files to keep frontend rules off backend files.
-- **`cache_control: {"type": "ephemeral"}`** on the last tool caches the whole tool block; second call reads from cache. ~5-minute TTL.
+- **Prompt caching** is one kwarg: `cache_control={"type": "ephemeral"}` on `messages.create()` (automatic caching, recommended). Floor is **1024 tokens** on Sonnet 4.x and **4096** on Haiku 4.5/Opus; below the floor the marker is silently ignored. First call writes, second call reads (~5-min TTL). Cache writes cost 1.25x base input; reads cost 0.1x.
 - `claude -p` is your CI/CD answer. The CLI runs headless with `--output-format json` for scripting.
 
 **Cookbook anchors for further study:**
