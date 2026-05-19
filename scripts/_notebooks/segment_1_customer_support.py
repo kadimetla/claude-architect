@@ -97,7 +97,7 @@ This is the whole platform. Everything else in this course is layers on top of t
 **Prerequisites for this cell**
 
 - An **API key** from the Anthropic Console (https://console.anthropic.com), exported as `ANTHROPIC_API_KEY`
-- The `anthropic` SDK installed (`pip install -r notebooks/requirements.txt`)
+- The `anthropic` SDK installed (`uv sync --project notebooks` from repo root, or fallback `pip install -r notebooks/requirements.txt`)
 
 If Segment 0 (pre-flight) passed for you, both are already true. If you skipped Segment 0 and this cell fails, that is the fix.
 

@@ -1,0 +1,18 @@
+[project]
+name = "claude-architect-notebooks"
+version = "0.1.0"
+description = "Teaching notebooks for the Claude Architect Foundations O'Reilly live training. Not a publishable package; this exists so `uv run` auto-manages the .venv for learners."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "anthropic>=0.40,<1.0",
+    "pydantic>=2.7,<3.0",
+    "python-dotenv>=1.0,<2.0",
+    "ipykernel>=6.29",
+    "jupyter>=1.1",
+    "nbconvert>=7.16",
+]
+
+[tool.uv]
+# Keep the .venv inside notebooks/ so learners can see it
+managed = true

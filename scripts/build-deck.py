@@ -24,6 +24,10 @@ from pptx.util import Inches, Pt
 REF = Path(r"C:/github/context-engineering/instructor/context-engineering-april-2026.pptx")
 OUT = Path(r"C:/github/claude-architect/slides/warner-claude-architect-may-2026.pptx")
 
+# To inspect REF and dump its layouts/theme as a starting point for a NEW course deck,
+# run scripts/extract-template.py. It prints a JSON-shaped summary you can paste into
+# the SLIDES list below. Only needed when starting a deck from a different reference.
+
 # Layout names from the reference deck (master 0, first 11 layouts)
 LAYOUT_TITLE_SLIDE = "Title Slide"
 LAYOUT_TITLE_ONLY = "Title Only"           # for SEGMENT NN dividers + section markers

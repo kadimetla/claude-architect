@@ -88,19 +88,22 @@ claude-architect/
 
 - [Node.js](https://nodejs.org/) 18+ for Anthropic SDK examples
 - [Python](https://www.python.org/) 3.13+ for hooks and cookbook notebooks
+- [**uv**](https://docs.astral.sh/uv/) (the Python package manager): `pip install uv` or `winget install astral-sh.uv`
 - [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed and authenticated
 - An [Anthropic API key](https://console.anthropic.com/) set as `ANTHROPIC_API_KEY`
 - **VS Code** with the **Python** and **Jupyter** extensions (the five teaching notebooks open here)
 
-### Setup
+### Setup (on-rails, one command)
 
 ```powershell
 git clone https://github.com/timothywarner-org/claude-architect.git
 cd claude-architect
-pip install -r notebooks/requirements.txt
+uv run --project notebooks jupyter lab notebooks/
 ```
 
-That is the entire learner setup. The Anthropic cookbook ships in the repo at `claude-cookbooks-main/`, so you do not need a second clone. Instructors who run the voice-lint scripts also need `npm install`; learners do not.
+That is the entire learner setup. **First run** auto-creates `notebooks/.venv/`, installs all dependencies from `notebooks/pyproject.toml`, and launches Jupyter. **Subsequent runs** reuse the venv and start in seconds. The Anthropic cookbook ships in the repo at `claude-cookbooks-main/`, so you do not need a second clone. Instructors who run the voice-lint scripts also need `npm install`; learners do not.
+
+**Fallback** if `uv` is not available: `pip install -r notebooks/requirements.txt` still works; the requirements file is kept in sync with `pyproject.toml`.
 
 ### Recommended learning path
 

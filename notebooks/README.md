@@ -18,12 +18,23 @@ Each segment notebook ships with **Learning Objectives**, **Concept** markdown c
 
 Several notebook cells cite Anthropic's official cookbook with `../claude-cookbooks-main/...` paths. The cookbook is **vendored at the repo root** (MIT, Copyright (c) 2023 Anthropic, see [`../claude-cookbooks-main/NOTICE.md`](../claude-cookbooks-main/NOTICE.md)). You get the whole reference library on `git clone`, no second clone required. Every code cell in `notebooks/` runs independently of the cookbook; the citations open Anthropic's authoritative notebooks for deeper study.
 
-## Install
+## Install (on-rails via uv)
+
+```powershell
+cd C:\github\claude-architect
+uv run --project notebooks jupyter lab notebooks/
+```
+
+That one command does everything: creates `notebooks/.venv/` on first invocation, installs all dependencies from `notebooks/pyproject.toml`, and launches Jupyter Lab. Subsequent runs reuse the venv. Install `uv` once with `pip install uv` or `winget install astral-sh.uv`.
+
+**Fallback** (pip without uv):
 
 ```powershell
 cd C:\github\claude-architect
 pip install -r notebooks\requirements.txt
 ```
+
+The `requirements.txt` file is kept in sync with `pyproject.toml` as a fallback path; either works.
 
 Pinned versions:
 
@@ -31,6 +42,8 @@ Pinned versions:
 - `pydantic>=2.7,<3.0`
 - `python-dotenv>=1.0,<2.0`
 - `ipykernel>=6.29`
+- `jupyter>=1.1`
+- `nbconvert>=7.16`
 
 ## Set the API key
 
@@ -54,11 +67,11 @@ This is the dry-run before each cohort delivery. Budget roughly **$1** in API sp
 
 ```powershell
 cd C:\github\claude-architect
-jupyter nbconvert --to notebook --execute notebooks\segment-0-pre-flight.ipynb --output _smoke-0.ipynb
-jupyter nbconvert --to notebook --execute notebooks\segment-1-customer-support-agent.ipynb --output _smoke-1.ipynb
-jupyter nbconvert --to notebook --execute notebooks\segment-2-tool-design-and-mcp.ipynb --output _smoke-2.ipynb
-jupyter nbconvert --to notebook --execute notebooks\segment-3-invoice-extractor.ipynb --output _smoke-3.ipynb
-jupyter nbconvert --to notebook --execute notebooks\segment-4-cca-f-capstone.ipynb --output _smoke-4.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-0-pre-flight.ipynb --output _smoke-0.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-1-customer-support-agent.ipynb --output _smoke-1.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-2-tool-design-and-mcp.ipynb --output _smoke-2.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-3-invoice-extractor.ipynb --output _smoke-3.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-4-cca-f-capstone.ipynb --output _smoke-4.ipynb
 Remove-Item notebooks\_smoke-*.ipynb
 ```
 
@@ -96,14 +109,14 @@ sys.exit(1 if hits else 0)
 Cell outputs can leak API key fragments or transient data. Always clear before committing:
 
 ```powershell
-jupyter nbconvert --clear-output --inplace notebooks\*.ipynb
+uv run --project notebooks jupyter nbconvert --clear-output --inplace notebooks\*.ipynb
 ```
 
 ## Pre-class checklist
 
 Before each cohort delivery, in order:
 
-1. `pip install -r notebooks\requirements.txt` (catch SDK drift early)
+1. `uv run --project notebooks python -c "import anthropic; print(anthropic.__version__)"` (catches SDK drift early; auto-syncs the venv if `pyproject.toml` changed)
 2. `$env:ANTHROPIC_API_KEY` set in the shell you will record from
 3. Run the smoke command above (budget ~$1)
 4. Run the voice lint (must return zero hits)

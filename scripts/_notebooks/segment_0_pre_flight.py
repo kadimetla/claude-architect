@@ -71,11 +71,11 @@ import pydantic
 print(f"anthropic: {anthropic.__version__}")
 print(f"pydantic:  {pydantic.VERSION}")
 
-# Soft floor checks. Pinned ranges live in notebooks/requirements.txt.
+# Soft floor checks. Pinned ranges live in notebooks/pyproject.toml (requirements.txt is the pip fallback).
 assert tuple(int(p) for p in anthropic.__version__.split(".")[:2]) >= (0, 40), \\
-    "anthropic SDK is too old. Run: pip install -r notebooks/requirements.txt"
+    "anthropic SDK is too old. Run: uv sync --project notebooks (or pip install -r notebooks/requirements.txt)"
 assert tuple(int(p) for p in pydantic.VERSION.split(".")[:2]) >= (2, 7), \\
-    "pydantic is too old. Run: pip install -r notebooks/requirements.txt"
+    "pydantic is too old. Run: uv sync --project notebooks (or pip install -r notebooks/requirements.txt)"
 print("[OK] SDK versions are within the pinned range")
 """
 
@@ -125,7 +125,7 @@ If every cell above printed `[OK]`, you are clear to start **Segment 1**. Open `
 
 If any cell failed, fix it now. The fix is almost always one of:
 
-- `pip install -r notebooks/requirements.txt`
+- `uv sync --project notebooks` (or fallback `pip install -r notebooks/requirements.txt`)
 - Set `ANTHROPIC_API_KEY` in this shell, then restart the kernel
 - Pull the latest from the `claude-architect` repo
 

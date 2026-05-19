@@ -160,23 +160,20 @@ The class is taught **from the five notebooks in `./notebooks/`**. Each notebook
 
 ## 6. Notebook environment
 
-- [ ] **Notebook deps installed**
+- [ ] **Notebook env bootstrapped** via `uv run` (auto-creates `notebooks/.venv/` on first invocation, reuses it after):
   ```powershell
-  pip install -r C:/github/claude-architect/notebooks/requirements.txt
+  cd C:/github/claude-architect
+  uv run --project notebooks python -c "import anthropic; print(anthropic.__version__)"
   ```
-  **Expect:** all four pins satisfied (anthropic >= 0.40, pydantic >= 2.7, python-dotenv >= 1.0, ipykernel >= 6.29)
+  **Expect:** Version >= 0.40, no ImportError. The first run installs all six pinned deps from `notebooks/pyproject.toml`; subsequent runs start in seconds.
 
-- [ ] **Jupyter / VS Code Python kernel**, open one notebook in VS Code, confirm kernel picker shows Python 3.13.x
+  **Fallback if `uv` is unavailable:** `pip install -r notebooks/requirements.txt` (kept in sync with `pyproject.toml`).
 
-- [ ] **anthropic SDK importable**
+- [ ] **Jupyter / VS Code Python kernel**, open one notebook in VS Code, confirm kernel picker shows the `notebooks/.venv/` Python (3.13.x or newer)
+
+- [ ] **pydantic importable** (using the same uv-managed venv):
   ```powershell
-  python -c "import anthropic; print(anthropic.__version__)"
-  ```
-  **Expect:** Version >= 0.40, no ImportError
-
-- [ ] **pydantic importable**
-  ```powershell
-  python -c "import pydantic; print(pydantic.VERSION)"
+  uv run --project notebooks python -c "import pydantic; print(pydantic.VERSION)"
   ```
   **Expect:** Version >= 2.7, no ImportError
 

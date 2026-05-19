@@ -23,13 +23,14 @@ We move outside-in. **Segment 1** builds an **agent** that decides what to do. *
 
 Run [`./PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md) end-to-end before class. The short version:
 
-- **Python 3.13** with `pip` on PATH
+- **Python 3.13+** on PATH
+- **`uv`** package manager (`pip install uv` once, then `uv` handles everything else)
 - **Node.js 18+** (needed for `npx @modelcontextprotocol/inspector` and a few MCP servers)
 - **Claude Code CLI** installed (`npm i -g @anthropic-ai/claude-code` or the official installer)
 - **`ANTHROPIC_API_KEY`** environment variable set in the same shell you'll run demos from
 - **VS Code** with the **Python** and **Jupyter** extensions
 - This repo cloned to `C:/github/claude-architect`
-- **Notebook dependencies installed:** `pip install -r notebooks/requirements.txt` (anthropic, pydantic, python-dotenv, ipykernel). The class is taught **from the five notebooks in `./notebooks/`**; the upstream `claude-cookbooks-main/` ships **committed at the repo root** (no clone needed) and the notebooks reference it via `../claude-cookbooks-main/...` paths.
+- **Notebook environment bootstrapped:** the on-rails command is `uv run --project notebooks jupyter lab notebooks/` from repo root. First run creates `notebooks/.venv/` and installs deps from `notebooks/pyproject.toml`. Subsequent runs reuse the venv. Fallback if `uv` is unavailable: `pip install -r notebooks/requirements.txt`. The class is taught **from the five notebooks in `./notebooks/`**; the upstream `claude-cookbooks-main/` ships **committed at the repo root** (no clone needed) and the notebooks reference it via `../claude-cookbooks-main/...` paths.
 
 If any of those fail, fix them before segment 1. We will not pause class to install Node.
 

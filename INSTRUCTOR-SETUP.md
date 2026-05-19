@@ -71,19 +71,25 @@ code --install-extension davidanson.vscode-markdownlint
 code --install-extension yzhang.markdown-all-in-one
 ```
 
-### 1.3 Python environment
+### 1.3 Python environment (uv-managed)
 
-The cookbook notebooks need `anthropic`, `pydantic`, and `jupyter`. Install once, globally for this Python:
-
-```powershell
-pip install anthropic pydantic jupyter notebook ipykernel
-```
-
-Smoke test:
+Install **`uv`** once for the box. This is the Python package manager the repo standardizes on:
 
 ```powershell
-python -c "import anthropic, pydantic; print('anthropic', anthropic.__version__, '| pydantic', pydantic.VERSION)"
+pip install uv
 ```
+
+The notebook environment is then bootstrapped on-rails by `uv run`. From the cloned repo root:
+
+```powershell
+uv run --project notebooks python -c "import anthropic, pydantic, dotenv; print('anthropic', anthropic.__version__, '| pydantic', pydantic.VERSION)"
+```
+
+**First invocation:** auto-creates `notebooks/.venv/`, installs every pinned dep from `notebooks/pyproject.toml` (anthropic, pydantic, python-dotenv, ipykernel, jupyter, nbconvert). Smoke test prints the SDK versions.
+
+**Subsequent invocations:** reuse the venv, start in under a second.
+
+**Fallback** if `uv` is unavailable on a teaching box: `pip install -r notebooks/requirements.txt`. The requirements file is kept in sync with `pyproject.toml`.
 
 Expect both version strings, no `ModuleNotFoundError`.
 
@@ -247,10 +253,17 @@ If a notebook **referenced by COURSE-FLOW.md** changes signature or imports afte
 ### 3.3 Refresh Python deps
 
 ```powershell
-pip install --upgrade anthropic pydantic
+uv lock --project notebooks --upgrade
+uv sync --project notebooks
 ```
 
-The `anthropic` SDK ships breaking changes occasionally. If a notebook errors after upgrade, pin the version: `pip install 'anthropic<X.Y.Z'`.
+The `anthropic` SDK ships breaking changes occasionally. If a notebook errors after upgrade, pin the version in `notebooks/pyproject.toml` (e.g. `"anthropic>=0.40,<X.Y.Z"`) and re-run `uv lock --project notebooks`.
+
+After bumping pins, regenerate `notebooks/requirements.txt` so the pip fallback stays in sync:
+
+```powershell
+uv export --project notebooks --no-hashes --no-emit-project --output-file notebooks/requirements.txt
+```
 
 ### 3.4 Dry-run every demo notebook
 

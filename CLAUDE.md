@@ -15,7 +15,7 @@ The repo ships these artifacts:
 - `notebooks/segment-2-tool-design-and-mcp.ipynb` - Segment 2 (Domains 2 + 3)
 - `notebooks/segment-3-invoice-extractor.ipynb` - Segment 3 (Domains 4 + 5)
 - `notebooks/segment-4-cca-f-capstone.ipynb` - Segment 4 (cert briefing + weighted practice questions)
-- `notebooks/README.md`, `notebooks/requirements.txt` - notebook setup, smoke commands, voice-lint
+- `notebooks/README.md`, `notebooks/pyproject.toml`, `notebooks/uv.lock`, `notebooks/requirements.txt` - notebook setup (uv-native, pip fallback), smoke commands, voice-lint
 - `scripts/build-notebooks.py` + `scripts/_notebooks/*.py` - source-of-truth Python builders; the .ipynb files are generated artifacts
 - `COURSE-FLOW.md` - master instructor punchlist (4 segments × 50 min, demos, exercises, bridges)
 - `PRE-CLASS-CHECKLIST.md` - instructor pre-flight (PowerShell)
