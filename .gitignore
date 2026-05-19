@@ -85,6 +85,10 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# Smoke-test artifacts from `jupyter nbconvert --execute ... --output _smoke-N.ipynb`.
+# These are throwaway by design and pollute `git status` otherwise.
+notebooks/_smoke-*.ipynb
+
 # IPython
 profile_default/
 ipython_config.py

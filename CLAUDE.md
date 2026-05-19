@@ -95,6 +95,20 @@ Expect zero matches. The 2026-05-16 build leaked 18 em dashes into `domain-2-too
 - Tool errors follow the structured pattern: `is_error: true` plus `errorCategory` and `isRetryable` fields inside the tool_result content (never raise exceptions)
 - All API key references use `os.environ` / `$env:ANTHROPIC_API_KEY` - never hardcoded
 
+## Demo-verification norm: smoke before commit
+
+Any notebook cell that asserts an observable API behavior (e.g., prints `cache_creation_input_tokens`, `cache_read_input_tokens`, `stop_reason` transitions, `tool_use` blocks, hook side effects, structured-error retries) must be **smoke-verified end-to-end against the live API** before it lands in `main`. Budget **~$0.05 per segment notebook** and run:
+
+```powershell
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-N-...ipynb --output _smoke-N.ipynb
+```
+
+Then read the cell's output and confirm it matches what the printed assertion claims. **A passing exit code is not enough** - `nbconvert` exits 0 as long as no cell raised, even if the demo's printed numbers contradict the surrounding markdown (this is exactly what happened with the segment-2 cache demo: the cell ran clean but produced `cache_read=0` when the prose promised a cache hit).
+
+Smoke artifacts (`notebooks/_smoke-*.ipynb`) are gitignored - they are transient by design.
+
+Rule of thumb: if the markdown above a cell makes a concrete claim ("the second call reads from cache", "stop_reason flips to end_turn"), the cell must be smoke-verified. Voice-lint and `python scripts/build-notebooks.py` confirm structure; only a live API run confirms behavior.
+
 ## Stack defaults (per `~/.claude/CLAUDE.md`)
 
 | Concern | Default |

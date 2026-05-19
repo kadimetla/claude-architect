@@ -235,7 +235,7 @@ Anticipated questions:
 ### Key takeaways
 - **Tool descriptions are the contract**, names are just labels. Spell out behavior, inputs, and error shapes.
 - **MCP transports** are stdio / SSE / HTTP, and `${ENV_VAR}` expansion keeps secrets out of source.
-- **`cache_control: {"type": "ephemeral"}`** on the last tool caches the whole tool block. Watch `cache_read_input_tokens` to verify the hit. Same pattern reused on the system block in Segment 3.
+- **Prompt caching** is one kwarg: `cache_control={"type": "ephemeral"}` on `messages.create()` (automatic caching, Anthropic's recommended pattern). First call writes, second reads. Watch `cache_read_input_tokens` to verify the hit. Same idea applied to a system block in Segment 3 via explicit breakpoint.
 - **CLAUDE.md hierarchy** layers from user to project to subtree to local. Use subtree files to keep frontend rules off backend files.
 - **`claude -p`** with a `shutil.which("claude")` fallback is how you wire Claude Code into CI/CD without breaking notebooks that lack the CLI on PATH. Cookbook anchors live at `claude-cookbooks-main/tool_use/`.
 
