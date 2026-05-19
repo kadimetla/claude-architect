@@ -10,7 +10,7 @@ Slide budget (matches Context Engineering deck cadence):
 - 4 outro slides:   key takeaways, cert mention, resources, thank you
 - Total:            ~48 slides
 
-Output: C:/github/claude-architect/warner-claude-architect-may-2026.pptx
+Output: C:/github/claude-architect/slides/warner-claude-architect-may-2026.pptx
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 
 REF = Path(r"C:/github/context-engineering/instructor/context-engineering-april-2026.pptx")
-OUT = Path(r"C:/github/claude-architect/warner-claude-architect-may-2026.pptx")
+OUT = Path(r"C:/github/claude-architect/slides/warner-claude-architect-may-2026.pptx")
 
 # Layout names from the reference deck (master 0, first 11 layouts)
 LAYOUT_TITLE_SLIDE = "Title Slide"

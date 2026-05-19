@@ -62,7 +62,7 @@ claude-architect/
 ├── domain-5-context.md         # Reference: Context Management & Reliability
 ├── .mcp.json                   # Segment 2 Demo A anchor (4 servers, 3 transports)
 ├── hooks-example.py            # Agent SDK hooks: compliance enforcement
-├── testing.md                  # Coordinator-subagent test patterns
+├── coordinator-subagent-sketch.py  # Domain 1 coordinator-subagent scaffold (read-only reference)
 ├── scenario-cicd-integration.md # Codebase analysis skill with frontmatter
 ├── SKILL.md                    # Example slash-command / skill definition
 ├── CLAUDE.md                   # Claude Code project instructions for this repo

@@ -43,7 +43,7 @@ See **COURSE-FLOW.md Segment 1** for the live build. Code references:
 - `claude-cookbooks-main/patterns/agents/orchestrator_workers.ipynb` - orchestration patterns
 - `claude-cookbooks-main/managed_agents/CMA_coordinate_specialist_team.ipynb` - specialist team coordination
 - `./hooks-example.py` - Tim's `enforce_refund_policy` hook ($500 cap)
-- `./testing.md` - coordinator-subagent test patterns
+- `./coordinator-subagent-sketch.py` - coordinator-subagent scaffold (read-only reference)
 
 ## Production tips (Tim's voice)
 
