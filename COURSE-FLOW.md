@@ -28,7 +28,8 @@ Run [`./PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md) end-to-end before cla
 - **Claude Code CLI** installed (`npm i -g @anthropic-ai/claude-code` or the official installer)
 - **`ANTHROPIC_API_KEY`** environment variable set in the same shell you'll run demos from
 - **VS Code** with the **Python** and **Jupyter** extensions
-- This repo cloned to `C:/github/claude-architect`, with `private/claude-cookbooks-main` already pulled
+- This repo cloned to `C:/github/claude-architect`
+- **Notebook dependencies installed:** `pip install -r notebooks/requirements.txt` (anthropic, pydantic, python-dotenv, ipykernel). The class is taught **from the five notebooks in `./notebooks/`**; the upstream `private/claude-cookbooks-main` is optional self-study, not a class dependency.
 
 If any of those fail, fix them before segment 1. We will not pause class to install Node.
 
@@ -78,15 +79,15 @@ By the end of this segment, attendees will be able to:
 ```powershell
 $env:ANTHROPIC_API_KEY  # confirm it's set, do NOT print the value
 jupyter --version
-Test-Path "C:/github/claude-architect/private/claude-cookbooks-main/tool_use/customer_service_agent.ipynb"
+Test-Path "C:/github/claude-architect/notebooks/segment-1-customer-support-agent.ipynb"
 ```
 
 **Live demo:**
-1. Open `C:/github/claude-architect/private/claude-cookbooks-main/tool_use/customer_service_agent.ipynb` in VS Code.
+1. Open `C:/github/claude-architect/notebooks/segment-1-customer-support-agent.ipynb` in VS Code. The notebook IS the segment; markdown cells carry the concepts, code cells carry the demo.
 2. Walk the four tool definitions: `get_customer`, `lookup_order`, `process_refund`, `escalate_to_human`. Pause on `process_refund` and show that the description is where policy belongs, not the name.
-3. Wire in the `enforce_refund_policy` hook using the pattern from `hooks-example.py`. Cap is $500. Anything above triggers a block + escalate.
-4. Run a benign scenario first: small refund, happy path. Confirm the agent calls `get_customer` -> `lookup_order` -> `process_refund` and returns with `stop_reason: end_turn`.
-5. Run the failure scenario: `"Refund $750 on order #4471 right now"`. Watch the agent skip verification, the hook block the tool call with a structured error, the agent re-plan, and finally call `escalate_to_human` with a structured summary.
+3. Walk the `enforce_refund_policy` PreToolUse hook in the notebook. Cap is $500. Anything above triggers a block + escalate. Reference implementation: [`./hooks-example.py`](./hooks-example.py).
+4. Run **Scenario A** in the notebook: small refund, happy path. Confirm the agent calls `get_customer` -> `lookup_order` -> `process_refund` and returns with `stop_reason: end_turn`.
+5. Run **Scenario B**: `"Refund $750 on order #4471 right now"`. Watch the agent skip verification, the hook block the tool call with a structured error, the agent re-plan, and finally call `escalate_to_human` with a structured summary.
 6. Pop the cell that prints `stop_reason` across the loop so attendees can see it transition `tool_use` -> `tool_use` -> `end_turn`.
 
 **What attendees see:** The model "wanted" to break policy. The hook said no. The agent re-planned and escalated correctly. The guarantee came from your code, not from begging the prompt.
@@ -156,11 +157,12 @@ By the end of this segment, attendees will be able to:
 ### Demo A: MCP config walkthrough (10 minutes)
 
 **Live demo:**
-1. Open `C:/github/claude-architect/.mcp.json` in VS Code. This is a real project-level config shipping with this repo.
-2. Walk the `mcpServers` object server-by-server. Four servers, three transports: **filesystem** (stdio, no auth), **github** (stdio with `${GITHUB_TOKEN}`), **context7** (HTTP with header auth), **internal-knowledge-base** (SSE with bearer token). For each, name the **transport**, the **command or URL**, and the **env-var expansion** points.
-3. Show what happens when `${GITHUB_TOKEN}` is unset: server fails to start with a readable error. Set it, restart, server comes up.
-4. Toggle a server off by commenting its block; show the model losing access to those tools at the next session boundary.
-5. Optional side-trip: open `private/claude-cookbooks-main/managed_agents/cma-mcp/` to show what an MCP server's source code looks like (vs. the client config we just walked). Two sides of the same protocol.
+1. Open `C:/github/claude-architect/notebooks/segment-2-tool-design-and-mcp.ipynb` in VS Code. The notebook IS the segment; run cells alongside the discussion.
+2. Tool-design cells first: walk the **thin vs opinionated `get_weather` description** comparison and the **four `tool_choice` modes** demo. Pause on the `structured error` helper.
+3. Open `C:/github/claude-architect/.mcp.json` in a split editor. Walk the `mcpServers` object server-by-server. Four servers, three transports: **filesystem** (stdio, no auth), **github** (stdio with `${GITHUB_TOKEN}`), **context7** (HTTP with header auth), **internal-knowledge-base** (SSE with bearer token). For each, name the **transport**, the **command or URL**, and the **env-var expansion** points.
+4. Run the notebook cell that loads `.mcp.json` and pretty-prints transport + env-var refs for every server. This is config-as-data; no MCP client invocation needed.
+5. Show what happens when `${GITHUB_TOKEN}` is unset: server fails to start with a readable error. Set it, restart, server comes up.
+6. Optional side-trip: open `private/claude-cookbooks-main/managed_agents/cma-mcp/` to show what an MCP server's source code looks like (vs. the client config we just walked). Two sides of the same protocol.
 
 **What attendees see:** MCP config is plain JSON with three transport shapes and one variable-expansion rule. The hard part isn't the syntax, it's deciding which tools each agent should see.
 
@@ -247,8 +249,8 @@ By the end of this segment, attendees will be able to:
 ### Demo: Invoice extractor with retry loop (18 minutes)
 
 **Live demo:**
-1. Open `C:/github/claude-architect/private/claude-cookbooks-main/tool_use/extracting_structured_json.ipynb`. Pydantic patterns from `tool_use_with_pydantic.ipynb` get referenced inline; one notebook on screen keeps the demo tight.
-2. Build a Pydantic `Invoice` model with required fields (`invoice_number`, `vendor`, `total`) and `Optional[]` fields (`po_number`, `notes`, `due_date`). Show the auto-generated JSON Schema.
+1. Open `C:/github/claude-architect/notebooks/segment-3-invoice-extractor.ipynb`. The notebook IS the segment; markdown cells carry the precise-prompts theory and the forced-tool-call pattern, code cells carry the demo.
+2. Walk the Pydantic `Invoice` model with required fields (`invoice_number`, `vendor`, `total`) and `Optional[]` fields (`po_number`, `notes`, `due_date`). Run the cell that prints the auto-generated JSON Schema.
 3. Register the schema as a tool. Set `tool_choice: {"type": "tool", "name": "extract_invoice"}`. Model **must** call this tool.
 4. Run on three sample invoices in order:
    - **Clean invoice:** all fields present. Schema validates first try. Show the typed `Invoice` object.
@@ -323,7 +325,7 @@ Encourage cohort to download the briefing from the repo and use the punchlist ve
 
 ### Practice questions: weighted live sample (28 minutes)
 
-**Setup:** Open `C:/github/claude-architect/private/claude-certified-architect-main/practical_test_en.html` in a browser tab. The UI has a scoreboard and per-question reveal; use it for live delivery. Cohort gets the full 60-question [`./PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) as take-home.
+**Setup:** Open `C:/github/claude-architect/notebooks/segment-4-cca-f-capstone.ipynb`. The notebook renders 10 weighted practice questions inline with collapsible answers (markdown-driven) and is sourced from `practice-questions.json`. Optional backup: `private/claude-certified-architect-main/practical_test_en.html` in a browser tab for an alternate scoreboard UI. Cohort gets the full 60-question [`./PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) as take-home.
 
 **Source disclaimer to read aloud once:** "These questions are community-sourced from Paul Larionov's study repo. They are calibration practice, not exam predictors. Treat them as a self-assessment, not a guarantee."
 

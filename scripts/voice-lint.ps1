@@ -1,16 +1,18 @@
 <#
 .SYNOPSIS
-    Lint all Markdown files in the repo against Tim Warner's voice rules.
+    Lint all Markdown files AND notebook markdown cells against Tim Warner's voice rules.
 
 .DESCRIPTION
-    Verifies that no MD file under the repo root contains:
+    Verifies that no MD file under the repo root, and no markdown cell inside any
+    .ipynb file under notebooks/, contains:
       - Em dashes (U+2014). Use ` - ` (hyphen with spaces), commas, or periods.
       - "AWS" mentions. Azure-first per Tim's stack defaults.
       - Glazing openers ("Great question", "You're absolutely right", "Excellent ...").
 
     The literal linter pattern in CLAUDE.md is whitelisted so this script does not
-    flag the file that documents the rule. Exits non-zero on any violation so
-    this is safe to wire into a pre-commit hook or GitHub Action.
+    flag the file that documents the rule. Notebook code cells are NOT scanned -
+    only markdown cells, since the rules apply to prose. Exits non-zero on any
+    violation so this is safe to wire into a pre-commit hook or GitHub Action.
 
 .PARAMETER Path
     Repo root to scan. Defaults to the script's parent directory.
@@ -36,8 +38,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Skip CLAUDE.md (scanned with tighter rules below) and PRACTICE-QUESTIONS.md
+# (community-sourced from Paul Larionov's study repo; its disclaimer header
+# covers voice drift per CLAUDE.md "Common operations" notes).
 $mdFiles = Get-ChildItem -Path $Path -Filter '*.md' -File |
-    Where-Object { $_.Name -notin @('CLAUDE.md') }
+    Where-Object { $_.Name -notin @('CLAUDE.md', 'PRACTICE-QUESTIONS.md') }
 
 # CLAUDE.md is allowed to contain em dashes inside the documented `grep -P "—|..."` linter pattern.
 # Scan it with a tighter rule that excludes those specific lines.
@@ -78,7 +83,10 @@ if (Test-Path $claudeMd) {
     for ($i = 0; $i -lt $lines.Count; $i++) {
         $line = $lines[$i]
         $lineNo = $i + 1
-        if ($line -match '—' -and $line -notmatch 'grep.*—') {
+        # Allow em dashes inside CLAUDE.md when they appear in documented lint
+        # patterns: grep examples, Python re.finditer / re.search calls, or
+        # inside backtick-quoted strings (which call out the literal character).
+        if ($line -match '—' -and $line -notmatch '(grep.*—|re\.finditer.*—|re\.search.*—|`.*—.*`)') {
             $violations += [pscustomobject]@{
                 File = 'CLAUDE.md'; Line = $lineNo; Rule = 'em-dash'; Text = $line.Trim()
             }
@@ -93,12 +101,62 @@ if (Test-Path $claudeMd) {
     }
 }
 
+# Notebook markdown cell scan. .ipynb files are JSON; we parse them, extract
+# markdown cells, and apply the same rules (em-dash, AWS, glazing). Code cells
+# are skipped - the rules apply to prose, and Python `~` glob patterns or
+# regex literals inside code shouldn't be flagged as violations.
+$nbDir = Join-Path $Path 'notebooks'
+$nbFiles = @()
+if (Test-Path $nbDir) {
+    $nbFiles = Get-ChildItem -Path $nbDir -Filter '*.ipynb' -File
+}
+
+foreach ($nb in $nbFiles) {
+    try {
+        $json = Get-Content -LiteralPath $nb.FullName -Raw | ConvertFrom-Json
+    } catch {
+        $violations += [pscustomobject]@{
+            File = $nb.Name; Line = 0; Rule = 'invalid-json'; Text = $_.Exception.Message
+        }
+        continue
+    }
+
+    for ($ci = 0; $ci -lt $json.cells.Count; $ci++) {
+        $cell = $json.cells[$ci]
+        if ($cell.cell_type -ne 'markdown') { continue }
+
+        # cell.source can be a string or an array of strings
+        $sourceLines = if ($cell.source -is [array]) { $cell.source } else { @($cell.source) }
+        $joined = ($sourceLines -join '')
+        $lineNo = 0
+        foreach ($srcLine in ($joined -split "`n")) {
+            $lineNo++
+            if ($srcLine -match '—') {
+                $violations += [pscustomobject]@{
+                    File = "$($nb.Name)[cell $ci]"; Line = $lineNo; Rule = 'em-dash'; Text = $srcLine.Trim()
+                }
+            }
+            if ($srcLine -match '\bAWS\b' -and $srcLine -notmatch '(?i)(no AWS|AWS mentions|grep.*AWS|"AWS")') {
+                $violations += [pscustomobject]@{
+                    File = "$($nb.Name)[cell $ci]"; Line = $lineNo; Rule = 'AWS'; Text = $srcLine.Trim()
+                }
+            }
+            if ($srcLine -match '(?i)(great question|excellent question|you''re absolutely right|absolutely correct|that''s a great)') {
+                $violations += [pscustomobject]@{
+                    File = "$($nb.Name)[cell $ci]"; Line = $lineNo; Rule = 'glazing'; Text = $srcLine.Trim()
+                }
+            }
+        }
+    }
+}
+
+$totalScanned = $mdFiles.Count + 1 + $nbFiles.Count
 if ($violations.Count -eq 0) {
     Write-Host 'voice-lint: OK (no violations across ' -NoNewline
-    Write-Host "$($mdFiles.Count + 1) MD files)" -ForegroundColor Green
+    Write-Host "$($mdFiles.Count + 1) MD + $($nbFiles.Count) ipynb files)" -ForegroundColor Green
     exit 0
 }
 
-Write-Host "voice-lint: $($violations.Count) violation(s) found" -ForegroundColor Red
+Write-Host "voice-lint: $($violations.Count) violation(s) found across $totalScanned files" -ForegroundColor Red
 $violations | Format-Table File, Line, Rule, Text -AutoSize -Wrap
 exit 1

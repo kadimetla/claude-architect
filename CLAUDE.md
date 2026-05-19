@@ -6,17 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Teaching and reference material for the **Claude Architect Foundations** 4-hour live training (O'Reilly Media). The course is **skills-first** for Segments 1-3, then closes with a **CCA-F certification capstone** in Segment 4 (cert briefing + weighted practice questions). Domain 5 (Context Management) is folded into Segment 3 alongside Domain 4.
 
-The repo ships ten artifacts learners and the instructor use:
+**The class is taught from the five Jupyter notebooks in `./notebooks/`.** Each notebook IS its segment - markdown cells carry the concepts, code cells carry the demos. The .md files below are the supporting reference scaffolds.
 
+The repo ships these artifacts:
+
+- `notebooks/segment-0-pre-flight.ipynb` - top-of-class environment verification (5 min, optional)
+- `notebooks/segment-1-customer-support-agent.ipynb` - Segment 1 (Domain 1)
+- `notebooks/segment-2-tool-design-and-mcp.ipynb` - Segment 2 (Domains 2 + 3)
+- `notebooks/segment-3-invoice-extractor.ipynb` - Segment 3 (Domains 4 + 5)
+- `notebooks/segment-4-cca-f-capstone.ipynb` - Segment 4 (cert briefing + weighted practice questions)
+- `notebooks/README.md`, `notebooks/requirements.txt` - notebook setup, smoke commands, voice-lint
+- `scripts/build-notebooks.py` + `scripts/_notebooks/*.py` - source-of-truth Python builders; the .ipynb files are generated artifacts
 - `COURSE-FLOW.md` - master instructor punchlist (4 segments × 50 min, demos, exercises, bridges)
 - `PRE-CLASS-CHECKLIST.md` - instructor pre-flight (PowerShell)
 - `domain-1-agentic.md` through `domain-5-context.md` - post-course reference scaffolds, one per CCA-F exam domain
 - `CERT-PROGRAM-BRIEFING.md` - Segment 4 talk-track reference (exam mechanics, domain weights, week-before punchlist, all public-sourced)
 - `PRACTICE-QUESTIONS.md` - 60-question cohort take-home, extracted from the community study repo with provenance disclaimer
-- `practice-questions.json` - machine-readable practice-question source
+- `practice-questions.json` - machine-readable practice-question source (Segment 4 notebook samples 10 from this)
 - `scripts/extract-practice-questions.py` - build-time extractor that regenerates the two practice-question files from the upstream HTML
-- `.mcp.json` - Segment 2 Demo A anchor (4 servers, 3 transports, env-var expansion)
-- `hooks-example.py`, `SKILL.md`, `scenario-cicd-integration.md`, `testing.md` - inline demo assets
+- `.mcp.json` - Segment 2 MCP config anchor (4 servers, 3 transports, env-var expansion)
+- `hooks-example.py` - real PreToolUse / PostToolUse reference cited from Segment 1
 
 ## Architecture: how the pieces fit
 
@@ -74,7 +83,7 @@ Expect zero matches. The 2026-05-16 build leaked 18 em dashes into `domain-2-too
 |---|---|
 | Shell | **PowerShell 7+** (Bash only as fallback) |
 | OS | **Windows 11** (the live training runs here) |
-| Runtime | **Node.js 18+** for SDK examples, **Python 3.13** for notebooks |
+| Runtime | **Node.js 18+** for SDK examples, **Python 3.13+** (verified on 3.14.4) for notebooks |
 | Cloud | **Azure** when cloud comes up |
 
 ## What NOT to commit
@@ -88,12 +97,27 @@ Expect zero matches. The 2026-05-16 build leaked 18 em dashes into `domain-2-too
 ## Common operations
 
 ```bash
-# Verify all 10 course artifacts present
+# Verify all course artifacts present
 ls COURSE-FLOW.md PRE-CLASS-CHECKLIST.md domain-*.md CERT-PROGRAM-BRIEFING.md PRACTICE-QUESTIONS.md practice-questions.json scripts/extract-practice-questions.py
+
+# Verify all five teaching notebooks present
+ls notebooks/segment-0-pre-flight.ipynb \
+   notebooks/segment-1-customer-support-agent.ipynb \
+   notebooks/segment-2-tool-design-and-mcp.ipynb \
+   notebooks/segment-3-invoice-extractor.ipynb \
+   notebooks/segment-4-cca-f-capstone.ipynb
 
 # Voice lint sweep on Tim-authored files (must return 0 matches).
 # PRACTICE-QUESTIONS.md is community-sourced and excluded; its disclaimer header covers voice drift.
 grep -P "—|\bAWS\b" COURSE-FLOW.md PRE-CLASS-CHECKLIST.md CLAUDE.md CERT-PROGRAM-BRIEFING.md domain-*.md
+
+# Voice lint sweep on notebook markdown cells (must return 0 matches)
+python -c "import json, re, pathlib, sys; hits=0; \
+[print(f'{p.name} cell {i}: {m.group(0)!r}') or (hits := hits + 1) \
+ for p in pathlib.Path('notebooks').glob('*.ipynb') \
+ for i, c in enumerate(json.loads(p.read_text(encoding='utf-8'))['cells']) \
+ if c['cell_type'] == 'markdown' \
+ for m in re.finditer(r'—|\bAWS\b', ''.join(c['source']))]; sys.exit(1 if hits else 0)"
 
 # Verify domain headers are correct (1-5, no mislabels)
 grep -nH "^# Domain" domain-*.md
@@ -104,15 +128,15 @@ node -e "JSON.parse(require('fs').readFileSync('.mcp.json'))" && echo ok
 # Verify practice-question JSON parses and has 60 entries
 python -c "import json; print(len(json.load(open('practice-questions.json', encoding='utf-8'))))"
 
-# Verify demo notebooks exist (Segment 1 customer-support + Segment 3 invoice extractor).
-# tool_use_with_pydantic.ipynb is reference-only; automatic-context-compaction.ipynb is self-study.
-ls private/claude-cookbooks-main/tool_use/customer_service_agent.ipynb \
-   private/claude-cookbooks-main/tool_use/extracting_structured_json.ipynb \
-   private/claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb \
-   private/claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb
+# Rebuild notebooks from source after editing scripts/_notebooks/*.py
+python scripts/build-notebooks.py
 
-# Verify Segment 4 community practice-test HTML exists (loaded live in a browser tab)
-ls private/claude-certified-architect-main/practical_test_en.html
+# Smoke test all five notebooks against the API (budget ~$1)
+jupyter nbconvert --to notebook --execute notebooks/segment-0-pre-flight.ipynb --output _smoke-0.ipynb
+jupyter nbconvert --to notebook --execute notebooks/segment-1-customer-support-agent.ipynb --output _smoke-1.ipynb
+jupyter nbconvert --to notebook --execute notebooks/segment-2-tool-design-and-mcp.ipynb --output _smoke-2.ipynb
+jupyter nbconvert --to notebook --execute notebooks/segment-3-invoice-extractor.ipynb --output _smoke-3.ipynb
+jupyter nbconvert --to notebook --execute notebooks/segment-4-cca-f-capstone.ipynb --output _smoke-4.ipynb
 
 # Regenerate practice questions from upstream HTML (run only after the community repo updates)
 python scripts/extract-practice-questions.py

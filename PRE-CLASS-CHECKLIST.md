@@ -65,23 +65,31 @@
   ```
   **Expect:** `main`
 
-- [ ] **Private cookbooks present**
-  ```powershell
-  Test-Path C:/github/claude-architect/private/claude-cookbooks-main/tool_use/customer_service_agent.ipynb
-  ```
-  **Expect:** `True`
-
 ## 4. Demo file inventory
 
-- [ ] **Segment 1 demo: customer_service_agent.ipynb**
+The class is taught **from the five notebooks in `./notebooks/`**. Each notebook IS its segment.
+
+- [ ] **Segment 0 pre-flight notebook**
   ```powershell
-  Test-Path C:/github/claude-architect/private/claude-cookbooks-main/tool_use/customer_service_agent.ipynb
+  Test-Path C:/github/claude-architect/notebooks/segment-0-pre-flight.ipynb
+  ```
+  **Expect:** `True`. Optional 5-min warm-up the cohort runs before Segment 1.
+
+- [ ] **Segment 1 notebook: customer support agent**
+  ```powershell
+  Test-Path C:/github/claude-architect/notebooks/segment-1-customer-support-agent.ipynb
   ```
   **Expect:** `True`
 
-- [ ] **Segment 1 hook: hooks-example.py**
+- [ ] **Segment 1 hook reference: hooks-example.py**
   ```powershell
   Test-Path C:/github/claude-architect/hooks-example.py
+  ```
+  **Expect:** `True`. Real PreToolUse / PostToolUse reference (not the editor-settings stub it used to be).
+
+- [ ] **Segment 2 notebook: tool design + MCP**
+  ```powershell
+  Test-Path C:/github/claude-architect/notebooks/segment-2-tool-design-and-mcp.ipynb
   ```
   **Expect:** `True`
 
@@ -89,8 +97,7 @@
   ```powershell
   Test-Path C:/github/claude-architect/.mcp.json
   ```
-  **Expect:** `True`
-  > Demo anchor for Segment 2 Demo A. Four servers covering all three transports (stdio, HTTP, SSE) with `${ENV}` expansion. Optional side-trip: `private/claude-cookbooks-main/managed_agents/cma-mcp/` shows what an MCP **server** looks like (vs. the **client config** we walk in the main demo).
+  **Expect:** `True`. The notebook loads this file and pretty-prints transports + env-var refs.
 
 - [ ] **Segment 2 CLAUDE.md (repo's own)**
   ```powershell
@@ -98,47 +105,41 @@
   ```
   **Expect:** `True`
 
-- [ ] **Segment 3 extract notebook**
+- [ ] **Segment 3 notebook: invoice extractor**
   ```powershell
-  Test-Path C:/github/claude-architect/private/claude-cookbooks-main/tool_use/extracting_structured_json.ipynb
+  Test-Path C:/github/claude-architect/notebooks/segment-3-invoice-extractor.ipynb
   ```
   **Expect:** `True`
 
-- [ ] **Pydantic notebook (reference only, not live)**
+- [ ] **Segment 4 notebook: CCA-F capstone**
   ```powershell
-  Test-Path C:/github/claude-architect/private/claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb
+  Test-Path C:/github/claude-architect/notebooks/segment-4-cca-f-capstone.ipynb
   ```
-  **Expect:** `True`. Pydantic patterns are referenced inline in the Segment 3 demo; the notebook itself is not opened live.
+  **Expect:** `True`. Renders the cert briefing and 10 weighted practice questions inline.
 
-- [ ] **Compaction notebook (self-study reference, not live)**
-  ```powershell
-  Test-Path C:/github/claude-architect/private/claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb
-  ```
-  **Expect:** `True`. Demoted from live demo in the restructure; linked from Segment 3 Key Takeaways for cohort self-study after class.
-
-- [ ] **CCA-F cert briefing exists**
+- [ ] **CCA-F cert briefing reference exists**
   ```powershell
   Test-Path C:/github/claude-architect/CERT-PROGRAM-BRIEFING.md
   ```
-  **Expect:** `True`. Tim talks over this live during the Segment 4 cert capstone (12 min block).
+  **Expect:** `True`. The Segment 4 notebook references it for the full week-before punchlist.
 
-- [ ] **Practice questions Markdown exists**
+- [ ] **Practice questions Markdown (cohort take-home)**
   ```powershell
   Test-Path C:/github/claude-architect/PRACTICE-QUESTIONS.md
   ```
-  **Expect:** `True`. The 60-question cohort take-home file.
+  **Expect:** `True`. 60-question take-home reference.
 
 - [ ] **Practice questions JSON parses to 60 entries**
   ```powershell
   python -c "import json; print(len(json.load(open(r'C:/github/claude-architect/practice-questions.json', encoding='utf-8'))))"
   ```
-  **Expect:** `60`
+  **Expect:** `60`. The Segment 4 notebook samples 10 questions from this file.
 
-- [ ] **Live practice-question UI loads** (the community HTML used live in Segment 4)
+- [ ] **Optional self-study reference: community practice-test HTML** (not required for class)
   ```powershell
   Test-Path C:/github/claude-architect/private/claude-certified-architect-main/practical_test_en.html
   ```
-  **Expect:** `True`. Open in a browser tab before Segment 4 starts.
+  **Expect:** `True` if cloned, otherwise skip. Alternate scoreboard UI; the Segment 4 notebook does not depend on it.
 
 ## 5. MCP configuration
 
@@ -159,21 +160,31 @@
 
 ## 6. Notebook environment
 
+- [ ] **Notebook deps installed**
+  ```powershell
+  pip install -r C:/github/claude-architect/notebooks/requirements.txt
+  ```
+  **Expect:** all four pins satisfied (anthropic >= 0.40, pydantic >= 2.7, python-dotenv >= 1.0, ipykernel >= 6.29)
+
 - [ ] **Jupyter / VS Code Python kernel**, open one notebook in VS Code, confirm kernel picker shows Python 3.13.x
 
-- [ ] **Notebook deps importable** (smoke test the first cell of customer_service_agent.ipynb)
+- [ ] **anthropic SDK importable**
   ```powershell
   python -c "import anthropic; print(anthropic.__version__)"
   ```
-  **Expect:** Version string, no ImportError
+  **Expect:** Version >= 0.40, no ImportError
+
+- [ ] **pydantic importable**
+  ```powershell
+  python -c "import pydantic; print(pydantic.VERSION)"
+  ```
+  **Expect:** Version >= 2.7, no ImportError
+
+- [ ] **Segment 0 pre-flight notebook runs green**, open `notebooks/segment-0-pre-flight.ipynb` and Run All. Every cell prints `[OK]`. If any cell fails, fix it before going live.
 
 ## 7. Demo data fixtures
 
-- [ ] **3 sample invoices ready for Segment 3 demo** (clean / missing field / ambiguous)
-  - Option A: Pre-saved at `C:/github/claude-architect/private/claude-cookbooks-main/tool_use/sample_data/`
-  - Option B: Inline JSON in the notebook itself (fallback)
-
-  Verify ONE of these is true before going live.
+- [ ] **3 sample invoices already inline** in `notebooks/segment-3-invoice-extractor.ipynb` (clean / missing field / ambiguous). No external sample-data files needed; the strings live in the notebook itself.
 
 ## 8. Broadcast setup
 
@@ -187,7 +198,7 @@
 
 - [ ] **If API rate-limits during a live build:** switch to Claude.ai web (Claude Max session) and run the equivalent prompt manually
 - [ ] **If a demo notebook errors:** fall back to the markdown walkthrough in the matching `domain-N-*.md` file
-- [ ] **If Claude Code CLI itself fails:** open the cookbook notebook in VS Code and run cells directly via `anthropic` Python SDK
+- [ ] **If Claude Code CLI itself fails:** the five `notebooks/*.ipynb` use the `anthropic` Python SDK directly and need no CLI; run cells in VS Code
 
 ## 10. Final 5 minutes before going live
 
