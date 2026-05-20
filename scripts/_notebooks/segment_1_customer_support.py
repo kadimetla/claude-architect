@@ -34,6 +34,8 @@ def cells() -> list[tuple[str, str]]:
         ("code", _imports_code),
         ("md", _demo_tools_md),
         ("code", _tools_code),
+        ("md", _demo_tool_enum_md),
+        ("code", _tool_enum_code),
         ("md", _demo_synthetic_db_md),
         ("code", _synthetic_db_code),
         # Loop runs FIRST, without hooks, so the learner sees it work
@@ -197,11 +199,13 @@ We run two scenarios: a benign happy path first (no hook), then a $750 refund ag
 
 _imports_code = """\
 # client and Anthropic are already imported from the warm-up cell.
-# We switch to Sonnet 4.6 now that we are doing tool-using orchestration.
+# Haiku 4.5 is the default for this course - it handles tool-using orchestration
+# at production quality for roughly a fifth of the Sonnet cost. We promote to
+# Sonnet 4.6 only where reasoning depth is demonstrably needed (Segment 3).
 import json
 from typing import Any
 
-MODEL = "claude-sonnet-4-6"
+MODEL = "claude-haiku-4-5"
 """
 
 _demo_tools_md = """\
@@ -284,6 +288,32 @@ TOOLS: list[dict[str, Any]] = [
 ]
 
 print(f"Defined {len(TOOLS)} tools: {[t['name'] for t in TOOLS]}")
+"""
+
+_demo_tool_enum_md = """\
+## What did we just register? (tool enumeration, lens 1 of 4)
+
+Before any model call, you should be able to **answer this**: at this point in the program, which tools is the model allowed to use, what does each one claim to do, and what shape does each one accept? In Segment 2.5 we show four lenses on this question; here is the simplest one - **iterate the `tools=[...]` array your code is about to pass to `messages.create()`**.
+
+The pattern below is what production code logs at startup. When an agent does something surprising in week three, the first question is always **"what did the model actually see?"** This cell gives you that answer in five lines.
+"""
+
+_tool_enum_code = """\
+def describe_tools(tools: list[dict[str, Any]]) -> None:
+    \"\"\"Print every registered tool: name, one-line description, top-level input keys.
+
+    This is the static view - what your code registered. Compare with MCP
+    `list_tools` (dynamic, server-discovered) in Segment 2.5.
+    \"\"\"
+    for t in tools:
+        props = list(t.get("input_schema", {}).get("properties", {}).keys())
+        required = t.get("input_schema", {}).get("required", [])
+        first_line = t["description"].splitlines()[0]
+        print(f"- {t['name']}({', '.join(props)})")
+        print(f"    required: {required}")
+        print(f"    {first_line[:90]}")
+
+describe_tools(TOOLS)
 """
 
 _demo_synthetic_db_md = """\

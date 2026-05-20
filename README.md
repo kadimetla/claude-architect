@@ -28,10 +28,11 @@ The Claude Architect is an emerging job role focused on designing and building p
 |---|---|---|---|
 | 1 | 50 min | Building AI Agents That Use Tools | Customer support agent with hook-enforced policy |
 | 2 | 50 min | Tool Design, Integration, and Claude Code Workflows | MCP config walkthrough + Claude Code hierarchy demo |
+| **2.5** | *self-study* | **Control Surfaces, Tool Enumeration, Console Assets** | **All `tool_choice` modes live, `stop_sequences` / `max_tokens` / `pause_turn`, MCP `list_tools`, and the live Claude Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`). Q&A overflow / cohort homework, not on the 4-hour clock.** |
 | 3 | 50 min | Structured Output, Context, and Production Reliability | Invoice extractor with retry + triage scorecard |
 | 4 | 50 min | CCA-F Certification Capstone | Cert briefing + 10 weighted practice questions + take-home punchlist |
 
-Total: 4 hours (4 × 50-min segments + 3 × 10-min breaks). Instructors and learners should start at **[COURSE-FLOW.md](./COURSE-FLOW.md)**.
+Total live class time: 4 hours (4 × 50-min segments + 3 × 10-min breaks). Segment 2.5 is a deep-dive notebook taught only as Q&A overflow or post-class homework. Instructors and learners should start at **[COURSE-FLOW.md](./COURSE-FLOW.md)**.
 
 ## CCA-F exam blueprint (the five core competencies)
 
@@ -66,10 +67,11 @@ claude-architect/
 ├── scenario-cicd-integration.md # Codebase analysis skill with frontmatter
 ├── SKILL.md                    # Example slash-command / skill definition
 ├── CLAUDE.md                   # Claude Code project instructions for this repo
-├── notebooks/                  # Tim's five teaching notebooks (the class is taught from these)
+├── notebooks/                  # Tim's six teaching notebooks (five live + one self-study deep dive)
 │   ├── segment-0-pre-flight.ipynb
 │   ├── segment-1-customer-support-agent.ipynb
 │   ├── segment-2-tool-design-and-mcp.ipynb
+│   ├── segment-2-5-control-surfaces.ipynb     # self-study; control surfaces + Console assets
 │   ├── segment-3-invoice-extractor.ipynb
 │   └── segment-4-cca-f-capstone.ipynb
 ├── claude-cookbooks-main/      # Vendored snapshot of Anthropic's official Claude Cookbooks (MIT, Copyright (c) 2023 Anthropic). See claude-cookbooks-main/NOTICE.md
@@ -77,7 +79,11 @@ claude-architect/
 │   └── mcp_cli/                # Reference MCP CLI (FastMCP server + client + chat), from Anthropic's Skilljar course. See examples/mcp_cli/NOTICE.md
 ├── slides/                     # Course slide deck (rebuilt from scripts/build-deck.py)
 └── scripts/
-    ├── build-notebooks.py                 # Rebuilds the five teaching notebooks from source
+    ├── build-notebooks.py                 # Rebuilds the six teaching notebooks from source (sha256-deterministic, idempotent)
+    ├── run-jupyter.ps1                    # Lifecycle helper: starts JupyterLab on port 8888 with Jupyter AI v3 persona override
+    ├── stop-jupyter.ps1                   # Lifecycle helper: port-scoped clean shutdown with PID fallback for Windows half-states
+    ├── voice-lint.ps1                     # Voice-lint sweep (no em dashes, no AWS, etc.) - run via `npm run lint:voice`
+    ├── preflight.ps1                      # Instructor pre-flight - run via `npm run preflight`
     ├── build-deck.py                      # Rebuilds the slide deck
     └── extract-practice-questions.py      # Build-time extractor for the practice-question files
 ```
@@ -104,6 +110,15 @@ uv run --project notebooks jupyter lab notebooks/
 That is the entire learner setup. **First run** auto-creates `notebooks/.venv/`, installs all dependencies from `notebooks/pyproject.toml`, and launches Jupyter. **Subsequent runs** reuse the venv and start in seconds. The Anthropic cookbook ships in the repo at `claude-cookbooks-main/`, so you do not need a second clone. Instructors who run the voice-lint scripts also need `npm install`; learners do not.
 
 **Fallback** if `uv` is not available: `pip install -r notebooks/requirements.txt` still works; the requirements file is kept in sync with `pyproject.toml`.
+
+**Interactive teaching sessions** should use the lifecycle helpers instead of a bare Jupyter invocation:
+
+```powershell
+.\scripts\run-jupyter.ps1            # default port 8888, overrides Jupyter AI default persona to Jupyternaut
+.\scripts\stop-jupyter.ps1           # port-scoped clean shutdown with PID fallback
+```
+
+`run-jupyter.ps1` sets the Jupyter AI v3 default persona to Jupyternaut so chat messages route to someone (the upstream default points at the older package ID and silently routes to nobody). `stop-jupyter.ps1` matches the server by `root_dir`, falls back to `Stop-Process` on the exact PID if the graceful path hangs (Jupyter AI can leave the server half-interrupted on Windows). For headless smoke runs (`nbconvert --execute`) neither script is needed - nbconvert spawns its own kernel.
 
 ### Run the MCP CLI reference app (also one command)
 
@@ -152,6 +167,35 @@ Send request -> Check stop_reason -> "tool_use"? Execute tool, append tool_resul
 - **Cap at 4-5 tools per agent.** More tools degrade selection accuracy.
 - **Structured errors as tool_result content.** Never raise exceptions from tool implementations.
 
+### `tool_choice` modes (Segment 2.5)
+
+| Mode | Forces what? | When to pick |
+|---|---|---|
+| `{"type": "auto"}` | nothing | default |
+| `{"type": "any"}` | a tool call (model picks which) | action required, model picks verb |
+| `{"type": "tool", "name": "X"}` | call to tool X | forced structured output (Segment 3) |
+| `{"type": "none"}` | no tool calls | "explain, don't act" turns |
+| add `disable_parallel_tool_use: true` | one tool per turn | ordering matters (write-then-read, lookup-then-act) |
+
+### Stop conditions (Segment 2.5)
+
+Branch on `stop_reason`, never parse prose to decide control flow. Six values: `end_turn`, `tool_use`, `max_tokens`, `stop_sequence`, `pause_turn`, `refusal`. `stop_sequences` gives you a deterministic cutoff token (matched value comes back in `resp.stop_sequence`, the token itself is excluded from the output). `max_tokens` doubles as a deliberate cutoff lever: set it low, replay the partial assistant turn in the next call to resume.
+
+### Tool enumeration, four lenses (Segment 2.5)
+
+1. **Static** - iterate the `tools=[...]` array you registered
+2. **Runtime loop** - log scoped tools + `tool_choice` per iteration
+3. **MCP `list_tools`** - the pattern that scales beyond hand-registered tools
+4. **Claude Code harness** - separate surface from API `tool_use`, discovered via `/help` and `~/.claude/`
+
+### Claude Console asset surface (Segment 2.5)
+
+All reachable from the SDK with `anthropic-beta: managed-agents-2026-04-01`:
+
+- `client.beta.memory_stores` - persistence that survives restarts (Domain 5)
+- `client.beta.vaults` (+ `.credentials.mcp_oauth_validate`) - secrets hygiene with MCP OAuth (Domain 3)
+- `client.beta.agents` + `client.beta.sessions` - the managed-loop alternative to a hand-rolled agentic loop (Domain 1)
+
 ### Claude Code configuration
 
 - **User-level** `~/.claude/CLAUDE.md` for personal defaults
@@ -163,6 +207,16 @@ Send request -> Check stop_reason -> "tool_use"? Execute tool, append tool_resul
 
 - **`tool_use` with JSON schema = guaranteed schema compliance.** Define output as a tool's `input_schema`, force the model to call it with `tool_choice: {"type": "tool", "name": "..."}`.
 - **Few-shot examples > temperature.** Two or three input-output pairs beat tuning sampling parameters.
+
+### Prompt caching floors (gotcha)
+
+`cache_control` silently no-ops if the cacheable prefix is below the model's floor. **Sonnet 4.x: 1024 tokens. Haiku 4.5: 4096 tokens (4x higher).** A cell can exit clean with `cache_creation=0` and `cache_read=0` if the prefix sits between the two floors; the smoke output, not the exit code, is what tells you caching engaged. Target +25% above the floor for safety margin against tokenizer drift.
+
+### Model policy
+
+- **Haiku 4.5 default everywhere.** Production-quality tool use, agentic loops, and MCP discovery at ~1/5 the Sonnet cost.
+- **Sonnet 4.6 reserved** for one demo: Segment 3's nested invoice schemas with retry-on-validation-error.
+- **Opus never used** in code in this repo. Console-managed agents carry their own configured model field (Deep Researcher resolves to Sonnet 4.6); the SDK respects what the Console sets.
 
 ### Context and reliability
 

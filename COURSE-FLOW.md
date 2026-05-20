@@ -40,6 +40,7 @@ If any of those fail, fix them before segment 1. We will not pause class to inst
 
 **Duration:** 50 minutes (40 content + 5 exercise + 5 Q&A)
 **Maps to:** Domain 1 (Reference: [`./domain-1-agentic.md`](./domain-1-agentic.md))
+**Self-study deep dive:** [`./notebooks/segment-2-5-control-surfaces.ipynb`](./notebooks/segment-2-5-control-surfaces.ipynb) - lens 2 (runtime loop introspection) and the full `stop_reason` decision tree.
 
 ### Learning objectives
 
@@ -142,6 +143,7 @@ Anticipated questions:
 
 **Duration:** 50 minutes (40 content + 5 exercise + 5 Q&A)
 **Maps to:** Domain 2 + Domain 3 (References: [`./domain-2-tools-mcp.md`](./domain-2-tools-mcp.md), [`./domain-3-claude-code.md`](./domain-3-claude-code.md))
+**Self-study deep dive:** [`./notebooks/segment-2-5-control-surfaces.ipynb`](./notebooks/segment-2-5-control-surfaces.ipynb) - all four `tool_choice` modes live, `disable_parallel_tool_use`, MCP `list_tools` discovery, and the Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`).
 
 ### Learning objectives
 
@@ -252,6 +254,7 @@ Anticipated questions:
 
 **Duration:** 50 minutes (40 content + 5 exercise + 5 Q&A)
 **Maps to:** Domain 4 (Reference: [`./domain-4-prompts.md`](./domain-4-prompts.md)) and Domain 5 (Reference: [`./domain-5-context.md`](./domain-5-context.md))
+**Self-study deep dive:** [`./notebooks/segment-2-5-control-surfaces.ipynb`](./notebooks/segment-2-5-control-surfaces.ipynb) - forced `tool_choice` skeleton (Section 2), `stop_sequences` + `max_tokens` as control levers (Section 3), Console memory stores (Section 4).
 
 ### Learning objectives
 

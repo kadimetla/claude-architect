@@ -87,7 +87,7 @@ class Invoice(BaseModel):
 
 client = Anthropic()
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-4-6",
     max_tokens=2048,
     tools=[{
         "name": "extract_invoice",

@@ -42,7 +42,7 @@ The manual ceremony below is preserved for reference fidelity with the upstream 
    The committed template has the variables you need:
 
    ```
-   CLAUDE_MODEL="claude-sonnet-4-5"
+   CLAUDE_MODEL="claude-sonnet-4-6"
    ANTHROPIC_API_KEY=""  # paste your key here
    USE_UV=1              # set to 0 if not using uv
    ```

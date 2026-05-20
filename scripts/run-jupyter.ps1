@@ -30,7 +30,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $notebooksDir = Join-Path $repoRoot 'notebooks'
 
-if (-not (Test-Path $notebooksDir)) {
+if (-not (Test-Path -LiteralPath $notebooksDir -PathType Container)) {
     throw "Notebooks directory not found at $notebooksDir. Was notebooks/ deleted?"
 }
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
@@ -42,7 +42,7 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
 # leaves chat messages with no default responder.
 $personaId = 'jupyter-ai-personas::jupyter_ai_jupyternaut::JupyternautPersona'
 
-& uv run --project notebooks jupyter lab notebooks `
+& uv run --project $notebooksDir jupyter lab $notebooksDir `
     --port $Port `
     --PersonaManager.default_persona_id="$personaId"
 

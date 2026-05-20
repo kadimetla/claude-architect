@@ -1,6 +1,6 @@
 # Claude Architect Foundations - Notebooks
 
-The five teaching notebooks that back the four-hour O'Reilly live training. The class is taught **from these notebooks**. Markdown cells carry the concepts. Code cells carry the demos. Run them top to bottom.
+The six teaching notebooks for the four-hour O'Reilly live training: five live-taught segments plus one self-study deep dive (Segment 2.5). The class is taught **from these notebooks**. Markdown cells carry the concepts. Code cells carry the demos. Run them top to bottom.
 
 ## What's here
 
@@ -9,10 +9,11 @@ The five teaching notebooks that back the four-hour O'Reilly live training. The 
 | `segment-0-pre-flight.ipynb` | Top-of-class verification (optional, 5 min) | 5 min |
 | `segment-1-customer-support-agent.ipynb` | Segment 1: Building AI Agents That Use Tools | 50 min |
 | `segment-2-tool-design-and-mcp.ipynb` | Segment 2: Tool Design, Integration, Claude Code | 50 min |
+| `segment-2-5-control-surfaces.ipynb` | **Segment 2.5: Control surfaces, tool enumeration, Console assets (self-study)** | *off-clock* |
 | `segment-3-invoice-extractor.ipynb` | Segment 3: Structured Output, Context, Reliability | 50 min |
 | `segment-4-cca-f-capstone.ipynb` | Segment 4: CCA-F Certification Capstone | 50 min |
 
-Each segment notebook ships with **Learning Objectives**, **Concept** markdown cells, **Demo** code cells, **Exercise** prompts, **Key Takeaways**, and a **Bridge to next segment**. The four-hour class is the five notebooks in order plus three ten-minute breaks.
+Each segment notebook ships with **Learning Objectives**, **Concept** markdown cells, **Demo** code cells, **Exercise** prompts, **Key Takeaways**, and a **Bridge to next segment**. The four-hour class is the five live segments in order plus three ten-minute breaks. Segment 2.5 is a deep-dive self-study notebook that ties together every control surface the live segments touch lightly: all four `tool_choice` modes plus `disable_parallel_tool_use`, `stop_sequences`, `max_tokens` as a control lever, MCP `list_tools` discovery, and the live Claude Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`). Walked end to end it runs about 75 minutes against the live API.
 
 ## Cookbook anchor (optional self-study)
 
@@ -26,6 +27,13 @@ uv run --project notebooks jupyter lab notebooks/
 ```
 
 That one command does everything: creates `notebooks/.venv/` on first invocation, installs all dependencies from `notebooks/pyproject.toml`, and launches Jupyter Lab. Subsequent runs reuse the venv. Install `uv` once with `pip install uv` or `winget install astral-sh.uv`.
+
+**Teaching sessions** should use the lifecycle helper scripts instead, which set the Jupyter AI v3 default persona to Jupyternaut (so chat messages route to someone) and handle Windows half-interrupted states cleanly on shutdown:
+
+```powershell
+.\scripts\run-jupyter.ps1            # default port 8888
+.\scripts\stop-jupyter.ps1           # port-scoped, with PID fallback
+```
 
 **Fallback** (pip without uv):
 
@@ -61,7 +69,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 The notebooks call `dotenv.load_dotenv()` if the file exists. Never hardcode the key in a cell.
 
-## Smoke test (run all five end-to-end)
+## Smoke test (run all six end-to-end)
 
 This is the dry-run before each cohort delivery. Budget roughly **$1** in API spend.
 
@@ -70,10 +78,13 @@ cd C:\github\claude-architect
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-0-pre-flight.ipynb --output _smoke-0.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-1-customer-support-agent.ipynb --output _smoke-1.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-2-tool-design-and-mcp.ipynb --output _smoke-2.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-2-5-control-surfaces.ipynb --output _smoke-2-5.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-3-invoice-extractor.ipynb --output _smoke-3.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-4-cca-f-capstone.ipynb --output _smoke-4.ipynb
 Remove-Item notebooks\_smoke-*.ipynb
 ```
+
+**Exit code 0 is not enough.** Read the printed counters on any cell that asserts an observable API behavior (`cache_creation_input_tokens`, `cache_read_input_tokens`, `stop_reason`, `tool_use` blocks). See [`../CLAUDE.md`](../CLAUDE.md#demo-verification-norm-smoke-before-commit) for the demo-verification norm and the cache-floor gotcha.
 
 Each run must finish with no exceptions. If anything fails, fix it **before** class.
 

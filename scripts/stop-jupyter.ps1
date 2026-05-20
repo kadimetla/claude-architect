@@ -38,11 +38,14 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $notebooksRoot = Join-Path $repoRoot 'notebooks'
 
+if (-not (Test-Path -LiteralPath $notebooksRoot -PathType Container)) {
+    throw "Notebooks directory not found at $notebooksRoot. Was notebooks/ deleted?"
+}
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     throw "uv is not on PATH. Install uv or run this from a shell where uv is available."
 }
 
-$runtimeDir = (& uv run --project notebooks jupyter --runtime-dir 2>$null).Trim()
+$runtimeDir = (& uv run --project $notebooksRoot jupyter --runtime-dir 2>$null).Trim()
 if (-not $runtimeDir) {
     $runtimeDir = Join-Path $env:APPDATA 'jupyter\runtime'
 }
@@ -84,7 +87,7 @@ $stderrPath = Join-Path ([System.IO.Path]::GetTempPath()) "claude-architect-jupy
 Remove-Item -LiteralPath $stdoutPath, $stderrPath -Force -ErrorAction SilentlyContinue
 
 $stop = Start-Process -FilePath 'uv' `
-    -ArgumentList @('run', '--project', 'notebooks', 'jupyter', 'server', 'stop', "$Port") `
+    -ArgumentList @('run', '--project', $notebooksRoot, 'jupyter', 'server', 'stop', "$Port") `
     -WorkingDirectory $repoRoot `
     -PassThru `
     -RedirectStandardOutput $stdoutPath `

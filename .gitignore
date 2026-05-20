@@ -89,6 +89,10 @@ target/
 # These are throwaway by design and pollute `git status` otherwise.
 notebooks/_smoke-*.ipynb
 
+# One-shot live-API spike scripts written during course-prep recon.
+# Throwaway; not part of the courseware.
+_spikes/
+
 # Jupyter AI / Jupyternaut chat transcripts. Local session artifacts, not courseware.
 notebooks/*.chat
 

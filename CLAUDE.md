@@ -6,13 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Teaching and reference material for the **Claude Architect Foundations** 4-hour live training (O'Reilly Media). The course is **skills-first** for Segments 1-3, then closes with a **CCA-F certification capstone** in Segment 4 (cert briefing + weighted practice questions). Domain 5 (Context Management) is folded into Segment 3 alongside Domain 4.
 
-**The class is taught from the five Jupyter notebooks in `./notebooks/`.** Each notebook IS its segment - markdown cells carry the concepts, code cells carry the demos. The .md files below are the supporting reference scaffolds.
+**The class is taught from the five live-teaching Jupyter notebooks in `./notebooks/`.** Each notebook IS its segment - markdown cells carry the concepts, code cells carry the demos. A sixth **self-study deep-dive notebook** (Segment 2.5) ships alongside for cohort homework and Q&A overflow but is not on the 4-hour clock. The .md files below are the supporting reference scaffolds.
 
 The repo ships these artifacts:
 
 - `notebooks/segment-0-pre-flight.ipynb` - top-of-class environment verification (5 min, optional)
 - `notebooks/segment-1-customer-support-agent.ipynb` - Segment 1 (Domain 1)
 - `notebooks/segment-2-tool-design-and-mcp.ipynb` - Segment 2 (Domains 2 + 3)
+- `notebooks/segment-2-5-control-surfaces.ipynb` - **Segment 2.5 self-study deep dive** (all five domains): full `tool_choice` modes + `disable_parallel_tool_use`, `stop_sequences` and `max_tokens` as control levers, MCP `list_tools` discovery, and the Claude Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`). Not live-taught.
 - `notebooks/segment-3-invoice-extractor.ipynb` - Segment 3 (Domains 4 + 5)
 - `notebooks/segment-4-cca-f-capstone.ipynb` - Segment 4 (cert briefing + weighted practice questions)
 - `notebooks/README.md`, `notebooks/pyproject.toml`, `notebooks/uv.lock`, `notebooks/requirements.txt` - notebook setup (uv-native, pip fallback), smoke commands, voice-lint
@@ -40,6 +41,15 @@ uv run --project notebooks jupyter lab notebooks/
 ```
 
 `uv run` auto-creates `notebooks/.venv/` on first invocation (~20s cold, including 107 packages from `notebooks/uv.lock`) and reuses it on every subsequent run (~1.5s warm). Do **not** suggest `pip install` first - `uv run` is the canonical entry point. Pinned deps live in `notebooks/pyproject.toml`; `notebooks/requirements.txt` is a generated pip-fallback for boxes without `uv`, kept in sync via `uv export`.
+
+For interactive teaching sessions, prefer the **lifecycle helper scripts** over a bare `uv run jupyter lab`:
+
+```powershell
+.\scripts\run-jupyter.ps1            # default port 8888, overrides Jupyter AI default persona to Jupyternaut
+.\scripts\stop-jupyter.ps1           # port-scoped clean shutdown with PID fallback for Windows half-states
+```
+
+`run-jupyter.ps1` sets `PersonaManager.default_persona_id` to the Jupyter AI v3 Jupyternaut so chat messages route to someone (the upstream default points at the older package ID and silently routes to nobody). `stop-jupyter.ps1` matches the server by `root_dir` so it never stops an unrelated Jupyter on the box, and falls back to `Stop-Process` on the exact PID if the graceful path hangs (Jupyter AI can leave the server half-interrupted on Windows). For headless smoke runs (`nbconvert --execute`) you do not need either script - nbconvert spawns its own kernel.
 
 Smoke tests run via `uv run` too: `uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-0-pre-flight.ipynb --output _smoke-0.ipynb` (budget ~$0.05 per notebook against the live API). Builder scripts (`scripts/build-notebooks.py` and `scripts/_notebooks/*.py`) are pure Python with no third-party deps; they run with the system Python directly, no venv required.
 
@@ -109,6 +119,15 @@ Smoke artifacts (`notebooks/_smoke-*.ipynb`) are gitignored - they are transient
 
 Rule of thumb: if the markdown above a cell makes a concrete claim ("the second call reads from cache", "stop_reason flips to end_turn"), the cell must be smoke-verified. Voice-lint and `python scripts/build-notebooks.py` confirm structure; only a live API run confirms behavior.
 
+### Cache-floor gotcha (the 2026-05 lesson)
+
+Any cell that demonstrates `cache_control` must clear the **model-specific cacheable-prefix floor** or caching silently no-ops with `cache_creation=0, cache_read=0`. The exit code stays 0; only the printed counters reveal the failure. Floors:
+
+- **Sonnet 4.x**: 1024 tokens
+- **Haiku 4.5**: 4096 tokens (4x higher - the trap when flipping demos from Sonnet to Haiku)
+
+When changing a notebook's default model, audit every cache demo for prefix size. The 2026-05 Sonnet 4.6 -> Haiku 4.5 flip broke both segment-2 (tool block ~1280 tokens) and segment-3 (vendor policy ~250 tokens) because the cached prefix sat between the two floors. The fix in both cases was to enlarge the cacheable content with **realistic production prose** (system prompt, policy block, escalation playbook) targeting **+25% above the floor** so tokenizer drift does not push you back under.
+
 ## Stack defaults (per `~/.claude/CLAUDE.md`)
 
 | Concern | Default |
@@ -117,6 +136,14 @@ Rule of thumb: if the markdown above a cell makes a concrete claim ("the second 
 | OS | **Windows 11** (the live training runs here) |
 | Runtime | **Node.js 18+** for SDK examples, **Python 3.13+** for notebooks (`examples/mcp_cli/` pinned to 3.13 via `.python-version` because the committed `jiter` wheel has no 3.14 build) |
 | Cloud | **Azure** when cloud comes up |
+
+## Model policy (course-wide, do not regress)
+
+- **Haiku 4.5 (`claude-haiku-4-5`) is the default** for every notebook and every script in this repo. It handles tool use, agentic loops, structured errors, caching demos, and MCP discovery at production quality for ~1/5 the Sonnet cost.
+- **Sonnet 4.6 (`claude-sonnet-4-6`) is reserved** for places where reasoning depth measurably lifts behavior. The only such place in this course is **Segment 3** (nested invoice schemas with retry-on-validation-error). The Segment 3 builder's `MODEL` line carries a comment justifying the exception.
+- **Opus is never used** in code in this repo. Three legacy mentions in caching-floor prose ("Sonnet 4.x: 1024 / Haiku 4.5: 4096 tokens") have been stripped of their "/Opus" tail; do not re-add it.
+- **Console-managed agents** (e.g. Deep Researcher) carry their own configured `model` field. The SDK respects whatever the Console sets, so the agent's resolved model may legitimately be Sonnet 4.6 even when this notebook's default is Haiku 4.5. That is not a policy violation; it is the agent's recipe.
+- When adding a new MODEL constant, prefer the unversioned alias (`claude-haiku-4-5`) unless a specific feature requires a dated snapshot (Segment 0's pre-flight uses `claude-haiku-4-5-20251001` to pin the SDK floor check).
 
 ## What NOT to commit
 
@@ -132,10 +159,11 @@ Rule of thumb: if the markdown above a cell makes a concrete claim ("the second 
 # Verify all course artifacts present
 ls COURSE-FLOW.md PRE-CLASS-CHECKLIST.md domain-*.md CERT-PROGRAM-BRIEFING.md PRACTICE-QUESTIONS.md practice-questions.json scripts/extract-practice-questions.py
 
-# Verify all five teaching notebooks present
+# Verify all six teaching notebooks present (five live + one self-study deep dive)
 ls notebooks/segment-0-pre-flight.ipynb \
    notebooks/segment-1-customer-support-agent.ipynb \
    notebooks/segment-2-tool-design-and-mcp.ipynb \
+   notebooks/segment-2-5-control-surfaces.ipynb \
    notebooks/segment-3-invoice-extractor.ipynb \
    notebooks/segment-4-cca-f-capstone.ipynb
 
@@ -163,10 +191,11 @@ python -c "import json; print(len(json.load(open('practice-questions.json', enco
 # Rebuild notebooks from source after editing scripts/_notebooks/*.py
 python scripts/build-notebooks.py
 
-# Smoke test all five notebooks against the API (budget ~$1)
+# Smoke test all six notebooks against the API (budget ~$1)
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-0-pre-flight.ipynb --output _smoke-0.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-1-customer-support-agent.ipynb --output _smoke-1.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-2-tool-design-and-mcp.ipynb --output _smoke-2.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-2-5-control-surfaces.ipynb --output _smoke-2-5.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-3-invoice-extractor.ipynb --output _smoke-3.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-4-cca-f-capstone.ipynb --output _smoke-4.ipynb
 
@@ -177,6 +206,19 @@ python scripts/extract-practice-questions.py
 There is no build or test suite, but `package.json` ships two real scripts: `npm run lint:voice` (runs the voice-lint sweep above) and `npm run preflight` (executes `scripts/preflight.ps1`). The repo's "tests" are these scripts plus the live PRE-CLASS-CHECKLIST run-through.
 
 `scripts/build-notebooks.py` is **idempotent** (deterministic cell IDs via sha256). A second run with no source changes produces byte-identical `.ipynb` files; if `git status` reports modifications after a rebuild, real content changed.
+
+## Claude Console asset surface (Managed Agents)
+
+As of the 2026-05 sprint, **Segment 2.5** integrates the live Claude Console asset surface in Tim's **Default workspace**. All four resources are reachable via the SDK with the beta header `anthropic-beta: managed-agents-2026-04-01`:
+
+| Console asset | SDK path | Provisioned name / ID | Domain anchor |
+|---|---|---|---|
+| Memory store | `client.beta.memory_stores` | `oreilly-memory-store` / `memstore_01CxRGu37BSyxYQaser8jXGa` | Domain 5 (persistence that survives restarts) |
+| Vault | `client.beta.vaults` (+ `.credentials.mcp_oauth_validate`) | `oreilly-vault` / `vlt_011CbDoSH1GZCgFsbmkDsP51` | Domain 3 (secrets hygiene) |
+| Agent | `client.beta.agents` | Deep researcher / `agent_01HEnqX2B62eYmyq1dLHcoWV` (Sonnet 4.6, template `deep-research`) | Domain 1 (managed loop vs hand-rolled) |
+| Session | `client.beta.sessions` (the runtime) | created on demand via `sessions.create(agent=..., environment_id=..., vault_ids=[...])` | Domain 1 (agent + env + vault as one runtime) |
+
+These are first-class SDK resources. The same key that authenticates `messages.create()` authenticates the full managed-agents surface. The Console UI is one of two ways to drive them; the SDK is the other. Console-managed agents carry their own configured `model` field that the SDK respects, so the Deep Researcher resolves to Sonnet 4.6 even when the calling notebook's default `MODEL` is Haiku 4.5 - this is the agent's recipe, not a model-policy violation.
 
 ## When in doubt
 

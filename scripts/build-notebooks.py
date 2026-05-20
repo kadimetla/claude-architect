@@ -28,6 +28,7 @@ from _notebooks import (  # noqa: E402  (local module after path setup)
     segment_0_pre_flight,
     segment_1_customer_support,
     segment_2_tool_design,
+    segment_2_5_control_surfaces,
     segment_3_invoice_extractor,
     segment_4_capstone,
 )
@@ -36,6 +37,7 @@ BUILDERS = {
     "segment-0-pre-flight": segment_0_pre_flight.cells,
     "segment-1-customer-support-agent": segment_1_customer_support.cells,
     "segment-2-tool-design-and-mcp": segment_2_tool_design.cells,
+    "segment-2-5-control-surfaces": segment_2_5_control_surfaces.cells,
     "segment-3-invoice-extractor": segment_3_invoice_extractor.cells,
     "segment-4-cca-f-capstone": segment_4_capstone.cells,
 }
