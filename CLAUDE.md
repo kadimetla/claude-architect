@@ -128,6 +128,28 @@ Any cell that demonstrates `cache_control` must clear the **model-specific cache
 
 When changing a notebook's default model, audit every cache demo for prefix size. The 2026-05 Sonnet 4.6 -> Haiku 4.5 flip broke both segment-2 (tool block ~1280 tokens) and segment-3 (vendor policy ~250 tokens) because the cached prefix sat between the two floors. The fix in both cases was to enlarge the cacheable content with **realistic production prose** (system prompt, policy block, escalation playbook) targeting **+25% above the floor** so tokenizer drift does not push you back under.
 
+## Cookbook wire-up status (the 2026-05-21 sprint)
+
+Of the 16 cookbooks the course cites from `claude-cookbooks-main/`, the 8 heavy-rotation ones (cited 2+ times) are now smoke-verifiable via `.\scripts\smoke-cookbooks.ps1` against the course's `notebooks/.venv`. Last-known status:
+
+| Cookbook | Status | Notes |
+|---|---|---|
+| `tool_use/tool_choice.ipynb` | PASS | runs as-is |
+| `tool_use/customer_service_agent.ipynb` | PASS | kernel-override required |
+| `tool_use/tool_use_with_pydantic.ipynb` | PASS | needs `email-validator` |
+| `tool_use/extracting_structured_json.ipynb` | PASS | needs `requests` + `beautifulsoup4` |
+| `misc/prompt_caching.ipynb` | PASS | needs `requests` + `beautifulsoup4` |
+| `tool_use/parallel_tools.ipynb` | FAIL | upstream bug: emits `tool_use` without matching `tool_result` |
+| `tool_use/automatic-context-compaction.ipynb` | FAIL | upstream SDK-drift: reads `block.text` but newer SDK returns dict |
+| `claude_agent_sdk/01_The_chief_of_staff_agent.ipynb` | NOT-SMOKED | needs claude-agent-sdk pkg + Claude Code CLI; treat like `examples/mcp_cli/` |
+
+**Key rules:**
+
+- Cookbook smoke artifacts (`claude-cookbooks-main/**/_smoke-*.ipynb`) are gitignored. Vendored cookbook .ipynb files stay byte-for-byte identical to Anthropic's upstream; the NOTICE.md modification count for `claude-cookbooks-main/` stays at 0.
+- The two FAIL cookbooks are documented upstream issues. Do NOT patch vendored content to fix them; the right path is an upstream PR to anthropics/claude-cookbooks. The smoke script's FAIL becoming PASS confirms the upstream fix when we re-pull the snapshot.
+- Three deps added in this sprint: `requests`, `beautifulsoup4`, `email-validator`. They unlock 4 of the 5 PASS cookbooks. The other PASS (`tool_choice`) needs no deps; the kernel override is what unlocks 3 of 5.
+- The kernel override is the load-bearing fix: cookbooks declare `ant-tools-sdk` as their kernel in `.ipynb` metadata. That kernel name only exists in Anthropic's internal dev image. We force `python3` via `--ExecutePreprocessor.kernel_name=python3`.
+
 ## Stack defaults (per `~/.claude/CLAUDE.md`)
 
 | Concern | Default |

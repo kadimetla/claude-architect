@@ -89,6 +89,12 @@ target/
 # These are throwaway by design and pollute `git status` otherwise.
 notebooks/_smoke-*.ipynb
 
+# Cookbook smoke artifacts from `scripts/smoke-cookbooks.ps1`. Same pattern,
+# different directory. The vendored cookbook tree at claude-cookbooks-main/
+# stays byte-for-byte identical to Anthropic's upstream; smokes write to
+# sibling _smoke-*.ipynb files that never get committed.
+claude-cookbooks-main/**/_smoke-*.ipynb
+
 # One-shot live-API spike scripts written during course-prep recon.
 # Throwaway; not part of the courseware.
 _spikes/

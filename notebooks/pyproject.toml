@@ -15,6 +15,13 @@ dependencies = [
     "jupyter-ai[jupyternaut,magics]>=3.0.0",
     "lxml>=6.1.1",
     "jupyterlab-variable-inspector>=0.0.0a0",
+    # Cookbook-wire-up deps (2026-05-21). These unlock 4 of 8 heavy-rotation
+    # claude-cookbooks-main/ notebooks the course cites:
+    #   requests + beautifulsoup4 -> extracting_structured_json, prompt_caching
+    #   email-validator           -> tool_use_with_pydantic (Pydantic EmailStr)
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "email-validator>=2.1",
 ]
 
 [tool.uv]
