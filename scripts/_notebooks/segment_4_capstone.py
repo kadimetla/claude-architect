@@ -20,6 +20,7 @@ def cells() -> list[tuple[str, str]]:
         ("md", _domain_weights_md),
         ("md", _prep_stack_md),
         ("md", _week_before_md),
+        ("md", _subagent_callout_md),
         ("md", _practice_intro_md),
         ("code", _practice_loader_code),
         ("code", _practice_render_code),
@@ -139,6 +140,20 @@ The full 13-item version lives in [`../CERT-PROGRAM-BRIEFING.md`](../CERT-PROGRA
 6. **Single attempt.** Do not schedule until 1-4 are green.
 """
 
+_subagent_callout_md = """\
+## Why three of your ten are guaranteed coordinator-subagent
+
+The community practice set has **15 coordinator-subagent questions** under the Multi-agent Research System scenario. Random weighted sampling can produce a cohort run with zero of them - a meaningful blind spot on the heaviest Domain 1 pattern the exam tests.
+
+We pin three. They cover the three skills you must be fluent on:
+
+1. **Coordinator-mediated conflict resolution** when subagents return contradictory findings (the answer is to preserve both, annotate the conflict, and let the coordinator decide - not pick one and footnote it)
+2. **Synthesis routing through the coordinator** - subagent results go to the coordinator, the coordinator routes to a synthesis agent; subagents do not chat directly
+3. **Subagent local recovery vs coordinator escalation** - subagents handle routine errors locally; the coordinator only sees what it must resolve
+
+This is the **bare-API pattern you built in Segment 1**, dressed up in exam clothing.
+"""
+
 _practice_intro_md = """\
 ## Weighted live practice (28 minutes)
 
@@ -170,28 +185,48 @@ by_scenario: dict[str, list[dict]] = defaultdict(list)
 for q in all_questions:
     by_scenario[q["scenario"]].append(q)
 
-# Weight to match exam blueprint emphasis. The community set has 15 per
-# scenario; we draw weighted to push the agentic + claude-code count up.
-# Seed deterministic for reproducibility across cohorts.
+# Three coordinator-subagent questions are PINNED into every cohort's live ten.
+# Rationale: 15 of 60 practice questions assume coordinator-subagent fluency, but
+# random sampling can produce a run with zero of them. The pins below cover the
+# three load-bearing skills the exam tests under that pattern:
+#   q1 - coordinator-mediated conflict resolution (Domain 1)
+#   q2 - synthesis routing through the coordinator (Domain 1)
+#   q3 - subagent local recovery vs coordinator escalation (Domain 1 + Domain 5)
+PINNED_MULTI_AGENT_NS = (1, 2, 3)
+pinned: list[dict] = [
+    q for q in by_scenario["Multi-agent Research System"]
+    if q["n"] in PINNED_MULTI_AGENT_NS
+]
+assert len(pinned) == len(PINNED_MULTI_AGENT_NS), (
+    f"expected {len(PINNED_MULTI_AGENT_NS)} pinned Multi-agent questions, "
+    f"got {len(pinned)}; check practice-questions.json"
+)
+
+# Weighted random fill for the remaining seven. We already pinned three from
+# Multi-agent, so its quota is reduced from 3 to 0.
 SEED = 2026  # bump per cohort if you want a fresh set
 rng = random.Random(SEED)
 
-WEIGHTS = {
-    "Multi-agent Research System": 3,        # ~ D1 Agentic
+FILL_WEIGHTS = {
     "Customer Support Agent": 3,             # ~ D1 + D5
     "Claude Code for Continuous Integration": 2,  # ~ D3
     "Code Generation with Claude Code": 2,   # ~ D3 + D4
 }
 
-sample: list[dict] = []
-for scenario, n in WEIGHTS.items():
+fill: list[dict] = []
+for scenario, n in FILL_WEIGHTS.items():
     pool = by_scenario[scenario]
-    sample.extend(rng.sample(pool, k=min(n, len(pool))))
+    fill.extend(rng.sample(pool, k=min(n, len(pool))))
+
+# Shuffle the final ten so the three Multi-agent questions are not always 1,2,3.
+sample: list[dict] = pinned + fill
+rng.shuffle(sample)
 
 assert len(sample) == 10, f"expected 10 sampled questions, got {len(sample)}"
-print(f"Sampled {len(sample)} questions across {len(WEIGHTS)} scenarios (seed={SEED}):")
+print(f"Sampled {len(sample)} questions ({len(pinned)} pinned + {len(fill)} weighted-random, seed={SEED}):")
 for i, q in enumerate(sample, 1):
-    print(f"  {i:2d}. [{q['scenario'][:35]:<35}] q{q['n']:02d}")
+    pin_tag = " [PINNED]" if q in pinned else ""
+    print(f"  {i:2d}. [{q['scenario'][:35]:<35}] q{q['n']:02d}{pin_tag}")
 """
 
 _practice_render_code = """\

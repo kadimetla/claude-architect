@@ -627,7 +627,7 @@ Reference answers:
 
 - **(a)** Tighten **tool descriptions** and/or **scope tools per agent**; consider `tool_choice` to force the right call.
 - **(b)** **Application-layer intercept via a PreToolUse hook**, not a prompt instruction. Policy is code, not vibes.
-- **(c)** Require **structured claim-source mappings** from subagents; coordinator preserves them through synthesis.
+- **(c)** Require **structured claim-source mappings** from subagents; coordinator preserves them through synthesis. This is the Segment 1 coordinator-subagent pattern applied here: the synthesis subagent emits structured findings, the coordinator preserves provenance across the handoff.
 - **(d)** Escalate on **policy, complexity, risk, or explicit request**. Sentiment is not a signal.
 """
 

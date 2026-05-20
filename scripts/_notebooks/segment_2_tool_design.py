@@ -583,6 +583,7 @@ _key_takeaways_md = """\
 ## Key takeaways
 
 - **Tool descriptions are the contract**, names are just labels. Spell out behavior, inputs, error shapes, and when *not* to call.
+- **Tool scoping is subagent design.** When an agent's tool list grows past ~5, split into a coordinator with scoped subagents (Segment 1's live demo). Each subagent sees only the tools its role needs; the coordinator's surface stays small.
 - The four **`tool_choice`** modes are `auto`, `any`, `tool`, `none`. `tool` is the lever for forced structured output (Segment 3).
 - **Structured errors** with `errorCategory` and `isRetryable` let the model decide. Bare strings force it to guess.
 - **MCP transports** are stdio / SSE / HTTP, and `${ENV_VAR}` expansion keeps secrets out of source.

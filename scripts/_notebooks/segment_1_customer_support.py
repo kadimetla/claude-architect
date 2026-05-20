@@ -9,7 +9,8 @@ Pedagogical arc (reordered 2026-05-19):
   Loop runs (Scenario A, no hook) ->
   Motivate hooks -> Hook code -> Loop with hook ->
   Scenario B + stress test ->
-  Coordinator-subagent sketch -> Exercise -> Bridge -> Appendix.
+  Coordinator-subagent concept -> live bare-API demo -> debrief ->
+  Exercise -> Bridge -> Appendix.
 
 The hook now lands AFTER the learner has seen the loop transition
 stop_reason live. It is taught as a BACKSTOP, not the centerpiece.
@@ -53,13 +54,15 @@ def cells() -> list[tuple[str, str]]:
         ("code", _hook_stress_test_code),
         # Session vocabulary (resume vs fork) - paragraph only, no demo
         ("md", _session_vocab_md),
-        # Coordinator-subagent moved down (advanced pattern, before exercise)
+        # Coordinator-subagent: concept, then a runnable bare-API demo
         ("md", _concept_subagents_md),
+        ("md", _subagent_demo_md),
+        ("code", _subagent_demo_code),
+        ("md", _subagent_debrief_md),
         ("md", _exercise_md),
         ("md", _key_takeaways_md),
         ("md", _bridge_md),
         ("md", _appendix_md),
-        ("code", _appendix_code),
     ]
 
 
@@ -84,7 +87,7 @@ By the end of this segment you will be able to:
 - Explain the **agentic loop** and identify which `stop_reason` value drives each branch of the control flow
 - Place **hooks** at the right lifecycle events (PreToolUse, PostToolUse) for deterministic guarantees
 - Distinguish **prompt-layer guidance** from **application-layer enforcement**, and pick the right layer for a given guarantee
-- Recognize **session resume vs fork** as Domain 1 vocabulary, and sketch a **coordinator-subagent** topology when subtask isolation pays off
+- Recognize **session resume vs fork** as Domain 1 vocabulary, and build a **coordinator-subagent** topology over the bare Messages API when subtask isolation pays off
 """
 
 _warm_up_md = """\
@@ -625,7 +628,239 @@ One **coordinator** holds the user-facing thread. **Subagents** run in their own
 - Two agents would just chat at each other (one slow agent with extra latency)
 - The subtasks share state that you would have to serialize anyway
 
-We *sketch* a coordinator-subagent setup in the appendix below. It uses `claude_agent_sdk.Task` rather than the bare Messages API, so we are not going to run it live. The shape is what matters.
+Next cell, we **run** a tiny coordinator-subagent system over the bare Messages API. No second SDK install. The point of the demo is not the toy task; it is to **watch the message arrays** and see that the coordinator's context never touches the subagents' working notes.
+"""
+
+_subagent_demo_md = """\
+## Live demo: coordinator-subagent over the bare Messages API
+
+**Scenario:** the nightly CI job has been flaky for 48 hours. A **coordinator** delegates the investigation to two **scoped subagents**: a **researcher** (`fetch_ci_log`, `search_repo`) and a **synthesizer** (`verify_fact`). Each subagent runs its own mini-loop in its own `messages` array. Only its **final answer** comes back.
+
+The coordinator gets one tool: `delegate_to_subagent(role, task)`. When the model emits a `tool_use` for `delegate_to_subagent`, our dispatcher runs a fresh `client.messages.create` loop for that subagent and returns the final text as the `tool_result`.
+
+**What to watch in the printout:**
+
+- The coordinator's message-history length stays small. It contains the user turn, the two delegations, two short subagent answers, and the final synthesis turn.
+- Each subagent has its own message history, with its own `tool_use` and `tool_result` blocks for `fetch_ci_log` etc.
+- The coordinator's array contains **no** `fetch_ci_log` or `search_repo` blocks. That is context isolation, made visible.
+"""
+
+_subagent_demo_code = """\
+# Mock subagent tools. Deterministic, in-memory, $0 to dispatch.
+CI_LOG_DB: dict[str, str] = {
+    "nightly-2026-05-18": "FAIL test_payments_integration::test_retry_on_429 (3/5 runs)",
+    "nightly-2026-05-17": "FAIL test_payments_integration::test_retry_on_429 (4/5 runs)",
+    "nightly-2026-05-16": "FAIL test_payments_integration::test_retry_on_429 (2/5 runs)",
+}
+REPO_INDEX: dict[str, str] = {
+    "test_retry_on_429": "tests/payments/test_retry.py uses a 100ms sleep; CI runners share a flaky upstream stub.",
+}
+KNOWN_FACTS: dict[str, bool] = {
+    "the failure is in tests/payments/test_retry.py": True,
+}
+
+
+def _run_research_subagent(task: str) -> str:
+    \"\"\"Scoped subagent: fetch_ci_log + search_repo only. Returns final text.\"\"\"
+    tools = [
+        {
+            "name": "fetch_ci_log",
+            "description": "Fetch the CI log for a given run id like 'nightly-2026-05-18'.",
+            "input_schema": {"type": "object",
+                             "properties": {"run_id": {"type": "string"}},
+                             "required": ["run_id"]},
+        },
+        {
+            "name": "search_repo",
+            "description": "Search the repo index for a symbol or test name.",
+            "input_schema": {"type": "object",
+                             "properties": {"query": {"type": "string"}},
+                             "required": ["query"]},
+        },
+    ]
+    messages = [{"role": "user", "content": task}]
+    for i in range(6):
+        resp = client.messages.create(
+            model=MODEL, max_tokens=2048,
+            system=(
+                "You are a CI research subagent. Use fetch_ci_log with run IDs in the form "
+                "'nightly-YYYY-MM-DD' (e.g. 'nightly-2026-05-18'). After at most two log fetches "
+                "and one repo search, return ONE concise paragraph identifying the failing test "
+                "and the likely root cause. Do not include your working notes."
+            ),
+            tools=tools, messages=messages,
+        )
+        messages.append({"role": "assistant", "content": resp.content})
+        if resp.stop_reason == "end_turn":
+            final = next((b.text for b in resp.content if b.type == "text"), "")
+            print(f"    [research subagent] message-history length: {len(messages)} (isolated)")
+            return final or "[research subagent ended without text]"
+        results = []
+        for b in resp.content:
+            if b.type != "tool_use":
+                continue
+            # Tolerate the model emitting bare date strings; the DB keys carry a 'nightly-' prefix.
+            if b.name == "fetch_ci_log":
+                run_id = b.input.get("run_id", "")
+                key = run_id if run_id in CI_LOG_DB else f"nightly-{run_id}"
+                payload = CI_LOG_DB.get(key, f"no such run: {run_id}")
+            elif b.name == "search_repo":
+                q = b.input.get("query", "")
+                hits = {k: v for k, v in REPO_INDEX.items() if q and q in k}
+                payload = hits or "no matches"
+            else:
+                payload = {"error": f"unknown tool {b.name}"}
+            results.append({"type": "tool_result", "tool_use_id": b.id, "content": json.dumps(payload)})
+        if not results:
+            print(f"    [research subagent] stop_reason={resp.stop_reason}, ending. message-history length: {len(messages)} (isolated)")
+            return "[research subagent: no dispatchable blocks]"
+        messages.append({"role": "user", "content": results})
+    print(f"    [research subagent] hit iteration ceiling. message-history length: {len(messages)} (isolated)")
+    return "[research subagent hit iteration ceiling]"
+
+
+def _run_synthesis_subagent(task: str) -> str:
+    \"\"\"Scoped subagent: verify_fact only.\"\"\"
+    tools = [
+        {
+            "name": "verify_fact",
+            "description": "Verify a single factual claim. Returns true/false.",
+            "input_schema": {"type": "object",
+                             "properties": {"claim": {"type": "string"}},
+                             "required": ["claim"]},
+        },
+    ]
+    messages = [{"role": "user", "content": task}]
+    for i in range(3):
+        resp = client.messages.create(
+            model=MODEL, max_tokens=2048,
+            system="You are a synthesis subagent. Use verify_fact sparingly. Return one cited paragraph.",
+            tools=tools, messages=messages,
+        )
+        messages.append({"role": "assistant", "content": resp.content})
+        if resp.stop_reason == "end_turn":
+            final = next((b.text for b in resp.content if b.type == "text"), "")
+            print(f"    [synthesis subagent] message-history length: {len(messages)} (isolated)")
+            return final or "[synthesis subagent ended without text]"
+        results = []
+        for b in resp.content:
+            if b.type != "tool_use":
+                continue
+            claim = b.input.get("claim", "").lower().strip(" .")
+            payload = {"verified": bool(KNOWN_FACTS.get(claim, False))}
+            results.append({"type": "tool_result", "tool_use_id": b.id, "content": json.dumps(payload)})
+        if not results:
+            return "[synthesis subagent: tool_use stop with no dispatchable blocks]"
+        messages.append({"role": "user", "content": results})
+    print(f"    [synthesis subagent] message-history length: {len(messages)} (isolated, ceiling hit)")
+    return "[synthesis subagent hit iteration ceiling]"
+
+
+# The coordinator's only tool is delegate_to_subagent. Its tool surface stays small
+# precisely because the heavy lifting lives in the scoped subagents.
+COORDINATOR_TOOLS = [
+    {
+        "name": "delegate_to_subagent",
+        "description": (
+            "Hand a discrete subtask to a scoped subagent. Pick role='research' for "
+            "log fetching and repo search; role='synthesis' for combining findings "
+            "into a cited paragraph. The subagent runs in its own isolated context "
+            "and returns only its final answer."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "role": {"type": "string", "enum": ["research", "synthesis"]},
+                "task": {"type": "string", "description": "One-paragraph briefing for the subagent."},
+            },
+            "required": ["role", "task"],
+        },
+    },
+]
+
+
+def run_coordinator(user_message: str, max_iterations: int = 4) -> list[dict[str, Any]]:
+    messages: list[dict[str, Any]] = [{"role": "user", "content": user_message}]
+    for i in range(max_iterations):
+        resp = client.messages.create(
+            model=MODEL, max_tokens=1024,
+            system=(
+                "You are a triage coordinator. Delegate research and synthesis subtasks via the "
+                "delegate_to_subagent tool, then give a final answer when you have the subagent results. "
+                "Do not attempt research yourself. The research subagent expects CI run IDs in the form "
+                "'nightly-YYYY-MM-DD'."
+            ),
+            tools=COORDINATOR_TOOLS, messages=messages,
+        )
+        print(f"[coordinator iter {i}] stop_reason={resp.stop_reason}")
+        messages.append({"role": "assistant", "content": resp.content})
+        if resp.stop_reason == "end_turn":
+            return messages
+        if resp.stop_reason != "tool_use":
+            return messages
+        tool_results = []
+        for block in resp.content:
+            if block.type != "tool_use":
+                continue
+            role = block.input.get("role", "")
+            task = block.input.get("task", "")
+            print(f"  [coordinator] delegating to {role!r} subagent")
+            if role == "research":
+                final = _run_research_subagent(task)
+            elif role == "synthesis":
+                final = _run_synthesis_subagent(task)
+            else:
+                final = f"[error] unknown role {role!r}"
+            tool_results.append({
+                "type": "tool_result", "tool_use_id": block.id,
+                "content": final or "[subagent returned no text]",
+            })
+        if not tool_results:
+            # Defensive: stop_reason==tool_use with no dispatchable blocks (rare API edge case).
+            return messages
+        messages.append({"role": "user", "content": tool_results})
+    return messages
+
+
+coord_messages = run_coordinator(
+    "The nightly CI job has been flaky for 48 hours. Investigate runs 2026-05-16 "
+    "through 2026-05-18 and give me a one-paragraph synthesis with a verified root cause."
+)
+
+# Make the isolation visible. Coordinator's array should NOT contain any
+# fetch_ci_log / search_repo / verify_fact tool_use blocks - those stayed in the subagents.
+def _count_tool_uses(msgs: list[dict[str, Any]], names: list[str]) -> dict[str, int]:
+    counts = {n: 0 for n in names}
+    for m in msgs:
+        content = m["content"]
+        if not isinstance(content, list):
+            continue
+        for b in content:
+            name = getattr(b, "name", None) if not isinstance(b, dict) else b.get("name")
+            if name in counts:
+                counts[name] += 1
+    return counts
+
+print()
+print(f"[coordinator] message-history length: {len(coord_messages)}")
+leaked = _count_tool_uses(coord_messages, ["fetch_ci_log", "search_repo", "verify_fact"])
+print(f"[coordinator] subagent tool_use blocks leaked into coordinator context: {leaked}")
+assert all(v == 0 for v in leaked.values()), (
+    "Context isolation broken: subagent tool_use blocks leaked into the coordinator's array."
+)
+print("[coordinator] context isolation verified: zero subagent tool_use blocks in coordinator history.")
+"""
+
+_subagent_debrief_md = """\
+## What that printout proved
+
+- The coordinator's `messages` array is small. It holds the user request, the coordinator's `delegate_to_subagent` calls, the subagent **final answers**, and the synthesis turn.
+- Each subagent kept its own `tool_use` churn (`fetch_ci_log`, `search_repo`, `verify_fact`) inside its own `messages` array. The assertion at the end is the proof: **zero leakage** into the coordinator.
+- That isolation is the feature. The coordinator stays cheap and legible; the subagents do the heavy lifting in scoped contexts with scoped tools.
+
+**Production note:** the Claude **Agent SDK** wraps this exact pattern as `Task(subagent=..., prompt=...)`. The shape you just ran by hand is what `Task` does for you - context isolation, scoped tools, final-answer return. See `../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb` for the SDK version.
+
+**This is also the pattern Segment 3's triage scorecard answer (c) refers to** ("structured claim-source mappings from subagents") - the synthesizer is the subagent, the coordinator preserves provenance.
 """
 
 _exercise_md = """\
@@ -660,45 +895,12 @@ Open `segment-2-tool-design-and-mcp.ipynb`.
 """
 
 _appendix_md = """\
-## Appendix: coordinator-subagent sketch (not executed)
+## Appendix: going deeper on coordinator-subagent
 
-The bare Messages API has no `Task` primitive. The Claude **Agent SDK** does. The official Anthropic cookbook ships a working example at:
+You already ran a bare-API version above. The production wrapper is the Claude **Agent SDK** `Task` primitive, which packages context isolation, scoped tools, and final-answer return into one call. Canonical references:
 
-- `../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb`
-
-That notebook is the canonical reference. The shape below is a paraphrase, not a working program. We do not execute it in class because it would require a second SDK install and push us over the 50-minute budget.
-"""
-
-_appendix_code = """\
-# Pseudocode. Do not run. Requires `pip install claude-agent-sdk`.
-# See ../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb
-# for a runnable, official version of this pattern.
-#
-# from claude_agent_sdk import Agent, Task
-#
-# coordinator = Agent(
-#     name="triage-coordinator",
-#     system="You are the user-facing thread. Delegate research and code "
-#            "review to subagents via Task. Synthesize their final answers.",
-#     tools=[escalate_to_human],
-# )
-#
-# research_subagent = Agent(
-#     name="ci-log-researcher",
-#     system="Read CI logs. Return only the failing test names and the "
-#            "shortest repro snippet. Do not include your own working notes.",
-#     tools=[fetch_ci_log, search_repo],
-# )
-#
-# # Inside the coordinator's loop:
-# subagent_result = Task(
-#     subagent=research_subagent,
-#     prompt="Investigate why the nightly job has been flaky for 48 hours."
-# ).run()
-#
-# # subagent_result is the subagent's FINAL ANSWER only.
-# # Its working context never enters the coordinator's window.
-
-print("Appendix is reference only. See ../domain-1-agentic.md for depth.")
-print("Runnable version: ../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb")
+- **Agent SDK chief-of-staff example** - `../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb`
+- **Orchestrator-workers pattern** - `../claude-cookbooks-main/patterns/agents/orchestrator_workers.ipynb`
+- **Self-study scaffold** - `../coordinator-subagent-sketch.py` (40-line conceptual outline)
+- **Domain depth** - [`../domain-1-agentic.md`](../domain-1-agentic.md), the "Coordinator-subagent orchestration" section
 """

@@ -59,7 +59,7 @@ The notebook order earns each concept before it is used. We make one bare call, 
    - One `client.messages.create` call, Haiku 4.5, no tools, one user message. Print `stop_reason`. Three lines.
    - The whole platform is layers on top of this primitive. Pick the smallest model that does the job.
 
-2. **The agentic loop and the `stop_reason` decision tree** (7 minutes)
+2. **The agentic loop and the `stop_reason` decision tree** (5 minutes)
    - The loop in one breath: model emits content + `stop_reason` -> your code reads `stop_reason` -> you either return to user, execute tools and append `tool_result`, or resume a paused turn.
    - The six `stop_reason` values: `end_turn`, `max_tokens`, `stop_sequence`, `tool_use`, `pause_turn`, `refusal`.
    - **Anti-pattern callout:** Never parse natural language to detect completion. Always branch on `stop_reason`. "It said thanks, so I assume it's done" is how production agents go feral.
@@ -73,7 +73,7 @@ The notebook order earns each concept before it is used. We make one bare call, 
    - Run an $80 refund within the cap. Expected trace: `tool_use -> tool_use -> tool_use -> end_turn`.
    - **Attendees see the loop work end-to-end before the word "hook" appears in code.**
 
-5. **Hooks as deterministic backstop** (10 minutes)
+5. **Hooks as deterministic backstop** (9 minutes)
    - Motivate: Scenario A worked because the model cooperated. Production cannot assume cooperation.
    - **Events:** `PreToolUse` (gate a call before it runs), `PostToolUse` (audit, transform, log), `SessionStart` (inject context), `Stop` (final verification).
    - Reference implementation: [`./hooks-example.py`](./hooks-example.py).
@@ -83,7 +83,10 @@ The notebook order earns each concept before it is used. We make one bare call, 
    - $750 over-cap demand under an aggressive system prompt. Model usually holds the line via the description; the hook is the backstop when the model layer fails.
    - Direct stress test: call `enforce_refund_policy` with no model in the loop, prove the gate fires.
 
-The **coordinator-subagent sketch** lives in the notebook appendix as reference (links to `claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb`). Not executed live - the bare Messages API has no `Task` primitive, and a second SDK install would push the segment over budget.
+7. **Coordinator-subagent live demo** (3 minutes)
+   - Bare Messages API simulation, no Agent SDK install. CI-triage coordinator with two scoped subagents (research + synthesis).
+   - The dispatcher runs nested `client.messages.create` loops for each subagent. The print at the end asserts **zero subagent `tool_use` blocks leaked into the coordinator's array** - context isolation, made visible.
+   - The Agent SDK `Task` primitive packages this pattern; we run the shape by hand so attendees know what `Task` actually does.
 
 The **session resume vs fork** vocabulary (Domain 1 exam terms) is covered in a paragraph after the hook stress test, with no demo.
 
@@ -109,8 +112,9 @@ Test-Path "C:/github/claude-architect/notebooks/segment-1-customer-support-agent
 9. **`run_agent_with_hook`.** Same loop, plus the PreToolUse gate. Defense in depth.
 10. **Scenario B.** Aggressive system prompt + $750 demand. Model usually holds the line via the description; if it doesn't, the hook fires. Either outcome is a teaching moment.
 11. **Hook stress test.** Call `enforce_refund_policy` directly with the over-cap input. No model. Prove the gate is deterministic.
+12. **Coordinator-subagent live demo.** CI-triage scenario. Coordinator with `delegate_to_subagent` only; research and synthesis subagents with their own scoped tools. The print at the end asserts that **zero subagent `tool_use` blocks** appear in the coordinator's `messages` array. Context isolation, made visible.
 
-**What attendees see:** the loop works on its own, then becomes safer when the hook is added. The hook is a **backstop**, not the centerpiece. The guarantee comes from your code, not from begging the prompt.
+**What attendees see:** the loop works on its own, then becomes safer when the hook is added, then scales out via scoped subagents. The hook is a **backstop**, not the centerpiece. The subagent split is **context isolation**, not a clever trick. The guarantees come from your code.
 
 ### Exercise (5 minutes)
 **Prompt:** On paper or in a chat scratchpad, sketch an agent architecture for a **Developer Productivity** scenario (think: an agent that triages flaky CI failures). Name the **coordinator**, **three subagents**, and the **tool scope per agent** (which tools each subagent is allowed to call).
@@ -127,7 +131,7 @@ Anticipated questions:
 - The platform primitive is `client.messages.create` + branching on **`stop_reason`**. Every later layer is built on this.
 - The agentic loop is a `stop_reason` state machine. Branch on the enum, never on prose.
 - Hooks are the **deterministic backstop**. If a guarantee must hold, it lives in code, not in a prompt. Teach the loop first, then the hook.
-- **Session resume vs fork** and **coordinator-subagent** are Domain 1 vocabulary the exam tests; learn them, even if today's demo does not run them live.
+- **Session resume vs fork** is Domain 1 vocabulary covered as a paragraph; **coordinator-subagent** is now a live demo with a verified context-isolation assertion. Both are heavily tested under Domain 1 (27% of the exam).
 
 ### Bridge to Segment 2
 > "You just built an agent that decides what to do. Next we go one level deeper, into the tools themselves and the Claude Code surface where you author them on a real team."
