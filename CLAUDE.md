@@ -31,6 +31,7 @@ The repo ships these artifacts:
 - `examples/mcp_cli/` - vendored reference MCP CLI app from Anthropic's Skilljar course (Segment 2 anchor; separate uv project with its own `pyproject.toml`, `uv.lock`, and `.python-version` pinning 3.13). Attribution in `examples/mcp_cli/NOTICE.md`.
 - `claude-cookbooks-main/` - vendored copy of Anthropic's official Claude Cookbooks (MIT, Copyright (c) 2023 Anthropic). Attribution in `claude-cookbooks-main/NOTICE.md`.
 - `slides/warner-claude-architect-may-2026.pptx` - course deck, built by `scripts/build-deck.py`
+- `images/social-preview.png` - the GitHub repo social-preview asset (1280 x 640, <1 MB), uploaded via Settings -> Social preview. Regenerate via the prompt + processing pipeline documented in `images/social-preview-prompt.md`. Do NOT overwrite `images/cover.png` (that's the README hero, a different surface).
 
 ## How this repo bootstraps (read before running anything)
 
