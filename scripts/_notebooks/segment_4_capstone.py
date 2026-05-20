@@ -141,17 +141,21 @@ The full 13-item version lives in [`../CERT-PROGRAM-BRIEFING.md`](../CERT-PROGRA
 """
 
 _subagent_callout_md = """\
-## Why three of your ten are guaranteed coordinator-subagent
+## How we weight the ten questions (by CCA-F domain, not by scenario)
 
-The community practice set has **15 coordinator-subagent questions** under the Multi-agent Research System scenario. Random weighted sampling can produce a cohort run with zero of them - a meaningful blind spot on the heaviest Domain 1 pattern the exam tests.
+The community practice set has 60 questions across four scenario families. Random sampling across scenarios is **not** the same as random sampling across exam domains - the exam weights are 27/18/20/20/15 across D1-D5, but the scenarios cluster unevenly into domains. (Two of the four scenarios are heavily D3, which would over-test Claude Code workflows and under-test the rest.)
 
-We pin three. They cover the three skills you must be fluent on:
+Our sampler draws **by CCA-F domain weight**, matching the exam:
 
-1. **Coordinator-mediated conflict resolution** when subagents return contradictory findings (the answer is to preserve both, annotate the conflict, and let the coordinator decide - not pick one and footnote it)
-2. **Synthesis routing through the coordinator** - subagent results go to the coordinator, the coordinator routes to a synthesis agent; subagents do not chat directly
-3. **Subagent local recovery vs coordinator escalation** - subagents handle routine errors locally; the coordinator only sees what it must resolve
+| Domain | Weight | Sample | Pattern emphasis |
+|---|---:|---:|---|
+| **D1** Agentic Architecture | 27% | **3 questions** | Coordinator-subagent, stop_reason branching, agent loops |
+| **D2** Tool Design + MCP | 18% | **2 questions** | Tool descriptions, structured errors, MCP discovery |
+| **D3** Claude Code | 20% | **2 questions** | CLAUDE.md hierarchy, skills, headless mode |
+| **D4** Prompts + Structured Output | 20% | **2 questions** | Forced tool_choice, few-shot, prompt engineering |
+| **D5** Context + Reliability | 15% | **1 question** | Escalation, context preservation, error propagation |
 
-This is the **bare-API pattern you built in Segment 1**, dressed up in exam clothing.
+Because D1 carries the highest weight, **three of your ten will exercise D1 patterns** - the same coordinator-subagent, stop_reason-branching, agent-loop muscles you built in Segment 1, dressed up in exam clothing.
 """
 
 _practice_intro_md = """\
@@ -180,53 +184,61 @@ REPO_ROOT = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
 qs_path = REPO_ROOT / "practice-questions.json"
 all_questions = json.loads(qs_path.read_text(encoding="utf-8"))
 
-# Group by scenario for a weighted sample.
-by_scenario: dict[str, list[dict]] = defaultdict(list)
+# Group by CCA-F domain, not by scenario. Each question carries a `domain`
+# field (one of D1..D5) added in the 2026-05-21 domain-tagging sprint. See
+# EXAM-STUDY-PATH.md for the domain weighting rationale.
+by_domain: dict[str, list[dict]] = defaultdict(list)
 for q in all_questions:
-    by_scenario[q["scenario"]].append(q)
+    domain = q.get("domain")
+    if domain is None:
+        raise SystemExit(
+            f"Question global_n={q.get('global_n')} is missing a `domain` tag. "
+            "Re-run scripts/extract-practice-questions.py (which preserves tags) "
+            "or audit _spikes/apply_domain_tags.py."
+        )
+    by_domain[domain].append(q)
 
-# Three coordinator-subagent questions are PINNED into every cohort's live ten.
-# Rationale: 15 of 60 practice questions assume coordinator-subagent fluency, but
-# random sampling can produce a run with zero of them. The pins below cover the
-# three load-bearing skills the exam tests under that pattern:
-#   q1 - coordinator-mediated conflict resolution (Domain 1)
-#   q2 - synthesis routing through the coordinator (Domain 1)
-#   q3 - subagent local recovery vs coordinator escalation (Domain 1 + Domain 5)
-PINNED_MULTI_AGENT_NS = (1, 2, 3)
-pinned: list[dict] = [
-    q for q in by_scenario["Multi-agent Research System"]
-    if q["n"] in PINNED_MULTI_AGENT_NS
-]
-assert len(pinned) == len(PINNED_MULTI_AGENT_NS), (
-    f"expected {len(PINNED_MULTI_AGENT_NS)} pinned Multi-agent questions, "
-    f"got {len(pinned)}; check practice-questions.json"
-)
+# CCA-F exam weighting: D1=27%, D2=18%, D3=20%, D4=20%, D5=15%.
+# Mapped to a 10-question sample, the closest integer split is 3/2/2/2/1
+# (sums to 10, matches the relative weights). This is the SAME ratio
+# Anthropic's exam uses; our sampler now mirrors it instead of drawing
+# uniformly across scenario families.
+DOMAIN_WEIGHTS = {
+    "D1": 3,  # Agentic Architecture & Orchestration  (27%)
+    "D2": 2,  # Tool Design & MCP Integration         (18%)
+    "D3": 2,  # Claude Code Configuration & Workflows (20%)
+    "D4": 2,  # Prompt Engineering & Structured Output (20%)
+    "D5": 1,  # Context Management & Reliability      (15%)
+}
+assert sum(DOMAIN_WEIGHTS.values()) == 10, "domain weights must sum to 10"
 
-# Weighted random fill for the remaining seven. We already pinned three from
-# Multi-agent, so its quota is reduced from 3 to 0.
 SEED = 2026  # bump per cohort if you want a fresh set
 rng = random.Random(SEED)
 
-FILL_WEIGHTS = {
-    "Customer Support Agent": 3,             # ~ D1 + D5
-    "Claude Code for Continuous Integration": 2,  # ~ D3
-    "Code Generation with Claude Code": 2,   # ~ D3 + D4
-}
+sample: list[dict] = []
+for domain, n in DOMAIN_WEIGHTS.items():
+    pool = by_domain[domain]
+    if len(pool) < n:
+        raise SystemExit(
+            f"Bank has only {len(pool)} {domain} questions; sampler needs {n}. "
+            "Add more questions or rebalance domain tags."
+        )
+    sample.extend(rng.sample(pool, k=n))
 
-fill: list[dict] = []
-for scenario, n in FILL_WEIGHTS.items():
-    pool = by_scenario[scenario]
-    fill.extend(rng.sample(pool, k=min(n, len(pool))))
-
-# Shuffle the final ten so the three Multi-agent questions are not always 1,2,3.
-sample: list[dict] = pinned + fill
+# Shuffle so the cohort doesn't see all D1 questions first.
 rng.shuffle(sample)
 
 assert len(sample) == 10, f"expected 10 sampled questions, got {len(sample)}"
-print(f"Sampled {len(sample)} questions ({len(pinned)} pinned + {len(fill)} weighted-random, seed={SEED}):")
+
+# Print a summary with both scenario AND domain visible. Domain is the
+# load-bearing axis now; scenario is context.
+print(f"Sampled {len(sample)} questions by CCA-F domain weight (seed={SEED}):")
+print(f"  weights: {DOMAIN_WEIGHTS}")
+print()
 for i, q in enumerate(sample, 1):
-    pin_tag = " [PINNED]" if q in pinned else ""
-    print(f"  {i:2d}. [{q['scenario'][:35]:<35}] q{q['n']:02d}{pin_tag}")
+    sec = q.get("secondaryDomains") or []
+    sec_str = f" (+{','.join(sec)})" if sec else ""
+    print(f"  {i:2d}. {q['domain']}{sec_str:<10} [{q['scenario'][:32]:<32}] q{q['n']:02d}")
 """
 
 _practice_render_code = """\

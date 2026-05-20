@@ -267,20 +267,21 @@ uv export --project notebooks --no-hashes --no-emit-project --output-file notebo
 
 ### 3.4 Dry-run every teaching notebook
 
-Open each notebook in VS Code, **Run All Cells**, verify no errors. The class is taught from these five; cookbook notebooks at `claude-cookbooks-main/...` are post-class self-study, not part of this dry-run.
+Open each notebook in VS Code, **Run All Cells**, verify no errors. The class is taught live from segments 0-4; segment-2-5 is a self-study deep dive but should also dry-run clean. Cookbook notebooks at `claude-cookbooks-main/...` are post-class self-study, not part of this dry-run.
 
 | Segment | Notebook | Expected runtime |
 |---|---|---|
 | 0 | `notebooks/segment-0-pre-flight.ipynb` | < 1 min (optional pre-flight) |
 | 1 | `notebooks/segment-1-customer-support-agent.ipynb` | 2-3 min |
 | 2 | `notebooks/segment-2-tool-design-and-mcp.ipynb` | 2-3 min |
+| 2.5 | `notebooks/segment-2-5-control-surfaces.ipynb` | 4-5 min (self-study; not on the 4-hour clock) |
 | 3 | `notebooks/segment-3-invoice-extractor.ipynb` | 2-3 min |
 | 4 | `notebooks/segment-4-cca-f-capstone.ipynb` | < 1 min (no live API calls) |
 
-Or run all five from PowerShell in one shot:
+Or run all six from PowerShell in one shot:
 
 ```powershell
-foreach ($n in 'segment-0-pre-flight','segment-1-customer-support-agent','segment-2-tool-design-and-mcp','segment-3-invoice-extractor','segment-4-cca-f-capstone') {
+foreach ($n in 'segment-0-pre-flight','segment-1-customer-support-agent','segment-2-tool-design-and-mcp','segment-2-5-control-surfaces','segment-3-invoice-extractor','segment-4-cca-f-capstone') {
     uv run --project notebooks jupyter nbconvert --to notebook --execute "notebooks/$n.ipynb" --output "_smoke-$n.ipynb"
 }
 Remove-Item notebooks/_smoke-*.ipynb
@@ -366,7 +367,7 @@ You will refer to it constantly during the session. Don't navigate to it mid-dem
 - [ ] Boot machine cold (catch any Windows update surprises early)
 - [ ] Open VS Code, load `C:\github\claude-architect` workspace
 - [ ] Open COURSE-FLOW.md in preview mode, navigate to Segment 1
-- [ ] Open all five demo notebooks in tabs (don't run them yet, just have them ready)
+- [ ] Open all five live-teaching demo notebooks in tabs (don't run them yet, just have them ready). Optionally open segment-2-5-control-surfaces.ipynb too if you may reach for it during Q&A overflow.
 - [ ] Open PowerShell terminal in VS Code, font size at least 16pt
 
 ### T-30 minutes: run PRE-CLASS-CHECKLIST

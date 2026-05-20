@@ -67,7 +67,7 @@
 
 ## 4. Demo file inventory
 
-The class is taught **from the five notebooks in `./notebooks/`**. Each notebook IS its segment.
+The class is taught **from the five live-teaching notebooks in `./notebooks/`**; a sixth notebook (`segment-2-5-control-surfaces.ipynb`) ships alongside as a self-study deep dive and is **not** on the 4-hour clock. Each segment notebook IS its segment.
 
 - [ ] **Segment 0 pre-flight notebook**
   ```powershell

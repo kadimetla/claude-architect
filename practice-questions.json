@@ -28,7 +28,11 @@
     ],
     "correct": "D",
     "explanation": "This approach preserves separation of responsibilities: the analysis agent completes its core work without blocking, preserves both conflicting values with clear attribution, and correctly passes reconciliation to the coordinator, which has broader context.",
-    "global_n": 1
+    "global_n": 1,
+    "domain": "D1",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 2,
@@ -59,7 +63,9 @@
     ],
     "correct": "C",
     "explanation": "In a coordinator–subagent architecture, the coordinator forwards both result sets to the synthesis agent for centralized integration, preserving control and ensuring high-quality merging.",
-    "global_n": 2
+    "global_n": 2,
+    "domain": "D1",
+    "secondaryDomains": []
   },
   {
     "n": 3,
@@ -90,7 +96,11 @@
     ],
     "correct": "D",
     "explanation": "Handle errors at the lowest level capable of resolving them. Local recovery reduces coordinator workload while still escalating truly unrecoverable issues with full context and partial progress.",
-    "global_n": 3
+    "global_n": 3,
+    "domain": "D2",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 4,
@@ -121,7 +131,11 @@
     ],
     "correct": "C",
     "explanation": "The coordinator decomposed a broad topic only into visual-art subtasks, missing music, literature, and film entirely. Since subagents executed their assignments correctly, the narrow decomposition is the obvious root cause.",
-    "global_n": 4
+    "global_n": 4,
+    "domain": "D5",
+    "secondaryDomains": [
+      "D1"
+    ]
   },
   {
     "n": 5,
@@ -152,7 +166,11 @@
     ],
     "correct": "D",
     "explanation": "Coverage annotations implement graceful degradation with transparency, preserving value from completed work while propagating uncertainty to enable informed decisions about confidence.",
-    "global_n": 5
+    "global_n": 5,
+    "domain": "D5",
+    "secondaryDomains": [
+      "D1"
+    ]
   },
   {
     "n": 6,
@@ -183,7 +201,11 @@
     ],
     "correct": "A",
     "explanation": "Returning an error with context to the coordinator is the most effective approach because it lets the coordinator make an informed decision—skip the file, try an alternative parsing method, or notify the user—while maintaining visibility into the failure.",
-    "global_n": 6
+    "global_n": 6,
+    "domain": "D5",
+    "secondaryDomains": [
+      "D2"
+    ]
   },
   {
     "n": 7,
@@ -214,7 +236,11 @@
     ],
     "correct": "B",
     "explanation": "Renaming the web-search tool to `extract_web_results` and updating its description to explicitly reference web search and URLs directly removes the root cause by eliminating semantic overlap between the two tool names and descriptions. This makes each tool’s purpose unambiguous, enabling the coordinator to reliably distinguish document analysis from web search.",
-    "global_n": 7
+    "global_n": 7,
+    "domain": "D1",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 8,
@@ -245,7 +271,9 @@
     ],
     "correct": "A",
     "explanation": "The coordinator pattern provides centralized visibility into all interactions, uniform error handling across the system, and fine-grained control over what information each subagent receives—these are the primary advantages of a star-shaped communication topology.",
-    "global_n": 8
+    "global_n": 8,
+    "domain": "D1",
+    "secondaryDomains": []
   },
   {
     "n": 9,
@@ -276,7 +304,11 @@
     ],
     "correct": "A",
     "explanation": "Returning structured error context—including failure type, executed query, partial results, and alternative approaches—gives the coordinator everything needed to make intelligent recovery decisions (e.g., retry with a modified query or continue with partial results). It preserves maximum context for informed coordination-level decision-making.",
-    "global_n": 9
+    "global_n": 9,
+    "domain": "D5",
+    "secondaryDomains": [
+      "D1"
+    ]
   },
   {
     "n": 10,
@@ -307,7 +339,11 @@
     ],
     "correct": "A",
     "explanation": "Replacing a general-purpose tool with a document-specific tool that validates URLs against document formats fixes the root cause by constraining capability at the interface level. This follows the principle of least privilege, making undesired search behavior impossible rather than merely discouraged.",
-    "global_n": 10
+    "global_n": 10,
+    "domain": "D2",
+    "secondaryDomains": [
+      "D1"
+    ]
   },
   {
     "n": 11,
@@ -338,7 +374,11 @@
     ],
     "correct": "B",
     "explanation": "Having the coordinator explicitly partition the research space before delegating is most effective because it addresses the root cause—unclear task boundaries—before any work begins. It preserves parallelism while preventing duplicated effort and wasted tokens.",
-    "global_n": 11
+    "global_n": 11,
+    "domain": "D1",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 12,
@@ -369,7 +409,11 @@
     ],
     "correct": "D",
     "explanation": "A timeout (access failure) and “0 results” (valid empty result) are semantically different outcomes requiring different responses. Distinguishing them allows the coordinator to retry the patent database while accepting the industry reports “0 results” as a valid, informative finding.",
-    "global_n": 12
+    "global_n": 12,
+    "domain": "D5",
+    "secondaryDomains": [
+      "D1"
+    ]
   },
   {
     "n": 13,
@@ -400,7 +444,11 @@
     ],
     "correct": "C",
     "explanation": "Putting a key-findings summary at the start leverages primacy effects so critical information sits in the most reliably processed position. Adding explicit section headings throughout helps the model navigate and attend to mid-input content, directly mitigating the “lost in the middle” phenomenon.",
-    "global_n": 13
+    "global_n": 13,
+    "domain": "D5",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 14,
@@ -431,7 +479,9 @@
     ],
     "correct": "A",
     "explanation": "Modifying upstream agents to return structured data fixes the root cause by reducing token volume at the source while preserving essential information. It avoids passing bulky page content and reasoning traces that inflate tokens without improving the synthesis step.",
-    "global_n": 14
+    "global_n": 14,
+    "domain": "D5",
+    "secondaryDomains": []
   },
   {
     "n": 15,
@@ -462,7 +512,11 @@
     ],
     "correct": "D",
     "explanation": "A limited-scope fact-verification tool lets the synthesis agent handle 85% of simple checks directly, eliminating most loops, while preserving the coordinator delegation path for the 15% of complex verifications. This applies least privilege while significantly reducing latency.",
-    "global_n": 15
+    "global_n": 15,
+    "domain": "D1",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 16,
@@ -493,7 +547,11 @@
     ],
     "correct": "B",
     "explanation": "Using `--output-format json` with `--json-schema` enforces structured output at the CLI level, guaranteeing well-formed JSON with the required fields (file path, line number, severity, suggested fix) that can be reliably parsed and posted as inline PR comments via the GitHub API. It leverages built-in CLI capabilities designed specifically for structured output.",
-    "global_n": 16
+    "global_n": 16,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 17,
@@ -524,7 +582,11 @@
     ],
     "correct": "A",
     "explanation": "A second independent Claude Code instance without access to the generator’s reasoning directly addresses the root cause by avoiding confirmation bias. This “fresh eyes” perspective mirrors human peer review, where another reviewer catches issues the author rationalized.",
-    "global_n": 17
+    "global_n": 17,
+    "domain": "D4",
+    "secondaryDomains": [
+      "D3"
+    ]
   },
   {
     "n": 18,
@@ -555,7 +617,11 @@
     ],
     "correct": "B",
     "explanation": "A “fire-and-forget” asynchronous Batch API model has no mechanism to intercept a tool call during a request, execute the tool, and return results for Claude to continue analysis. This is fundamentally incompatible with iterative tool-calling workflows that require multiple tool request/response rounds within a single logical interaction.",
-    "global_n": 18
+    "global_n": 18,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 19,
@@ -586,7 +652,11 @@
     ],
     "correct": "B",
     "explanation": "PR style checks block developers and require immediate responses via synchronous calls, while weekly security audits and nightly test generation are scheduled tasks with flexible deadlines that can tolerate up to a 24-hour batch window—capturing 50% savings for both.",
-    "global_n": 19
+    "global_n": 19,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 20,
@@ -617,7 +687,11 @@
     ],
     "correct": "D",
     "explanation": "Few-shot examples are the most effective technique for achieving consistent output format when instructions alone produce variable results. Providing 3–4 examples that show the exact desired structure (issue, location, concrete fix) gives the model a concrete pattern to follow, which is more reliable than abstract instructions.",
-    "global_n": 20
+    "global_n": 20,
+    "domain": "D4",
+    "secondaryDomains": [
+      "D3"
+    ]
   },
   {
     "n": 21,
@@ -648,7 +722,11 @@
     ],
     "correct": "B",
     "explanation": "Deep analysis is an ideal candidate for batch processing because it already runs overnight, tolerates delay, and uses a polling model before publishing results—matching the asynchronous, polling-based architecture of the Message Batches API while capturing 50% savings.",
-    "global_n": 21
+    "global_n": 21,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 22,
@@ -679,7 +757,11 @@
     ],
     "correct": "D",
     "explanation": "Explicit criteria—flagging comments only when claimed behavior contradicts actual code behavior—directly addresses the root cause by replacing a vague instruction with a precise definition of what constitutes a problem. This reduces false positives on acceptable patterns and misses of truly misleading comments.",
-    "global_n": 22
+    "global_n": 22,
+    "domain": "D4",
+    "secondaryDomains": [
+      "D3"
+    ]
   },
   {
     "n": 23,
@@ -710,7 +792,11 @@
     ],
     "correct": "A",
     "explanation": "Temporarily disabling high-false-positive categories immediately stops trust erosion by removing noisy findings that cause developers to dismiss everything, while preserving value from high-precision categories like security and correctness. It also creates space to improve prompts for problematic categories before re-enabling them.",
-    "global_n": 23
+    "global_n": 23,
+    "domain": "D4",
+    "secondaryDomains": [
+      "D3"
+    ]
   },
   {
     "n": 24,
@@ -741,7 +827,11 @@
     ],
     "correct": "A",
     "explanation": "Including the existing test file fixes the root cause of duplication: Claude can only avoid suggesting already-covered scenarios if it knows what tests already exist. This gives Claude the information needed to propose genuinely new, valuable tests.",
-    "global_n": 24
+    "global_n": 24,
+    "domain": "D4",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 25,
@@ -772,7 +862,11 @@
     ],
     "correct": "D",
     "explanation": "Including prior review findings in context lets Claude distinguish new problems from those already addressed in recent commits. This preserves review thoroughness while using Claude’s reasoning to avoid redundant feedback on fixed code.",
-    "global_n": 25
+    "global_n": 25,
+    "domain": "D5",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 26,
@@ -803,7 +897,9 @@
     ],
     "correct": "B",
     "explanation": "The `-p` (or `--print`) flag is the documented way to run Claude Code non-interactively. It processes the prompt, prints the result to stdout, and exits without waiting for user input—ideal for CI/CD pipelines.",
-    "global_n": 26
+    "global_n": 26,
+    "domain": "D3",
+    "secondaryDomains": []
   },
   {
     "n": 27,
@@ -834,7 +930,11 @@
     ],
     "correct": "B",
     "explanation": "Focused per-file passes address the root cause—attention dilution—by ensuring consistent depth and reliable local issue detection. A separate integration-oriented pass then covers cross-file concerns such as dependency and data-flow interactions.",
-    "global_n": 27
+    "global_n": 27,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 28,
@@ -865,7 +965,11 @@
     ],
     "correct": "A",
     "explanation": "Including rationale and confidence directly in each finding reduces investigation time by letting developers quickly triage without opening each finding. It satisfies the “no filtering” constraint because all findings remain visible while accelerating developer decision-making.",
-    "global_n": 28
+    "global_n": 28,
+    "domain": "D4",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 29,
@@ -896,7 +1000,11 @@
     ],
     "correct": "A",
     "explanation": "Temporarily disabling high-false-positive categories immediately stops trust erosion by removing noisy findings that cause developers to dismiss everything, while preserving value from high-precision categories like security and correctness. It also creates space to improve prompts for problematic categories before re-enabling them.",
-    "global_n": 29
+    "global_n": 29,
+    "domain": "D4",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 30,
@@ -927,7 +1035,11 @@
     ],
     "correct": "C",
     "explanation": "Message Batches API processing can take up to 24 hours with no latency SLA, which is acceptable for overnight technical debt reports but unacceptable for blocking pre-merge checks where developers wait. This matches each workflow to the right API based on latency requirements.",
-    "global_n": 30
+    "global_n": 30,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 31,
@@ -958,7 +1070,11 @@
     ],
     "correct": "B",
     "explanation": "Concrete input-output examples remove ambiguity inherent in prose descriptions by showing Claude the exact expected transformation results. This directly addresses the root cause—misinterpretation of textual requirements—by providing unambiguous patterns for field nesting and timestamp formatting.",
-    "global_n": 31
+    "global_n": 31,
+    "domain": "D4",
+    "secondaryDomains": [
+      "D3"
+    ]
   },
   {
     "n": 32,
@@ -989,7 +1105,11 @@
     ],
     "correct": "B",
     "explanation": "Slack integration has multiple valid approaches with significantly different architectural implications, and requirements are ambiguous. Planning mode lets you evaluate trade-offs among webhooks, bot tokens, and Slack Apps and align on an approach before implementation.",
-    "global_n": 32
+    "global_n": 32,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 33,
@@ -1020,7 +1140,9 @@
     ],
     "correct": "D",
     "explanation": "CLAUDE.md content loads in every session, ensuring coding standards and testing conventions always apply, while Skills are invoked on demand when Claude detects trigger keywords—ideal for workflow-specific guidance like PR review, deployment, and migrations.",
-    "global_n": 33
+    "global_n": 33,
+    "domain": "D3",
+    "secondaryDomains": []
   },
   {
     "n": 34,
@@ -1051,7 +1173,11 @@
     ],
     "correct": "A",
     "explanation": "Planning mode is the right strategy for complex architectural restructuring like splitting a monolith: it allows safe exploration and informed decisions about boundaries before committing to potentially expensive changes across many files.",
-    "global_n": 34
+    "global_n": 34,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D1"
+    ]
   },
   {
     "n": 35,
@@ -1082,7 +1208,11 @@
     ],
     "correct": "A",
     "explanation": "`context: fork` runs the analysis in an isolated subagent context so the large output does not pollute the main session’s context window and Claude does not lose track of the original task. It preserves full analysis capability while keeping the main session responsive.",
-    "global_n": 35
+    "global_n": 35,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 36,
@@ -1113,7 +1243,9 @@
     ],
     "correct": "C",
     "explanation": "Personal skills take precedence over project skills with the same name. A personal skill at `~/.claude/skills/commit/SKILL.md` will override the team’s project skill, allowing the developer to customize their workflow while maintaining the familiar `/commit` command name for their personal use. This approach is better than option A because it preserves the original command name, improving the developer’s workflow without affecting teammates.",
-    "global_n": 36
+    "global_n": 36,
+    "domain": "D3",
+    "secondaryDomains": []
   },
   {
     "n": 37,
@@ -1144,7 +1276,11 @@
     ],
     "correct": "A",
     "explanation": "If the guidance was added only to the original developers’ user-level configs and not to the project-level `.claude/CLAUDE.md`, new team members won’t receive it. Moving it to the project-level configuration ensures all current and future team members automatically get the guidance.",
-    "global_n": 37
+    "global_n": 37,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 38,
@@ -1175,7 +1311,11 @@
     ],
     "correct": "D",
     "explanation": "A skill invoked on demand loads the example context only when generating new endpoints, not during unrelated tasks like debugging or review. This keeps the main context clean while preserving high-quality generation when needed.",
-    "global_n": 38
+    "global_n": 38,
+    "domain": "D4",
+    "secondaryDomains": [
+      "D3"
+    ]
   },
   {
     "n": 39,
@@ -1206,7 +1346,11 @@
     ],
     "correct": "B",
     "explanation": "This uses three separate configuration features to address each problem: `argument-hint` improves argument entry and reduces missing arguments, `context: fork` prevents context leakage from prior conversations, and `allowed-tools` constrains the skill to safe file-writing operations, preventing destructive actions.",
-    "global_n": 39
+    "global_n": 39,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 40,
@@ -1237,7 +1381,9 @@
     ],
     "correct": "D",
     "explanation": "`.claude/rules/` files with YAML frontmatter and glob patterns (e.g., `**/*.test.tsx`, `src/api/**/*.ts`) enable deterministic, path-based convention application regardless of directory structure. This is the most supported approach for cross-cutting patterns like distributed test files.",
-    "global_n": 40
+    "global_n": 40,
+    "domain": "D3",
+    "secondaryDomains": []
   },
   {
     "n": 41,
@@ -1268,7 +1414,9 @@
     ],
     "correct": "B",
     "explanation": "Putting custom slash commands under `.claude/commands/` inside the project repository ensures they are version-controlled and automatically available to every developer who clones or updates the repo. This is the intended location for project-level custom commands in Claude Code.",
-    "global_n": 41
+    "global_n": 41,
+    "domain": "D3",
+    "secondaryDomains": []
   },
   {
     "n": 42,
@@ -1299,7 +1447,9 @@
     ],
     "correct": "B",
     "explanation": "Claude Code supports a `.claude/rules/` directory where you can create separate Markdown files for topical guidance (e.g., `testing.md`, `api-conventions.md`), allowing teams to organize large instruction sets into focused, maintainable modules.",
-    "global_n": 42
+    "global_n": 42,
+    "domain": "D3",
+    "secondaryDomains": []
   },
   {
     "n": 43,
@@ -1330,7 +1480,11 @@
     ],
     "correct": "B",
     "explanation": "`context: fork` runs the skill in an isolated subagent context so exploration discussions do not pollute the main conversation history. This prevents rejected approaches and brainstorming context from influencing subsequent implementation work.",
-    "global_n": 43
+    "global_n": 43,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 44,
@@ -1361,7 +1515,11 @@
     ],
     "correct": "C",
     "explanation": "A project `.mcp.json` with environment variable substitution is idiomatic: it provides a single version-controlled source of truth for MCP configuration while letting each developer supply credentials via environment variables. Documenting the variable makes onboarding easy without committing secrets.",
-    "global_n": 44
+    "global_n": 44,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D2"
+    ]
   },
   {
     "n": 45,
@@ -1392,7 +1550,11 @@
     ],
     "correct": "A",
     "explanation": "An Explore subagent isolates the verbose discovery output in a separate context and returns only a concise summary to the main conversation. This preserves the main context window for the collaborative design and consistent implementation phases where retained context is most valuable.",
-    "global_n": 45
+    "global_n": 45,
+    "domain": "D3",
+    "secondaryDomains": [
+      "D1"
+    ]
   },
   {
     "n": 46,
@@ -1423,7 +1585,11 @@
     ],
     "correct": "D",
     "explanation": "Tool descriptions are the primary input the model uses to decide which tool to call. When an agent consistently picks the wrong tool, the first diagnostic step is to verify that tool descriptions clearly separate each tool’s purpose and usage boundaries.",
-    "global_n": 46
+    "global_n": 46,
+    "domain": "D2",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 47,
@@ -1454,7 +1620,11 @@
     ],
     "correct": "C",
     "explanation": "Few-shot examples that demonstrate correct reasoning and tool sequencing for multi-issue requests are most effective because the agent already performs well on single issues—what it needs is guidance on the pattern for decomposing and routing multiple issues and keeping parameters separated.",
-    "global_n": 47
+    "global_n": 47,
+    "domain": "D1",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 48,
@@ -1485,7 +1655,11 @@
     ],
     "correct": "C",
     "explanation": "Decomposing into separate issues and investigating in parallel with shared customer context fixes both key problems: it eliminates redundant data retrieval by reusing shared context across issues and reduces total tool-call loops by parallelizing investigation before synthesizing a single resolution.",
-    "global_n": 48
+    "global_n": 48,
+    "domain": "D1",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 49,
@@ -1516,7 +1690,11 @@
     ],
     "correct": "C",
     "explanation": "Explicit escalation criteria with few-shot examples directly address the root cause—unclear decision boundaries between simple and complex cases. It’s the most proportional, effective first intervention that teaches the agent when to escalate and when to resolve autonomously without extra infrastructure.",
-    "global_n": 49
+    "global_n": 49,
+    "domain": "D5",
+    "secondaryDomains": [
+      "D1"
+    ]
   },
   {
     "n": 50,
@@ -1547,7 +1725,9 @@
     ],
     "correct": "C",
     "explanation": "This is a genuine policy gap: company rules cover price drops on your own site but do not address competitor price matching. The agent must not invent policy and should escalate for human judgment on how to interpret or extend existing rules.",
-    "global_n": 50
+    "global_n": 50,
+    "domain": "D5",
+    "secondaryDomains": []
   },
   {
     "n": 51,
@@ -1578,7 +1758,11 @@
     ],
     "correct": "C",
     "explanation": "A programmatic precondition provides a deterministic guarantee that required sequencing is followed. It’s the most effective approach because it eliminates the possibility of skipping verification, regardless of LLM behavior.",
-    "global_n": 51
+    "global_n": 51,
+    "domain": "D2",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 52,
@@ -1609,7 +1793,11 @@
     ],
     "correct": "A",
     "explanation": "A self-critique stage (the evaluator-optimizer pattern) directly addresses inconsistent explanation completeness by forcing the agent to assess its own draft against concrete criteria—such as policy context, timelines, and next steps—before presenting it. This catches case-specific gaps without human oversight.",
-    "global_n": 52
+    "global_n": 52,
+    "domain": "D1",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 53,
@@ -1640,7 +1828,11 @@
     ],
     "correct": "D",
     "explanation": "Prompting Claude to bundle related tool requests into a single turn leverages its native ability to request multiple tools at once. It directly fixes the sequential-call pattern with minimal architectural change.",
-    "global_n": 53
+    "global_n": 53,
+    "domain": "D1",
+    "secondaryDomains": [
+      "D5"
+    ]
   },
   {
     "n": 54,
@@ -1671,7 +1863,11 @@
     ],
     "correct": "C",
     "explanation": "Summarization inherently loses precise details. Extracting transactional facts into a structured “case facts” block outside the summarized history preserves critical information so it’s reliably available in every prompt regardless of how many turns have been summarized.",
-    "global_n": 54
+    "global_n": 54,
+    "domain": "D5",
+    "secondaryDomains": [
+      "D1"
+    ]
   },
   {
     "n": 55,
@@ -1702,7 +1898,11 @@
     ],
     "correct": "B",
     "explanation": "Asking the user for an additional identifier is the most reliable way to resolve ambiguity because the user has definitive knowledge of their identity. One extra conversational turn is a small price to pay to eliminate a 15% error rate caused by choosing the wrong account.",
-    "global_n": 55
+    "global_n": 55,
+    "domain": "D2",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 56,
@@ -1733,7 +1933,11 @@
     ],
     "correct": "A",
     "explanation": "The systematic keyword-driven pattern (78% vs 93%) strongly indicates explicit routing logic in the system prompt reacting to the word “account” and steering the agent toward customer-related tools. Since tool descriptions are already clear, the discrepancy points to prompt-level instructions creating unintended behavioral steering.",
-    "global_n": 56
+    "global_n": 56,
+    "domain": "D2",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 57,
@@ -1764,7 +1968,11 @@
     ],
     "correct": "D",
     "explanation": "Expanding tool descriptions with input formats, example queries, edge cases, and clear boundaries directly fixes the root cause—minimal descriptions that don’t give the LLM enough information to distinguish similar tools. It’s a low-effort, high-impact first step that improves the primary mechanism the LLM uses for tool selection.",
-    "global_n": 57
+    "global_n": 57,
+    "domain": "D2",
+    "secondaryDomains": [
+      "D4"
+    ]
   },
   {
     "n": 58,
@@ -1795,7 +2003,9 @@
     ],
     "correct": "A",
     "explanation": "`stop_reason` is Claude’s explicit structured signal for loop control: `tool_use` indicates Claude wants to run a tool and receive results back, while `end_turn` indicates Claude has completed its response and the loop should end.",
-    "global_n": 58
+    "global_n": 58,
+    "domain": "D1",
+    "secondaryDomains": []
   },
   {
     "n": 59,
@@ -1826,7 +2036,11 @@
     ],
     "correct": "A",
     "explanation": "A PostToolUse hook provides a centralized, deterministic point to intercept and normalize all tool outputs—including third-party MCP server data—before the agent processes them. It’s more maintainable because transformations live in code and apply uniformly, rather than relying on LLM interpretation.",
-    "global_n": 59
+    "global_n": 59,
+    "domain": "D5",
+    "secondaryDomains": [
+      "D2"
+    ]
   },
   {
     "n": 60,
@@ -1857,6 +2071,10 @@
     ],
     "correct": "C",
     "explanation": "Targeting few-shot examples at the specific ambiguous scenarios where errors occur, with explicit rationale for why one tool is preferable to alternatives, teaches the model the comparative decision process needed for edge cases. This is more effective than generic examples or declarative rules.",
-    "global_n": 60
+    "global_n": 60,
+    "domain": "D2",
+    "secondaryDomains": [
+      "D4"
+    ]
   }
 ]

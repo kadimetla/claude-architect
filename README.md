@@ -18,6 +18,8 @@ Reference architectures, code examples, and practice scenarios for the **Claude 
 
 > Anthropic's **Claude Certified Architect: Foundations (CCA-F)** exam is currently restricted to Anthropic partners. The five reference files in this repo map to the published 5-domain exam blueprint, and [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md) walks through exam mechanics, prep stack, and a week-before punchlist.
 
+> **New: [`EXAM-STUDY-PATH.md`](./EXAM-STUDY-PATH.md)** is the learner-facing bridge from this workshop's notebooks to CCA-F domains and scenario families. Read it after the course-at-a-glance table below if you are aiming at the exam.
+
 ## What is a Claude Architect?
 
 The Claude Architect is an emerging job role focused on designing and building production-grade applications with **Claude Code**, the **Claude Agent SDK**, the **Claude API**, and **Model Context Protocol (MCP)**. Organizations across the Claude Partner Network are hiring for this skillset.
@@ -96,7 +98,7 @@ claude-architect/
 - [**uv**](https://docs.astral.sh/uv/) (the Python package manager): `pip install uv` or `winget install astral-sh.uv`
 - [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed and authenticated. On Windows the native installer is the fastest path: `irm https://claude.ai/install.ps1 | iex`
 - An [Anthropic API key](https://console.anthropic.com/) set as `ANTHROPIC_API_KEY` (PowerShell: `$env:ANTHROPIC_API_KEY = "sk-ant-..."`, or place it in a gitignored `.env` at repo root)
-- **VS Code** with the **Python** and **Jupyter** extensions (the five teaching notebooks open here)
+- **VS Code** with the **Python** and **Jupyter** extensions (the six teaching notebooks open here)
 - Optional, instructors only: [Node.js](https://nodejs.org/) 18+ for the two npm scripts ([`npm run lint:voice`](./scripts/voice-lint.ps1), [`npm run preflight`](./scripts/preflight.ps1)). Learners can skip Node entirely.
 
 ### Setup (on-rails, one command)
@@ -134,7 +136,7 @@ First run creates `examples/mcp_cli/.env` from the template, lifts `ANTHROPIC_AP
 
 1. **Read [COURSE-FLOW.md](./COURSE-FLOW.md)** for the full 4-segment teaching arc.
 2. **Walk the five `domain-*.md` reference files** in order. Each maps to a course segment and points at runnable cookbook notebooks.
-3. **Run the five teaching notebooks in [`notebooks/`](./notebooks/)** in order. These are the primary teaching surface - markdown cells carry the concepts, code cells run the demos. Anthropic's official cookbooks ship alongside in [`claude-cookbooks-main/`](./claude-cookbooks-main/) as the bundled-in reference library (full attribution in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md)).
+3. **Run the five live-teaching notebooks in [`notebooks/`](./notebooks/)** in order, plus the [`segment-2-5-control-surfaces.ipynb`](./notebooks/segment-2-5-control-surfaces.ipynb) self-study deep dive when time allows. These are the primary teaching surface - markdown cells carry the concepts, code cells run the demos. Anthropic's official cookbooks ship alongside in [`claude-cookbooks-main/`](./claude-cookbooks-main/) as the bundled-in reference library (full attribution in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md)).
 4. **Work through [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md)** and the [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) bank if you're aiming at the CCA-F exam.
 5. **Build something.** The reference architectures only land when you wire one of these patterns into a real workflow.
 

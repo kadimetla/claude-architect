@@ -1,6 +1,6 @@
 # examples/
 
-Curated reference applications that complement the five teaching notebooks in `../notebooks/`. Each subdirectory is a complete, runnable example, attributed where the source is not Tim Warner's own work.
+Curated reference applications that complement the six teaching notebooks in `../notebooks/`. Each subdirectory is a complete, runnable example, attributed where the source is not Tim Warner's own work.
 
 ## Index
 

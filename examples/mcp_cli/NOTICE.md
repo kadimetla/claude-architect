@@ -24,7 +24,7 @@ The code was distributed as downloadable starter material accompanying that cour
 
 ## How this differs from the course's notebooks
 
-The five teaching notebooks in `../../notebooks/` are **Tim Warner's original work** for the O'Reilly live training. They cite `.mcp.json` as **config-as-data** but do not run a live MCP server in a Jupyter kernel (auth-surface cross-talk). This reference app is the "what does a real MCP server and client look like in production code" companion: study it after Segment 2.
+The six teaching notebooks in `../../notebooks/` are **Tim Warner's original work** for the O'Reilly live training. They cite `.mcp.json` as **config-as-data** but do not run a live MCP server in a Jupyter kernel (auth-surface cross-talk). This reference app is the "what does a real MCP server and client look like in production code" companion: study it after Segment 2.
 
 ## How to run it
 
