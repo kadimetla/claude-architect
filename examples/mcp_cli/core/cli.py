@@ -202,6 +202,8 @@ class CliApp:
                 user_input = await self.session.prompt_async("> ")
                 if not user_input.strip():
                     continue
+                if user_input.strip().lower() in {"exit", "quit"}:
+                    break
 
                 response = await self.agent.run(user_input)
                 print(f"\nResponse:\n{response}")

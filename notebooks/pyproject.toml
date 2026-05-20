@@ -11,6 +11,10 @@ dependencies = [
     "ipykernel>=6.29",
     "jupyter>=1.1",
     "nbconvert>=7.16",
+    "jupyterlab-git>=0.53.0",
+    "jupyter-ai>=3.0.0",
+    "lxml>=6.1.1",
+    "jupyterlab-variable-inspector>=0.0.0a0",
 ]
 
 [tool.uv]

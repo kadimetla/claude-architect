@@ -62,4 +62,9 @@ async def main():
 if __name__ == "__main__":
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        # A second Ctrl+C can interrupt MCP stdio subprocess cleanup on Windows.
+        # Treat that as an operator-requested shutdown, not a crash report.
+        print("\nInterrupted. MCP CLI stopped.")

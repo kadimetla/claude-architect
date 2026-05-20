@@ -28,7 +28,15 @@ The five teaching notebooks in `../../notebooks/` are **Tim Warner's original wo
 
 ## How to run it
 
-Setup commands and dependencies are documented in `./README.md`. The short version:
+The on-rails one-command path (recommended) lives in [`../../scripts/run-mcp-cli.ps1`](../../scripts/run-mcp-cli.ps1). From the repo root:
+
+```powershell
+.\scripts\run-mcp-cli.ps1
+```
+
+That wrapper auto-creates `examples/mcp_cli/.env` on first run, lifts `ANTHROPIC_API_KEY` from the repo-root `.env`, then hands off to `uv run --directory examples/mcp_cli main.py`. The wrapper does **not** modify any file in this directory; it sits in `scripts/` and treats `examples/mcp_cli/` as read-only vendored content.
+
+If you prefer the upstream Skilljar workflow, it still works unchanged:
 
 ```powershell
 cd examples/mcp_cli
@@ -45,6 +53,8 @@ This copy is **as-distributed by Anthropic's course**, with two exceptions:
 
 1. The committed `.env` template has been renamed to `.env.example` so the inner `.gitignore` does its job on the empty-key template too. No code changes.
 2. This `NOTICE.md` has been added.
+
+The on-rails launcher [`../../scripts/run-mcp-cli.ps1`](../../scripts/run-mcp-cli.ps1) lives **outside** this directory and is not counted as a modification to the vendored tree. It interacts with `examples/mcp_cli/` only by reading `.env.example` and writing `.env` (which is gitignored), and by invoking `uv run` against `pyproject.toml` as a black box.
 
 If you want the canonical source, return to https://anthropic.skilljar.com/claude-with-the-anthropic-api/.
 

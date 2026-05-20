@@ -86,12 +86,12 @@ claude-architect/
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+ for Anthropic SDK examples
-- [Python](https://www.python.org/) 3.13+ for hooks and cookbook notebooks
+- [**Python**](https://www.python.org/) 3.13+ (every notebook and demo in this course runs against the Python [`anthropic`](https://pypi.org/project/anthropic/) SDK, pinned `>=0.40,<1.0` in [`notebooks/pyproject.toml`](./notebooks/pyproject.toml))
 - [**uv**](https://docs.astral.sh/uv/) (the Python package manager): `pip install uv` or `winget install astral-sh.uv`
-- [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed and authenticated
-- An [Anthropic API key](https://console.anthropic.com/) set as `ANTHROPIC_API_KEY`
+- [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed and authenticated. On Windows the native installer is the fastest path: `irm https://claude.ai/install.ps1 | iex`
+- An [Anthropic API key](https://console.anthropic.com/) set as `ANTHROPIC_API_KEY` (PowerShell: `$env:ANTHROPIC_API_KEY = "sk-ant-..."`, or place it in a gitignored `.env` at repo root)
 - **VS Code** with the **Python** and **Jupyter** extensions (the five teaching notebooks open here)
+- Optional, instructors only: [Node.js](https://nodejs.org/) 18+ for the two npm scripts ([`npm run lint:voice`](./scripts/voice-lint.ps1), [`npm run preflight`](./scripts/preflight.ps1)). Learners can skip Node entirely.
 
 ### Setup (on-rails, one command)
 
@@ -104,6 +104,16 @@ uv run --project notebooks jupyter lab notebooks/
 That is the entire learner setup. **First run** auto-creates `notebooks/.venv/`, installs all dependencies from `notebooks/pyproject.toml`, and launches Jupyter. **Subsequent runs** reuse the venv and start in seconds. The Anthropic cookbook ships in the repo at `claude-cookbooks-main/`, so you do not need a second clone. Instructors who run the voice-lint scripts also need `npm install`; learners do not.
 
 **Fallback** if `uv` is not available: `pip install -r notebooks/requirements.txt` still works; the requirements file is kept in sync with `pyproject.toml`.
+
+### Run the MCP CLI reference app (also one command)
+
+The vendored [`examples/mcp_cli/`](./examples/mcp_cli/) Skilljar reference app gets the same on-rails treatment via a wrapper that auto-bootstraps its `.env` and hands off to `uv`:
+
+```powershell
+.\scripts\run-mcp-cli.ps1
+```
+
+First run creates `examples/mcp_cli/.env` from the template, lifts `ANTHROPIC_API_KEY` from your repo-root `.env`, and then runs `uv run --directory examples/mcp_cli main.py`. Subsequent runs go straight to the REPL. The wrapper sits in [`scripts/run-mcp-cli.ps1`](./scripts/run-mcp-cli.ps1) and never touches the vendored `examples/mcp_cli/` tree, preserving the NOTICE.md modification count at 2.
 
 ### Recommended learning path
 
