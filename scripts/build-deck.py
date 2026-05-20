@@ -58,11 +58,17 @@ LAYOUT_COMPARISON = "Comparison: Point-by-Point"  # M2/L47  4 BODY placeholders 
 LAYOUT_SUMMARY = "Module Overview/Summary"    # M2/L3   2 BODY placeholders (per-section takeaways)
 LAYOUT_REFS = "References-4 Items"            # M2/L54  TITLE + 4 BODY + pictures (resources)
 LAYOUT_DEFINITION = "Definition"              # M2/L52  TITLE + 2 BODY
-LAYOUT_THREE_ITEMS = "Three Item List with Icons"  # M2/L19 for 3-tier breakdowns
+LAYOUT_THREE_ITEMS = "Three Item List with Icons"  # M2/L19 TITLE + 3 (OBJECT, BODY) pairs at idx (12,15) (16,17) (18,19), 4 decorative lines
+LAYOUT_CODE = "Code: Light Full Page with Title and Description"  # M2/L33 TITLE + BODY (idx 10 = code) + BODY (idx 18 = description)
 
 # Fallbacks
 LAYOUT_TITLE_ONLY = "Title Only"
 LAYOUT_BLANK = "Blank"
+
+# Layouts with non-standard placeholder distribution patterns. The default
+# set_body() lumps everything into the first body placeholder; for these
+# layouts we route into dedicated helpers that respect the layout's intent.
+SPECIAL_LAYOUTS = {LAYOUT_THREE_ITEMS, LAYOUT_CODE}
 
 # ---------------------------------------------------------------------------
 # Slide content
@@ -490,6 +496,28 @@ SLIDES: list[tuple[str, str, list[str] | None, str | None]] = [
     # SEGMENT 2.5: BRIDGE (self-study deep dive)
     # ======================================================================
     (
+        LAYOUT_THREE_ITEMS,
+        "Three tiers tools come from",
+        [
+            "Tier 1 - Server tools",
+            "Anthropic hosts. You register by type (bash_20250124, code_execution_20250522, web_search_20250305). Model invokes, Anthropic executes server-side.",
+            "Tier 2 - MCP tools",
+            "You (or a vendor) host. Discovered at runtime via list_tools(). The pattern that scales by configuration, not code.",
+            "Tier 3 - Harness tools",
+            "Claude Code's Read, Edit, Bash, Grep. Harness-private TypeScript. NOT API-reachable. Same noun, different runtime.",
+        ],
+        (
+            "The 60-second visual: three tiers, three runtimes, three sets of expectations. "
+            "Most architects conflate Claude Code's Bash (tier 3, harness-private) with "
+            "bash_20250124 (tier 1, Anthropic-hosted). Same noun, different sandbox model, "
+            "different streaming semantics. The trap that catches working architects is "
+            "registering 'bash' in their custom agent and expecting the harness behavior. "
+            "Segment 2.5 has a live demo proving the spectrum: bash emits a tool_use you "
+            "still execute; code_execution returns a code_execution_tool_result inside the "
+            "same response with no client loop."
+        ),
+    ),
+    (
         LAYOUT_UPNEXT,
         "Segment 2.5 - Self-study deep dive (off-clock)",
         [
@@ -586,6 +614,49 @@ SLIDES: list[tuple[str, str, list[str] | None, str | None]] = [
             "The Pydantic model is the source of truth for both runtime validation AND the API "
             "contract. No JSON parsing, no fence-stripping, no validation rituals. The SDK "
             "validated for you. This is the Domain 4 load-bearing pattern."
+        ),
+    ),
+    (
+        LAYOUT_CODE,
+        "The forced-tool_choice pattern in code",
+        [
+            (
+                "class Invoice(BaseModel):\n"
+                "    invoice_number: str\n"
+                "    vendor: str\n"
+                "    total: float\n"
+                "    po_number: Optional[str] = None\n"
+                "\n"
+                "EXTRACT_TOOL = {\n"
+                "    \"name\": \"extract_invoice\",\n"
+                "    \"description\": \"Extract invoice fields. Do NOT invent values.\",\n"
+                "    \"input_schema\": Invoice.model_json_schema(),\n"
+                "}\n"
+                "\n"
+                "resp = client.messages.create(\n"
+                "    model=MODEL,\n"
+                "    tools=[EXTRACT_TOOL],\n"
+                "    tool_choice={\"type\": \"tool\", \"name\": \"extract_invoice\"},\n"
+                "    messages=[{\"role\": \"user\", \"content\": raw_invoice_text}],\n"
+                ")\n"
+                "\n"
+                "tool_block = next(b for b in resp.content if b.type == \"tool_use\")\n"
+                "invoice = Invoice(**tool_block.input)   # validated, typed"
+            ),
+            (
+                "Three load-bearing lines. tool_choice={\"type\": \"tool\", \"name\": ...} forces the "
+                "model to call that exact tool. block.input is a typed dict matching the schema. "
+                "Invoice(**tool_block.input) is the validation gate. The full retry loop lives in "
+                "segment-3-invoice-extractor.ipynb; this is the skeleton."
+            ),
+        ],
+        (
+            "Stay on this slide for 60 seconds. Walk the three load-bearing lines: forced "
+            "tool_choice, schema-conformant input, Pydantic validation. Mention that block.input "
+            "is a Python dict not a JSON string - common copy-paste trap is to call json.loads() "
+            "on it and crash. The full notebook adds a retry loop with max_retries=1 that feeds "
+            "the validation error back to the model as a tool_result with is_error=True. The "
+            "model gets one chance to fix its own mistake."
         ),
     ),
     (
@@ -1005,6 +1076,56 @@ def set_body(slide, lines: list[str]) -> None:
         p.text = line
 
 
+def set_three_items(slide, lines: list[str]) -> None:
+    """Populate Three Item List with Icons (M2/L19).
+
+    The layout carries TITLE at idx 0 plus three (OBJECT, BODY) pairs at:
+      (12, 15)  - left item:   icon at 12, text at 15
+      (16, 17)  - middle item: icon at 16, text at 17
+      (18, 19)  - right item:  icon at 18, text at 19
+
+    `lines` is expected as 6 strings, ordered: label1, body1, label2, body2,
+    label3, body3. The labels go into the OBJECT slots (which render as text
+    when populated), the bodies go into the BODY slots beneath.
+    """
+    pair_indices = [(12, 15), (16, 17), (18, 19)]
+    if len(lines) < 6:
+        # Pad with empties so the helper still runs without raising; better
+        # to ship an unpopulated cell than to crash the whole build.
+        lines = list(lines) + [""] * (6 - len(lines))
+    for (label_idx, body_idx), (label, body) in zip(pair_indices, zip(lines[::2], lines[1::2])):
+        for ph in slide.placeholders:
+            if ph.placeholder_format.idx == label_idx and ph.has_text_frame:
+                ph.text_frame.text = label
+            elif ph.placeholder_format.idx == body_idx and ph.has_text_frame:
+                ph.text_frame.text = body
+
+
+def set_code_slide(slide, lines: list[str]) -> None:
+    """Populate Code: Light Full Page with Title and Description (M2/L33).
+
+    The layout carries TITLE at idx 0, code at BODY idx 10, and description
+    at BODY idx 18. `lines` is interpreted as [code_block, description].
+    The code_block can contain newlines (they preserve as line breaks in
+    the code placeholder, which is monospace-styled by the master).
+    """
+    if len(lines) < 2:
+        lines = list(lines) + [""] * (2 - len(lines))
+    code_text, desc_text = lines[0], lines[1]
+    for ph in slide.placeholders:
+        if ph.placeholder_format.idx == 10 and ph.has_text_frame:
+            tf = ph.text_frame
+            tf.clear()
+            tf.word_wrap = True
+            code_lines = code_text.split("\n")
+            tf.paragraphs[0].text = code_lines[0]
+            for ln in code_lines[1:]:
+                p = tf.add_paragraph()
+                p.text = ln
+        elif ph.placeholder_format.idx == 18 and ph.has_text_frame:
+            ph.text_frame.text = desc_text
+
+
 def set_notes(slide, text: str) -> None:
     """Write speaker notes to the slide's notes_slide.
 
@@ -1087,15 +1208,23 @@ def main() -> int:
 
         slide = prs.slides.add_slide(layout)
         had_title_slot = set_title(slide, title)
-        # If the layout has no title placeholder, fold the title into the body
-        # so the master-level decoration carries the visual and the title text
-        # still appears (as the first paragraph). The Demo / Up Next / Course
-        # Title / Module Overview layouts in Master 2 work this way.
-        effective_body = body
-        if not had_title_slot and title:
-            effective_body = [title] + ([""] if body else []) + (body or [])
-        if effective_body:
-            set_body(slide, effective_body)
+        # Special-layout dispatch: when a layout has a non-standard placeholder
+        # distribution (Three Item List with paired icon/text slots, Code with
+        # code-vs-description split), use a dedicated helper that respects the
+        # layout's intent. Otherwise fall through to the default set_body().
+        if layout_name == LAYOUT_THREE_ITEMS and body:
+            set_three_items(slide, body)
+        elif layout_name == LAYOUT_CODE and body:
+            set_code_slide(slide, body)
+        else:
+            # Default flow: if the layout has no title placeholder, fold the
+            # title into the body so the master-level decoration carries the
+            # visual and the title text still appears.
+            effective_body = body
+            if not had_title_slot and title:
+                effective_body = [title] + ([""] if body else []) + (body or [])
+            if effective_body:
+                set_body(slide, effective_body)
         if notes:
             set_notes(slide, notes)
 
