@@ -28,15 +28,15 @@ def cells() -> list[tuple[str, str]]:
         ("md", _lo_md),
         ("md", _setup_md),
         ("code", _imports_code),
-        # --- Section 1: tool enumeration, four lenses ---
-        ("md", _enum_section_md),
-        ("md", _enum_lens1_md),
-        ("code", _enum_lens1_code),
-        ("md", _enum_lens2_md),
-        ("code", _enum_lens2_code),
-        ("md", _enum_lens3_md),
-        ("code", _enum_lens3_code),
-        ("md", _enum_lens4_md),
+        # --- Section 1: three tiers tools come from + the enumeration discipline ---
+        ("md", _tier_section_md),
+        ("md", _tier1_md),
+        ("code", _tier1_code),
+        ("md", _tier2_md),
+        ("code", _tier2_code),
+        ("md", _tier3_md),
+        ("md", _enumeration_md),
+        ("code", _enumeration_code),
         # --- Section 2: tool_choice depth ---
         ("md", _tc_section_md),
         ("md", _tc_auto_vs_any_md),
@@ -92,7 +92,8 @@ _lo_md = """\
 
 By the end of this notebook you will be able to:
 
-- **Enumerate the tools** available to an agent through four lenses: static registration, runtime loop introspection, MCP `list_tools` discovery, and the Claude Code harness surface
+- **Distinguish the three tiers tools come from**: Anthropic-hosted server tools (`bash_20250124`, `code_execution_20250522`, etc., registered by `type`), MCP-server tools (discovered via `list_tools` and merged at runtime), and Claude Code harness tools (`Read`/`Edit`/`Bash` - **not** API-reachable). Know which tier to reach for given a production requirement.
+- **Run the enumeration discipline** every production agent owes its operators: log what your code registered (static view) AND what the model actually saw per iteration (runtime view)
 - Pick the right **`tool_choice`** mode (`auto`, `any`, `tool`, `none`) for a given guarantee, and know when to set **`disable_parallel_tool_use`**
 - Branch correctly on every **`stop_reason`** value, force a deterministic cutoff with **`stop_sequences`**, and use **`max_tokens`** as a control lever rather than just a budget
 - Address Console-managed assets from the Anthropic SDK: **`memory_stores`** (`oreilly-memory-store`), **`vaults`** (`oreilly-vault`), **`agents`** (Deep Researcher), and **`sessions`** (the runtime that ties them together)
@@ -144,28 +145,167 @@ print(f"client OK, default model: {MODEL}")
 # Section 1: tool enumeration (four lenses)
 # ---------------------------------------------------------------------------
 
-_enum_section_md = """\
-## Section 1: Tool enumeration, four lenses
+_tier_section_md = """\
+## Section 1: Three tiers tools come from (and the boundary that matters)
 
-**The question:** *which tools is the model allowed to use, right now?*
+**The question architects keep asking wrong:** *"can my custom agent use Bash?"*
 
-That question has four legitimate answers depending on where you stand in the system. Production agents need all four lenses, because each one fails differently:
+The answer is yes, no, and yes - depending on which **Bash** you mean. There are **three tiers** tools come from, and they are easy to conflate because two of them are spelled the same:
 
-1. **Static registration** - what your code *intends* the model to see
-2. **Runtime loop introspection** - what the model *actually* sees at iteration N (after scoping)
-3. **MCP `list_tools` discovery** - what an external server *exposes* at runtime
-4. **Harness surface** - Claude Code's built-in tools (separate from API `tool_use`)
+| Tier | Who hosts | Who invokes | Who executes | Registered via | Example |
+|---|---|---|---|---|---|
+| **1. Server tools** | Anthropic | Model | Anthropic | `tools=[{"type": "bash_20250124", ...}]` | `bash_20250124`, `code_execution_20250522`, `web_search_20250305`, `text_editor_20250728`, `memory_20250818`, `computer_20250124` |
+| **2. MCP-server tools** | You (or a vendor) | Model | The MCP server's process | `list_tools()` -> merge into `tools=[]` | filesystem, GitHub, Stripe, your in-house APIs |
+| **3. Harness tools** | The Claude Code CLI itself | The harness | The harness's TypeScript runtime | **not API-reachable** | `Read`, `Edit`, `Grep`, `Glob`, `Write`, `TaskCreate` |
 
-A misbehaving agent is almost always a mismatch between two of these lenses.
+**The teaching beat that catches everyone**: when Claude Code uses `Bash`, that is tier 3 (harness-private TypeScript). When *your* custom agent registers `bash_20250124`, that is tier 1 (Anthropic-hosted server tool). **Same noun, totally different runtimes.** A misbehaving agent is almost always a mismatch between these two **runtimes** - the model called the bash *primitive* but your code is looking for a *harness* response, or vice versa.
+
+The rest of this section teaches each tier with one *why* and one runnable demo (or, for tier 3, the explicit boundary). Then the closing cells show the **enumeration discipline** every production agent should run: log what your code registered AND what the model actually saw, every turn.
 """
 
-_enum_lens1_md = """\
-### Lens 1: static registration (what your code registered)
+_tier1_md = """\
+### Tier 1: Anthropic-hosted server tools (the primitives you don't write)
 
-The simplest view. Iterate the `tools=[...]` array your code is about to pass to `messages.create()`. Print names, descriptions, schema keys. This is what production code logs at startup.
+**Why this tier exists:** some capabilities are universal enough that every agent wants them and dangerous enough that you should not implement them yourself. Code execution. Web search. Filesystem editing. Shell. Computer control. Memory. If every customer wrote their own sandbox and their own search, the security and quality variance would be catastrophic. Anthropic hosts the runtime so you do not have to.
+
+**How you recognize them:** the tool definition is keyed by `type` (a versioned identifier like `bash_20250124`) instead of by `name`. The model invokes them just like custom tools, but the *execution* happens server-side. You do not run a client-side tool loop for these; the result lands in the same response.
+
+The two demos below make this concrete. The first uses **`bash_20250124`**: the model receives the tool definition, decides to call it, and your code sees a normal `tool_use` block. You still execute it (Anthropic runs the model's *decision*, not the shell command - that part is yours to sandbox). The second uses **`code_execution_20250522`**: the model writes Python, Anthropic runs it in a sandboxed container, and the *result* comes back inside the same response as a `code_execution_tool_result` block. **No client loop required.** The `stop_reason` is already `end_turn` when your code sees the response.
+
+That second pattern is the load-bearing exam insight: **server tools that fully execute server-side eliminate the agentic loop for the tools Anthropic hosts.** It is the cleanest example of "managed runtime beats hand-rolled runtime" you will see this course.
 """
 
-_enum_lens1_code = '''\
+_tier1_code = '''\
+# Most server tools want the computer-use beta header (named for historical
+# reasons; covers the whole server-tool family).
+SERVER_TOOL_BETA = {"anthropic-beta": "computer-use-2025-01-24"}
+server_cli = client.with_options(default_headers=SERVER_TOOL_BETA)
+
+# --- Demo 1: bash_20250124 (model decides; your code still executes) ---
+print("=== Demo 1: bash_20250124 (model emits a tool_use; YOU run the shell) ===")
+resp = server_cli.messages.create(
+    model=MODEL,
+    max_tokens=200,
+    tools=[{"type": "bash_20250124", "name": "bash"}],
+    messages=[{"role": "user", "content": "List the files in /tmp."}],
+)
+print(f"stop_reason: {resp.stop_reason}")
+for block in resp.content:
+    btype = getattr(block, "type", "?")
+    if btype == "tool_use":
+        print(f"  tool_use: name={block.name}  input={dict(block.input)}")
+print("Architect note: bash_20250124 is the PRIMITIVE. The model decided to")
+print("call it; your code still has to execute the command in a sandbox of")
+print("YOUR choosing and feed the result back as a tool_result block.")
+print()
+
+# --- Demo 2: code_execution_20250522 (Anthropic runs it; no client loop) ---
+print("=== Demo 2: code_execution_20250522 (Anthropic executes; one round-trip) ===")
+resp = server_cli.messages.create(
+    model=MODEL,
+    max_tokens=400,
+    tools=[{"type": "code_execution_20250522", "name": "code_execution"}],
+    messages=[{
+        "role": "user",
+        "content": "Compute the standard deviation of [11, 13, 17, 19, 23, 29] using Python.",
+    }],
+)
+print(f"stop_reason: {resp.stop_reason}")
+for block in resp.content:
+    btype = getattr(block, "type", "?")
+    if btype == "server_tool_use":
+        print(f"  server_tool_use: name={block.name}")
+    elif btype == "code_execution_tool_result":
+        # The execution result is INSIDE the same response. No client loop.
+        result = getattr(block, "content", None)
+        print(f"  code_execution_tool_result: {result!r}"[:200])
+    elif btype == "text":
+        print(f"  text: {block.text[:120]!r}")
+print("Architect note: stop_reason is end_turn on the FIRST response. The")
+print("model wrote the code, Anthropic executed it server-side, and the")
+print("result landed in the same response. Compare with bash above: that")
+print("required your code to loop. The difference is who hosts the runtime.")
+'''
+
+_tier2_md = """\
+### Tier 2: MCP-server tools (the primitives you write, hosted elsewhere)
+
+**Why this tier exists:** server tools (tier 1) cover the universals - shell, search, code execution. Everything else - your internal APIs, your vendor integrations, your domain-specific tools - is too specific for Anthropic to host. MCP closes that gap by giving you a **standard protocol** for exposing your own tools to any MCP-aware agent (Claude Code, Cursor, custom). You write a server once; every MCP client can discover it.
+
+**How tier 2 differs from tier 1:** the tools are hosted in **your** process (or a vendor's), not Anthropic's. The model still invokes them by emitting a `tool_use` block; your MCP client routes the call to the right server; the server runs the implementation and returns a result. This is also the **tier that scales by configuration, not code**. Add a new MCP server to `.mcp.json` and your agent gains its tools without a source change.
+
+**The discovery primitive** is `list_tools()`. The MCP client calls it against each connected server and merges the schemas into the `tools=[]` array passed to `messages.create()`. The reference implementation in this repo:
+
+- `examples/mcp_cli/mcp_client.py:69-71` - `MCPClient.list_tools()`
+- `examples/mcp_cli/core/tools.py:10-23` - `ToolManager.get_all_tools()` (merge-across-servers)
+
+Below we print those excerpts verbatim. **They are short.** The pattern is small because the protocol does the heavy lifting.
+"""
+
+_tier2_code = '''\
+mcp_client_path = REPO_ROOT / "examples" / "mcp_cli" / "mcp_client.py"
+tool_manager_path = REPO_ROOT / "examples" / "mcp_cli" / "core" / "tools.py"
+
+def print_excerpt(path: Path, start: int, end: int, label: str) -> None:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    print(f"=== {label} ({path.relative_to(REPO_ROOT)}:{start}-{end}) ===")
+    for i, line in enumerate(lines[start - 1 : end], start=start):
+        print(f"{i:4d}  {line}")
+    print()
+
+print_excerpt(mcp_client_path, 60, 78, "MCPClient.list_tools()")
+print_excerpt(tool_manager_path, 1, 30, "ToolManager.get_all_tools()")
+
+print("Pattern in plain English:")
+print("  1. For each MCP server in .mcp.json, open a client session.")
+print("  2. Call client.list_tools() - the server returns its tool schemas.")
+print("  3. Merge results into one tools=[...] list, pass to messages.create().")
+print("  4. When the model emits tool_use, route by name to the right client.")
+print()
+print("Architect note: when you add a new tool to an MCP server, EVERY agent")
+print("connected to it picks it up on the next list_tools call. No client-side")
+print("source change. That is why this tier scales where hand-rolled tools do not.")
+'''
+
+_tier3_md = """\
+### Tier 3: the Claude Code harness surface (the boundary you cannot cross)
+
+**Why this tier is different:** Claude Code (`claude.ai/code`, the CLI you may be using to *build* this course) is itself an agent. When it executes `Read`, `Edit`, `Grep`, `Glob`, `Write`, `Bash`, `TaskCreate`, those calls **never appear in the `tools=[...]` parameter of a Messages API request you can see.** They are implemented inside the harness process in TypeScript, and the harness only exposes them to *its own* model session.
+
+This is the **boundary architects keep tripping over**: you cannot register Claude Code's `Bash` from your custom agent. What you can register is `bash_20250124` (tier 1), which is a different runtime with a different sandbox model, different streaming semantics, and a different security envelope. They share a name. They share almost nothing else.
+
+| If you want... | Reach for... | Why |
+|---|---|---|
+| Your custom agent to run shell commands | Tier 1: `bash_20250124` | API-reachable; you implement the sandbox |
+| Your custom agent to call your in-house APIs | Tier 2: MCP server | Protocol-standard, hot-pluggable via `.mcp.json` |
+| Claude Code to do an arbitrary thing in *its* loop | Tier 3: a **slash command** or **skill** | Discovered via `/help`, `~/.claude/skills/`, `~/.claude/settings.json` |
+
+**You discover tier 3 through the harness, not the API:**
+
+- Inside Claude Code, run `/help` to see slash commands and skills
+- Read `~/.claude/settings.json` to see what is registered globally
+- Walk `~/.claude/skills/` to see what is invokable
+- Check project-scoped `.mcp.json` files for MCP servers Claude Code itself can reach (those are tier 2 from the harness's perspective)
+
+**Exam beat (and the trap that catches working architects):** "What tools does Claude Code expose?" and "what tools can my custom agent use?" are two different questions with two different answers. The API surface is universal; the harness surface is local to the harness. When you build a custom agent, you live in tiers 1 and 2.
+"""
+
+_enumeration_md = """\
+### The enumeration discipline (regardless of tier)
+
+Now that the three tiers are clear, the operational habit is the same in all of them: **prove what your code registered, and prove what the model actually saw.** Mismatches between those two are where most production bugs hide.
+
+Two views, both mandatory:
+
+1. **Static view at startup**: iterate `tools=[...]` and log every name, schema, and any `cache_control` flag.
+2. **Runtime view per iteration**: in the agentic loop, log the *scoped* tool list and the active `tool_choice` after every turn. When a model "forgot" a tool, the log will show the scoped tools list never included it.
+
+The cell below shows both. When you wire this into production, route the lines to your structured-log shipper (the names will match what you grep for in incidents).
+"""
+
+_enumeration_code = '''\
+# Static view: a small custom tool block, the kind you might pass to a
+# real customer-service agent. Pretty-print every name, schema, cache flag.
 SAMPLE_TOOLS: list[dict[str, Any]] = [
     {
         "name": "get_weather",
@@ -191,7 +331,7 @@ SAMPLE_TOOLS: list[dict[str, Any]] = [
 ]
 
 def describe_tools(tools: list[dict[str, Any]]) -> None:
-    """Static enumeration of registered tools (lens 1)."""
+    """Static enumeration: what your code registered (run at startup)."""
     print(f"{len(tools)} tools registered:")
     for t in tools:
         props = list(t["input_schema"].get("properties", {}).keys())
@@ -200,78 +340,25 @@ def describe_tools(tools: list[dict[str, Any]]) -> None:
         print(f"  - {t['name']}({', '.join(props)})  required={required}  cached={cached}")
         print(f"      {t['description'][:80]}")
 
-describe_tools(SAMPLE_TOOLS)
-'''
-
-_enum_lens2_md = """\
-### Lens 2: runtime loop introspection (what the model *sees* per iteration)
-
-In a real agentic loop, the tool list can change per turn - a coordinator might scope down to a single subagent's tools after a routing decision. **Print the scoped tools list and the active `tool_choice` after every turn**, then write that to a log. When debugging a wrong call, this is the first artifact you reach for.
-"""
-
-_enum_lens2_code = '''\
 def trace_iteration(iteration: int, scoped_tools: list[dict[str, Any]], tool_choice: dict[str, Any], stop_reason: str | None) -> None:
-    """Log what the model saw at iteration N. Production agents do this every turn."""
+    """Runtime enumeration: what the model SAW at iteration N (log every turn)."""
     names = [t["name"] for t in scoped_tools]
     print(f"[iter {iteration:02d}] tools={names}  tool_choice={tool_choice}  stop_reason={stop_reason}")
 
+print("--- Static view (run at startup) ---")
+describe_tools(SAMPLE_TOOLS)
+print()
+print("--- Runtime view (log every iteration of the agentic loop) ---")
 # Simulate three iterations of a coordinator that scopes down after routing
 trace_iteration(0, SAMPLE_TOOLS, {"type": "auto"}, stop_reason=None)
 trace_iteration(1, [SAMPLE_TOOLS[0]], {"type": "any"}, stop_reason="tool_use")
 trace_iteration(2, [], {"type": "none"}, stop_reason="end_turn")
-
 print()
-print("Production pattern: log this line on every iteration. When a model 'forgot'")
-print("a tool, the log will show the scoped tools list never included it.")
+print("Architect note: when a model 'forgot' a tool, the runtime log shows")
+print("the scoped tools list never included it. When a model called the WRONG")
+print("tool, the static log shows the description was the contract that")
+print("invited the wrong call. Two logs, two failure modes, both indispensable.")
 '''
-
-_enum_lens3_md = """\
-### Lens 3: MCP `list_tools` discovery (what an external server exposes)
-
-**This is the lens that scales.** When an MCP server exposes tools, your client does not hardcode them - it calls `list_tools` against the server and merges the result into the `tools=[]` array it passes to `messages.create()`. This is how one agent reaches dozens of tools across multiple servers without source changes.
-
-The reference implementation lives in this repo at `examples/mcp_cli/`. The two load-bearing pieces:
-
-- `examples/mcp_cli/mcp_client.py:69-71` - `MCPClient.list_tools()` calls the MCP server's `list_tools` RPC
-- `examples/mcp_cli/core/tools.py:10-23` - `ToolManager.get_all_tools()` merges results across all connected clients
-
-Below we read those files and print the pattern verbatim - the contract you implement when you connect a new MCP server to your agent.
-"""
-
-_enum_lens3_code = '''\
-mcp_client_path = REPO_ROOT / "examples" / "mcp_cli" / "mcp_client.py"
-tool_manager_path = REPO_ROOT / "examples" / "mcp_cli" / "core" / "tools.py"
-
-def print_excerpt(path: Path, start: int, end: int, label: str) -> None:
-    lines = path.read_text(encoding="utf-8").splitlines()
-    print(f"=== {label} ({path.relative_to(REPO_ROOT)}:{start}-{end}) ===")
-    for i, line in enumerate(lines[start - 1 : end], start=start):
-        print(f"{i:4d}  {line}")
-    print()
-
-print_excerpt(mcp_client_path, 60, 78, "MCPClient.list_tools()")
-print_excerpt(tool_manager_path, 1, 30, "ToolManager.get_all_tools()")
-
-print("Pattern in plain English:")
-print("  1. For each MCP server in .mcp.json, open a client session.")
-print("  2. Call client.list_tools() - the server returns its tool schemas.")
-print("  3. Merge results into one tools=[...] list, pass to messages.create().")
-print("  4. When the model emits tool_use, route by name to the right client.")
-'''
-
-_enum_lens4_md = """\
-### Lens 4: the Claude Code harness surface (separate from API `tool_use`)
-
-When you talk to Claude Code itself (the CLI agent you may be using to *build* this course), the agent has a **separate tool surface** from anything you pass via `messages.create()`. The harness exposes `Read`, `Edit`, `Bash`, `Grep`, `Glob`, `Write`, `TaskCreate`, plus any **skills** and **MCP tools** configured in `~/.claude/`.
-
-You **cannot enumerate these via the Messages API**. You discover them through the harness:
-
-- Inside Claude Code, run `/help` to see slash commands and skills
-- Read `~/.claude/settings.json` and `~/.claude/skills/` to see what's registered
-- Check `.mcp.json` files for project-scoped MCP servers
-
-**Exam beat:** the API's `tools=[...]` parameter and the Claude Code harness's tool surface are **two different things**. Confusing them is a frequent CCA-F trap.
-"""
 
 
 # ---------------------------------------------------------------------------
