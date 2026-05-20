@@ -360,6 +360,8 @@ def _dispatch_tool(tool_name: str, tool_input: dict[str, Any]) -> dict[str, Any]
 _demo_loop_md = """\
 ## Step 3: the agentic loop (no hook yet)
 
+**Analogy:** an agentic loop is a **drive-through window**. The car (model) pulls up to the speaker (your code calls `messages.create()`). The car says either "I'm done, here's my order" (`stop_reason=end_turn`) or "I need a thing" (`stop_reason=tool_use`). When the car asks for a thing, the kitchen (your code) makes it, hands it through the window (appends a `tool_result`), and the car drives back around for the next round. The drive-through has a max-cycles limit because cars that go around forever ruin the parking lot.
+
 This is the centerpiece. The loop branches on `stop_reason`. For every iteration we **print the stop_reason**, so you see the state transitions live.
 
 For each `tool_use` block the model emits, we:
@@ -374,6 +376,9 @@ The loop has a `max_iterations` ceiling. **Unbounded loops are how a $5 demo bec
 """
 
 _loop_code = """\
+# The system prompt tells the model its ROLE and its CONSTRAINTS. The
+# refund cap is mentioned here AND in the process_refund tool description
+# AND will eventually be enforced by a hook - defense in depth.
 SYSTEM_PROMPT = (
     "You are a customer support agent for a vinyl and audio gear retailer. "
     "You have four tools. Always look up the customer and order before "
@@ -385,8 +390,18 @@ SYSTEM_PROMPT = (
 
 def run_agent(user_message: str, max_iterations: int = 8) -> list[dict[str, Any]]:
     \"\"\"Bare agentic loop. No hooks. Branches on stop_reason and dispatches tools.\"\"\"
+    # The messages list is the conversation history. It starts with one
+    # user turn and grows on every iteration (assistant turn + tool_result).
+    # The API is stateless; the loop maintains state by re-sending history.
     messages: list[dict[str, Any]] = [{"role": "user", "content": user_message}]
+
+    # max_iterations is the WATCHDOG. The drive-through analogy:
+    # cars that go around forever ruin the parking lot. Without a cap,
+    # a runaway agent burns tokens until your API budget hits zero.
     for i in range(max_iterations):
+        # The standard API call: model, budget, system, tools, history.
+        # Note: system goes as a top-level kwarg, NOT as a "system" role
+        # message in messages. (Common mistake.)
         resp = client.messages.create(
             model=MODEL,
             max_tokens=1024,
@@ -394,11 +409,16 @@ def run_agent(user_message: str, max_iterations: int = 8) -> list[dict[str, Any]
             tools=TOOLS,
             messages=messages,
         )
+        # The line you WILL stare at in every incident postmortem.
+        # stop_reason tells you what happened; ALWAYS branch on it.
         print(f"[iter {i}] stop_reason={resp.stop_reason}")
 
-        # Append the assistant turn verbatim (preserves tool_use IDs for the next round)
+        # Append the assistant turn VERBATIM (do not stringify resp.content).
+        # The blocks include tool_use IDs that the next round's tool_result
+        # blocks MUST match. Stringify and the ID linkage breaks.
         messages.append({"role": "assistant", "content": resp.content})
 
+        # --- Branch 1: end_turn (the car has its order; drive away) ---
         if resp.stop_reason == "end_turn":
             final_text = next(
                 (b.text for b in resp.content if b.type == "text"), ""
@@ -406,25 +426,39 @@ def run_agent(user_message: str, max_iterations: int = 8) -> list[dict[str, Any]
             print(f"\\n[final]\\n{final_text}")
             return messages
 
+        # --- Branch 2: anything other than tool_use is unexpected here ---
+        # In production you'd handle max_tokens, pause_turn, refusal too.
+        # We keep this loop narrow for teaching clarity.
         if resp.stop_reason != "tool_use":
             print(f"[warn] unhandled stop_reason: {resp.stop_reason}")
             return messages
 
-        # Dispatch each tool_use block; no policy gate at this stage
+        # --- Branch 3: tool_use - execute every tool block ---
+        # The model can emit MULTIPLE tool_use blocks in one turn (parallel
+        # tool calls). We loop over all of them, dispatch each, collect
+        # results into ONE user turn at the end.
         tool_results: list[dict[str, Any]] = []
         for block in resp.content:
             if block.type != "tool_use":
+                # Could be a text block alongside the tool_use; skip it
                 continue
+            # block.input is already a parsed dict (not a JSON string)
             payload = _dispatch_tool(block.name, dict(block.input))
             print(f"  [tool] {block.name}({dict(block.input)}) -> {payload}")
+            # The tool_result block format: tool_use_id links it back to
+            # the call (this is the ID we said NOT to break by stringifying),
+            # content is the JSON-serialized payload the model will read.
             tool_results.append({
                 "type": "tool_result",
                 "tool_use_id": block.id,
                 "content": json.dumps(payload),
             })
 
+        # All tool_results go in a SINGLE user-role message. This is the
+        # contract; one tool_result per assistant tool_use, all in one turn.
         messages.append({"role": "user", "content": tool_results})
 
+    # Hit the watchdog without an end_turn. Surface loudly.
     print(f"[warn] hit max_iterations={max_iterations} without end_turn")
     return messages
 """
@@ -462,6 +496,8 @@ The next three cells: concept, hook code, then a re-run of the loop with the hoo
 _concept_hooks_md = """\
 ## Hooks as deterministic guarantees
 
+**Analogy:** a hook is a **bouncer at the door**, not a sign on the wall. A sign that says "no shoes, no shirt, no service" is the prompt - most patrons read it and comply, but anyone determined enough can walk past. A bouncer who physically checks every patron is the hook. The bouncer doesn't argue, doesn't negotiate, doesn't trust the patron's word about their footwear. The bouncer enforces. **The prompt advises; the hook enforces.**
+
 A **hook** is a function that runs at a specific lifecycle event - not on the model's say-so, on your code's. The two we care about today:
 
 - **PreToolUse** - runs *before* a tool executes. Inspect the tool name and inputs. Return `None` to allow, or return a **structured error** to block. The blocked call appends back to the conversation so the model can re-plan.
@@ -481,6 +517,9 @@ The contract from `../hooks-example.py`: return `None` to allow the call, or ret
 """
 
 _hook_code = """\
+# The policy constant. Hardcoded here for the demo; in production this
+# would come from your config service and the hook would query it fresh
+# each call (so policy changes don't require a redeploy).
 REFUND_CAP_USD = 500.0
 
 
@@ -494,10 +533,26 @@ def enforce_refund_policy(
     blocked. The caller appends it as a tool_result with is_error=True
     so the model can re-plan and call escalate_to_human instead.
     \"\"\"
+    # The hook is called for EVERY tool. Most tools we don't care about;
+    # return None fast to keep the hot path cheap.
     if tool_name != "process_refund":
         return None
+
+    # Defensive read: tool_input is a dict the model populated, but the
+    # model can omit fields. Default to 0 so the comparison is safe.
     amount = tool_input.get("amount_usd", 0)
+
     if amount > REFUND_CAP_USD:
+        # Return a STRUCTURED error, not a string. The four fields are
+        # the contract from Domain 2:
+        #   isError         True so the model knows this is not a result
+        #   errorCategory   classification (policy / transient / system)
+        #                   so the model can decide whether to retry
+        #   isRetryable     hard signal: don't retry, change strategy
+        #   message         what the model should DO next, not what
+        #                   went wrong in passive voice. "Escalate via
+        #                   escalate_to_human" is an instruction the
+        #                   model can act on; "Refund denied" is not.
         return {
             "isError": True,
             "errorCategory": "policy",
@@ -508,13 +563,16 @@ def enforce_refund_policy(
                 "summary, do not retry process_refund."
             ),
         }
+    # Below the cap: allow the call by returning None
     return None
 """
 
 _loop_with_hook_md = """\
 ## The agentic loop with the hook wired in
 
-Same loop. One added step: before dispatching each tool, call `enforce_refund_policy`. If it returns a structured error, append it back as a failed `tool_result` and let the model re-plan.
+**Analogy:** **Swiss cheese model of accidents**. Each slice of cheese has holes (the prompt has gaps, the tool description can be misread, the model can be talked into things). A single slice doesn't stop accidents. But stack three slices and the holes rarely line up - an attack has to get through every layer. The hook is the *last* slice. When the prompt and the tool description both fail, the hook is what's left.
+
+Same loop as before. One added step: before dispatching each tool, call `enforce_refund_policy`. If it returns a structured error, append it back as a failed `tool_result` and let the model re-plan.
 
 This is the **defense in depth** pattern: the prompt says "respect the cap", the tool description says "stop at $500", and now the hook says "I will physically prevent you from exceeding $500". When the layers agree, the hook never fires. The hook is there for when they disagree.
 """
@@ -526,6 +584,11 @@ def run_agent_with_hook(
     system_prompt: str = SYSTEM_PROMPT,
 ) -> list[dict[str, Any]]:
     \"\"\"Agentic loop with PreToolUse hook gating process_refund.\"\"\"
+    # This loop is byte-for-byte the previous run_agent() function,
+    # PLUS one new step: the PreToolUse hook gate before dispatch.
+    # The diff is small intentionally - hooks are not a different
+    # ARCHITECTURE, they are a small insertion point in the existing
+    # one. Identifying that insertion point IS the hook design skill.
     messages: list[dict[str, Any]] = [{"role": "user", "content": user_message}]
     for i in range(max_iterations):
         resp = client.messages.create(
@@ -547,17 +610,28 @@ def run_agent_with_hook(
         for block in resp.content:
             if block.type != "tool_use":
                 continue
-            # PreToolUse gate - the backstop
+
+            # --- THE BOUNCER ---
+            # PreToolUse gate, runs BEFORE _dispatch_tool. The hook
+            # either returns None (allow the call) or a structured
+            # error (block the call). The model never knows the gate
+            # exists; it only sees a failed tool_result.
             block_result = enforce_refund_policy(block.name, dict(block.input))
             if block_result is not None:
+                # Blocked. Log the block (for incident review) and append
+                # the structured error as a tool_result with is_error=True.
+                # The is_error flag is what tells the model "this isn't
+                # a result, this is a problem - re-plan."
                 print(f"  [hook] BLOCKED {block.name} -> {block_result['errorCategory']}")
                 tool_results.append({
                     "type": "tool_result",
                     "tool_use_id": block.id,
-                    "is_error": True,
+                    "is_error": True,                       # <-- the signal
                     "content": json.dumps(block_result),
                 })
-                continue
+                continue   # <-- skip dispatch; the tool never ran
+
+            # Allowed. Same dispatch as the no-hook loop.
             payload = _dispatch_tool(block.name, dict(block.input))
             print(f"  [tool] {block.name}({dict(block.input)}) -> {payload}")
             tool_results.append({

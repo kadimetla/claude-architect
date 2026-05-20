@@ -181,10 +181,16 @@ MODEL = "claude-haiku-4-5"
 _demo_description_md = """\
 ## Thin vs opinionated descriptions
 
+**Analogy:** the tool description is a **job posting** the model reads to decide whether to apply. "Software engineer" is a thin posting; you'll get every developer, even the wrong-skills ones, applying. "Senior backend engineer, Python + PostgreSQL, must have experience with high-throughput event ingestion, you will not be doing front-end work" is an opinionated posting; you'll get fewer applicants but the *right ones, for the right reasons*. The model is your applicant pool. **Write the posting accordingly.**
+
 Same tool name, two descriptions. Same user prompt. Watch how the second version changes the model's behavior **without changing the prompt**.
 """
 
 _description_code = """\
+# Thin description: minimal, ambiguous, no constraints. The model has
+# almost no signal about WHEN to call, WHAT it returns, or what to do
+# when inputs are ambiguous. Watch how the model handles "Springfield"
+# (a name shared by ~30 US cities) under this description.
 THIN_WEATHER = {
     "name": "get_weather",
     "description": "gets weather",
@@ -195,6 +201,13 @@ THIN_WEATHER = {
     },
 }
 
+# Opinionated description: spells out RETURN SHAPE (temperature in
+# Celsius, conditions enum, humidity), WHEN TO CALL (current conditions
+# only, not forecasts > 24h), WHAT NOT TO DO (don't call for forecasts),
+# and HOW TO HANDLE AMBIGUITY (ask for disambiguation BEFORE calling).
+# The schema parameter names also changed (location -> city + region)
+# because the OPINIONATED description gave the model concepts to bind
+# parameters to.
 OPINIONATED_WEATHER = {
     "name": "get_weather",
     "description": (
@@ -215,8 +228,24 @@ OPINIONATED_WEATHER = {
     },
 }
 
+# The deliberately ambiguous prompt. "Springfield" matches ~30 US cities
+# (the Simpsons gag is real); without the disambiguation instruction the
+# model will guess. WITH the instruction it should ASK the user first.
 PROMPT = "What's the weather in Springfield?"
 
+# Expected output (the contract):
+#   --- thin description ---
+#     stop_reason: tool_use
+#     tool_use: get_weather({"location": "Springfield"})   <-- model guesses
+#
+#   --- opinionated description ---
+#     stop_reason: end_turn
+#     text: "Which Springfield did you mean? There's one in..."
+#                                                          <-- model asks
+# Watch: the THIN version produces a tool_use because the model has no
+# signal that ambiguity is a problem worth pausing for. The OPINIONATED
+# version reads "ask the user to disambiguate BEFORE calling" and does
+# that. Same model. Same prompt. Different posting -> different applicant.
 for label, tool in [("thin", THIN_WEATHER), ("opinionated", OPINIONATED_WEATHER)]:
     resp = client.messages.create(
         model=MODEL, max_tokens=400, tools=[tool],
@@ -226,8 +255,14 @@ for label, tool in [("thin", THIN_WEATHER), ("opinionated", OPINIONATED_WEATHER)
     print(f"stop_reason: {resp.stop_reason}")
     for block in resp.content:
         if block.type == "text":
+            # The model's prose response - what it would say to the user.
+            # In the opinionated branch this should be a disambiguation Q.
             print(f"text: {block.text[:200]}")
         elif block.type == "tool_use":
+            # The model decided to call the tool. Inspect block.input -
+            # is the model GUESSING which Springfield (bad) or did it
+            # only call after disambiguation (only happens if the user
+            # responded; not in this single-turn demo).
             print(f"tool_use: {block.name}({dict(block.input)})")
     print()
 """
@@ -235,20 +270,40 @@ for label, tool in [("thin", THIN_WEATHER), ("opinionated", OPINIONATED_WEATHER)
 _demo_tool_choice_md = """\
 ## All four `tool_choice` modes
 
+**Analogy:** `tool_choice` is a **traffic light** at the intersection where the model decides to call a tool. `auto` is a green light. `any` is a green light with a tow truck behind you (must move, you pick the lane). `{type: "tool", name: "X"}` is a forced left turn (only one legal move). `none` is a red light (stay put, explain yourself). Same intersection, four very different guarantees.
+
 Run the same prompt against each mode. Notice how `stop_reason` flips between `tool_use` and `end_turn` based purely on the mode.
+
+> Segment 2.5 goes deeper on each mode with separate A/B demos, plus `disable_parallel_tool_use`. This cell is the **summary table in code form**.
 """
 
 _tool_choice_code = """\
-WEATHER_TOOL = OPINIONATED_WEATHER  # reuse from the previous cell
+# Reuse the OPINIONATED tool from the previous cell so the only variable
+# in this demo is tool_choice. (Holding everything else constant is how
+# you make an A/B/C/D experiment trustworthy.)
+WEATHER_TOOL = OPINIONATED_WEATHER
+
+# A prompt that COULD call the tool (asks about Boston tomorrow, which
+# is a weather-shaped question) but could also be answered in prose.
+# This ambiguity is what makes the four-way contrast visible.
 USER = "I'm planning a picnic in Boston tomorrow. Should I go?"
 
+# The four traffic-light colors:
 modes = [
-    {"type": "auto"},
-    {"type": "any"},
-    {"type": "tool", "name": "get_weather"},
-    {"type": "none"},
+    {"type": "auto"},                            # green: model decides
+    {"type": "any"},                             # green + tow truck
+    {"type": "tool", "name": "get_weather"},     # forced left turn
+    {"type": "none"},                            # red: no tool calls
 ]
 
+# Expected output (the contract):
+#   mode={'type': 'auto'} -> stop_reason=tool_use      (model JUDGES tool helpful)
+#   mode={'type': 'any'} -> stop_reason=tool_use       (forced to call something)
+#   mode={'type': 'tool', 'name': '...'} -> stop_reason=tool_use  (forced THIS tool)
+#   mode={'type': 'none'} -> stop_reason=end_turn      (no tool calls allowed)
+# Watch: the FIRST THREE all hit stop_reason=tool_use, but for different
+# REASONS. Only the LAST hits end_turn. The reason matters: under any/tool
+# the call HAPPENS even if the model would have answered in prose.
 for mode in modes:
     resp = client.messages.create(
         model=MODEL, max_tokens=300, tools=[WEATHER_TOOL], tool_choice=mode,
@@ -257,14 +312,20 @@ for mode in modes:
     print(f"mode={mode} -> stop_reason={resp.stop_reason}")
     for block in resp.content:
         if block.type == "tool_use":
+            # The tool_use block shape: name + input dict. Inspect input
+            # to see whether the model picked good parameters.
             print(f"  tool_use: {block.name}({dict(block.input)})")
         elif block.type == "text":
+            # Under `none` (and sometimes `auto`) you'll see a text block
+            # instead. That's the prose answer the model would have given.
             print(f"  text: {block.text[:120]!r}")
     print()
 """
 
 _demo_structured_error_md = """\
 ## Structured error contract
+
+**Analogy:** an HTTP status code vs. a plain-text error page. A 503 with "Service Unavailable, retry-after: 30" tells your client EXACTLY what to do (wait 30s, retry). A page that says "Something went wrong, sorry!" forces your client to guess. Structured errors are the 503; bare strings are the apology page. The model is your client. **Give it status codes.**
 
 A helper to build the structured error payload. We show two cases: a **transient** error (the model should retry) and a **policy** error (the model must not).
 """
@@ -276,12 +337,21 @@ def make_tool_error(category: str, message: str, *, retryable: bool) -> dict:
     The model reads errorCategory and isRetryable to decide whether to
     retry, reformulate, or escalate. Bare strings force it to guess.
     \"\"\"
+    # Closed enum for category. Three values, each with a distinct
+    # downstream policy:
+    #   transient   - retry with backoff (network blip, rate limit)
+    #   permanent   - reformulate or surface (bad input, missing record)
+    #   policy      - escalate or change approach (over-cap, unauthorized)
+    # The assert keeps callers honest; if you find yourself reaching for
+    # a fourth value, the taxonomy itself is wrong, not the call.
     assert category in {"transient", "permanent", "policy"}, category
     return {
-        "isError": True,
-        "errorCategory": category,
-        "isRetryable": retryable,
-        "message": message,
+        # The four-field contract:
+        "isError": True,           # this is NOT a result; treat accordingly
+        "errorCategory": category, # what KIND of error (drives retry policy)
+        "isRetryable": retryable,  # explicit yes/no, no inference required
+        "message": message,        # what the model should DO next (not what
+                                   # went wrong in passive voice)
     }
 
 

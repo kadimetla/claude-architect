@@ -165,6 +165,8 @@ MODEL = "claude-sonnet-4-6"
 _demo_pydantic_md = """\
 ## Step 1: the Pydantic model
 
+**Analogy:** the Pydantic model is the **passport form**. Every field is either *required* (you cannot enter the country without it) or *optional* (you may leave it blank). Each field has a *description* the applicant reads to know what to write. The form itself is the schema; the validator is the customs agent who refuses incomplete or wrong-typed entries. We're going to hand this form to the model and force it to fill it out.
+
 Required fields drive validation errors. `Optional[]` fields say "this can be `None`". `Field(description=...)` strings flow into the JSON Schema, which the model reads to understand what each field means.
 """
 
@@ -175,15 +177,29 @@ class Invoice(BaseModel):
     Required fields fail validation if missing. Optional fields come back
     as None when the source text does not mention them.
     \"\"\"
+    # --- REQUIRED FIELDS (no default; validation fails if missing) ---
+    # The description strings here are CRITICAL. They become part of the
+    # JSON Schema that the model reads to know what each field MEANS.
+    # "Invoice ID printed by the vendor, e.g. INV-2026-0481" is a much
+    # better instruction than just "invoice_number: str".
     invoice_number: str = Field(description="Invoice ID printed by the vendor, e.g. INV-2026-0481")
     vendor: str = Field(description="Vendor / company name issuing the invoice")
     total: float = Field(description="Total amount due in USD, no currency symbol")
+
+    # --- OPTIONAL FIELDS (default=None; absent in source -> None in output) ---
+    # Optional[str] is the form's "leave blank if not applicable" line.
+    # The model is explicitly TOLD (via description) that these may be
+    # null. Without the default=None, Pydantic would treat them as
+    # required and the model would invent values to pass validation -
+    # exactly what we DON'T want.
     po_number: Optional[str] = Field(default=None, description="Purchase order number if printed on the invoice")
     notes: Optional[str] = Field(default=None, description="Free-form notes from the invoice memo line")
     due_date: Optional[str] = Field(default=None, description="ISO 8601 due date if present, e.g. 2026-06-15")
 
 
-# The Pydantic model and the JSON Schema view of it agree by construction.
+# Inspect what Pydantic considers REQUIRED. The model receives the same
+# information via the JSON Schema, so this print is a sanity check that
+# the schema matches our intent.
 print(f"Required fields: {sorted(Invoice.model_fields[name].is_required() and name for name in Invoice.model_fields if Invoice.model_fields[name].is_required())}")
 """
 
@@ -195,14 +211,20 @@ print(json.dumps(schema, indent=2))
 _demo_extract_function_md = """\
 ## Step 2: register as a tool, force the call, retry on ValidationError
 
-Three loadbearing lines:
+**Analogy:** the **customs counter**. The model walks up with the passport form (the Pydantic schema). The agent (Pydantic validator) reads every field. If something is missing or wrong-typed, the agent hands the form back: "Field X is required; field Y must be a number, not 'about $500'." The traveler (model) gets ONE chance to fix it. Two strikes and the case escalates to a supervisor (we raise).
 
-- `tool_choice={"type": "tool", "name": "extract_invoice"}` - the model **must** call this tool
-- `Invoice(**block.input)` - the validation gate
-- `max_retries=1` - the ceiling, hard-coded
+Three load-bearing lines:
+
+- `tool_choice={"type": "tool", "name": "extract_invoice"}` - the model **must** call this tool (forced left turn)
+- `Invoice(**block.input)` - the validation gate (customs counter)
+- `max_retries=1` - the ceiling, hard-coded (one strike, then escalate)
 """
 
 _extract_function_code = """\
+# Register the Pydantic schema AS a tool. The input_schema field is
+# Invoice.model_json_schema() - the exact JSON Schema view of our
+# Pydantic model. The model will receive this schema and produce output
+# that conforms to it (or tries to).
 EXTRACT_TOOL = {
     "name": "extract_invoice",
     "description": (
@@ -215,6 +237,13 @@ EXTRACT_TOOL = {
     "input_schema": Invoice.model_json_schema(),
 }
 
+# The system prompt enforces three operational rules:
+#   1. Always call the tool (no prose responses)
+#   2. Leave optional fields null when the source is silent
+#   3. Never invent values to make required fields work
+# Rule 3 is the load-bearing one. Without it, the model will fill
+# required fields with plausible-looking fabrications and pass validation
+# with garbage. We'd rather see a ValidationError than a confident lie.
 SYSTEM_PROMPT = (
     "You are an invoice extraction service. For each raw invoice text the "
     "user provides, call the extract_invoice tool with the structured fields. "
@@ -230,12 +259,21 @@ def extract_invoice(raw_text: str, max_retries: int = 1) -> Invoice:
     time. Letting it retry 20 times burns money silently. One retry gives
     the model a chance to react to its own error, then we fail loud.
     \"\"\"
+    # Initial conversation: just the user's raw invoice text.
+    # On a retry, we APPEND the failure context to this list.
     messages: list[dict[str, Any]] = [
         {"role": "user", "content": f"Extract the invoice from this text:\\n\\n{raw_text}"}
     ]
     last_error: str | None = None
 
+    # Retry loop. range(max_retries + 1) means: attempt 0 is the first
+    # try, attempt 1 is the retry. With max_retries=1, total = 2 tries.
     for attempt in range(max_retries + 1):
+        # --- THE FORCED CALL ---
+        # tool_choice={"type": "tool", "name": "..."} is the forced left
+        # turn. The model has exactly one legal move: call extract_invoice.
+        # No prose answer, no "let me think about that" - the API enforces
+        # the call.
         resp = client.messages.create(
             model=MODEL,
             max_tokens=600,
@@ -246,26 +284,43 @@ def extract_invoice(raw_text: str, max_retries: int = 1) -> Invoice:
         )
         print(f"  [attempt {attempt}] stop_reason={resp.stop_reason}")
 
+        # Extract the tool_use block. With forced tool_choice this MUST
+        # exist - the assert is a contract check, not defensive code.
+        # If it ever fails, the API contract broke.
         tool_block = next((b for b in resp.content if b.type == "tool_use"), None)
         assert tool_block is not None, "forced tool_choice but no tool_use block?"
 
+        # --- THE CUSTOMS COUNTER ---
+        # Invoice(**block.input) is the validation gate. Pydantic checks
+        # required fields, types, and Optional handling. If it passes,
+        # we have a TYPED Invoice object - no None checks, no type
+        # assertions, the rest of our code can trust the shape.
         try:
             invoice = Invoice(**tool_block.input)
             print(f"  [attempt {attempt}] validated OK")
-            return invoice
+            return invoice  # happy path - return typed object
         except ValidationError as exc:
+            # The form came back from customs with red ink on it.
             last_error = str(exc)
             print(f"  [attempt {attempt}] ValidationError: {last_error[:150]}")
+
+            # If this was the last allowed attempt, give up and surface
+            # the error. Better a loud failure than a silent retry loop.
             if attempt == max_retries:
                 break
-            # Feed the error back so the model can correct itself
+
+            # Otherwise, feed the error BACK to the model in the
+            # conversation so it can see what went wrong and try again.
+            # The shape: append the assistant's tool_use, then a user
+            # message containing a tool_result with is_error=True.
+            # The model reads "your call failed because X; fix and retry."
             messages.append({"role": "assistant", "content": resp.content})
             messages.append({
                 "role": "user",
                 "content": [{
                     "type": "tool_result",
                     "tool_use_id": tool_block.id,
-                    "is_error": True,
+                    "is_error": True,                      # <-- not a result
                     "content": (
                         f"Your previous extract_invoice call failed Pydantic "
                         f"validation. Fix the input and retry:\\n{last_error}"
@@ -273,6 +328,9 @@ def extract_invoice(raw_text: str, max_retries: int = 1) -> Invoice:
                 }],
             })
 
+    # Exhausted retries. Raise so the caller knows extraction failed -
+    # do NOT return a partial Invoice; downstream code would silently use
+    # the bad data.
     raise RuntimeError(f"extract_invoice exhausted retries: {last_error}")
 """
 

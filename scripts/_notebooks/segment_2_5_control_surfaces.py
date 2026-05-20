@@ -166,13 +166,15 @@ The rest of this section teaches each tier with one *why* and one runnable demo 
 _tier1_md = """\
 ### Tier 1: Anthropic-hosted server tools (the primitives you don't write)
 
+**Analogy:** **electrical wall outlets**. Every building needs them; nobody wants every tenant wiring their own. There is a standard plug shape (the `type=` identifier), the utility company runs the grid (Anthropic), and you just plug in. You don't own the power plant; you own what you do with the power.
+
 **Why this tier exists:** some capabilities are universal enough that every agent wants them and dangerous enough that you should not implement them yourself. Code execution. Web search. Filesystem editing. Shell. Computer control. Memory. If every customer wrote their own sandbox and their own search, the security and quality variance would be catastrophic. Anthropic hosts the runtime so you do not have to.
 
-**How you recognize them:** the tool definition is keyed by `type` (a versioned identifier like `bash_20250124`) instead of by `name`. The model invokes them just like custom tools, but the *execution* happens server-side. You do not run a client-side tool loop for these; the result lands in the same response.
+**How you recognize them:** the tool definition is keyed by `type` (a versioned identifier like `bash_20250124`) instead of by `name` alone. The model invokes them just like custom tools, but the *execution* happens server-side. You do not run a client-side tool loop for these; the result lands in the same response.
 
-The two demos below make this concrete. The first uses **`bash_20250124`**: the model receives the tool definition, decides to call it, and your code sees a normal `tool_use` block. You still execute it (Anthropic runs the model's *decision*, not the shell command - that part is yours to sandbox). The second uses **`code_execution_20250522`**: the model writes Python, Anthropic runs it in a sandboxed container, and the *result* comes back inside the same response as a `code_execution_tool_result` block. **No client loop required.** The `stop_reason` is already `end_turn` when your code sees the response.
+The two demos below make this concrete and show the **spectrum of server-tool execution semantics**. The first uses **`bash_20250124`**: the model receives the tool definition, decides to call it, and your code sees a normal `tool_use` block. You still execute it (Anthropic runs the model's *decision*, not the shell command - that part is yours to sandbox). The second uses **`code_execution_20250522`**: the model writes Python, Anthropic runs it in a sandboxed container, and the *result* comes back inside the same response as a `code_execution_tool_result` block. **No client loop required.** The `stop_reason` is already `end_turn` when your code sees the response.
 
-That second pattern is the load-bearing exam insight: **server tools that fully execute server-side eliminate the agentic loop for the tools Anthropic hosts.** It is the cleanest example of "managed runtime beats hand-rolled runtime" you will see this course.
+That second pattern is the load-bearing exam insight: **server tools that fully execute server-side eliminate the agentic loop for the tools Anthropic hosts.** It is the cleanest example of "managed runtime beats hand-rolled runtime" you will see in this course.
 """
 
 _tier1_code = '''\
@@ -230,6 +232,8 @@ print("required your code to loop. The difference is who hosts the runtime.")
 _tier2_md = """\
 ### Tier 2: MCP-server tools (the primitives you write, hosted elsewhere)
 
+**Analogy:** **USB peripherals**. The protocol is standard (any computer with a USB port can talk to any USB device), but each device is built and maintained by a different vendor (or by you). You plug a printer in; the printer's tools become available. Unplug it; they go away. The computer didn't need a printer driver hardcoded - the protocol did the introspection at plug-in time.
+
 **Why this tier exists:** server tools (tier 1) cover the universals - shell, search, code execution. Everything else - your internal APIs, your vendor integrations, your domain-specific tools - is too specific for Anthropic to host. MCP closes that gap by giving you a **standard protocol** for exposing your own tools to any MCP-aware agent (Claude Code, Cursor, custom). You write a server once; every MCP client can discover it.
 
 **How tier 2 differs from tier 1:** the tools are hosted in **your** process (or a vendor's), not Anthropic's. The model still invokes them by emitting a `tool_use` block; your MCP client routes the call to the right server; the server runs the implementation and returns a result. This is also the **tier that scales by configuration, not code**. Add a new MCP server to `.mcp.json` and your agent gains its tools without a source change.
@@ -270,6 +274,8 @@ print("source change. That is why this tier scales where hand-rolled tools do no
 _tier3_md = """\
 ### Tier 3: the Claude Code harness surface (the boundary you cannot cross)
 
+**Analogy:** **a car's onboard diagnostics**. The dashboard shows you the check-engine light (`/help` shows you Claude Code's tools). The mechanic can plug into the OBD port to read more (you can walk `~/.claude/skills/`). But the engine controller's firmware is **inside the car** - you cannot install Toyota's brake controller into a Ford by API. The harness is the firmware; harness tools are firmware-private.
+
 **Why this tier is different:** Claude Code (`claude.ai/code`, the CLI you may be using to *build* this course) is itself an agent. When it executes `Read`, `Edit`, `Grep`, `Glob`, `Write`, `Bash`, `TaskCreate`, those calls **never appear in the `tools=[...]` parameter of a Messages API request you can see.** They are implemented inside the harness process in TypeScript, and the harness only exposes them to *its own* model session.
 
 This is the **boundary architects keep tripping over**: you cannot register Claude Code's `Bash` from your custom agent. What you can register is `bash_20250124` (tier 1), which is a different runtime with a different sandbox model, different streaming semantics, and a different security envelope. They share a name. They share almost nothing else.
@@ -293,12 +299,12 @@ This is the **boundary architects keep tripping over**: you cannot register Clau
 _enumeration_md = """\
 ### The enumeration discipline (regardless of tier)
 
-Now that the three tiers are clear, the operational habit is the same in all of them: **prove what your code registered, and prove what the model actually saw.** Mismatches between those two are where most production bugs hide.
+**Analogy:** **flight crew checklists**. Pilots don't trust their memory at takeoff or landing - they **read** the checklist out loud and **confirm** every item. Production agents are the same. You don't trust "I'm pretty sure the model has all four tools registered." You log, every startup and every iteration, what your code registered AND what the model actually saw.
 
-Two views, both mandatory:
+Mismatches between those two are where most production bugs hide. Two views, both mandatory:
 
-1. **Static view at startup**: iterate `tools=[...]` and log every name, schema, and any `cache_control` flag.
-2. **Runtime view per iteration**: in the agentic loop, log the *scoped* tool list and the active `tool_choice` after every turn. When a model "forgot" a tool, the log will show the scoped tools list never included it.
+1. **Static view at startup**: iterate `tools=[...]` and log every name, schema, and any `cache_control` flag. Like the pre-flight checklist.
+2. **Runtime view per iteration**: in the agentic loop, log the *scoped* tool list and the active `tool_choice` after every turn. Like the in-flight checklist at each phase change. When a model "forgot" a tool, the log will show the scoped tools list never included it.
 
 The cell below shows both. When you wire this into production, route the lines to your structured-log shipper (the names will match what you grep for in incidents).
 """
@@ -368,36 +374,52 @@ print("invited the wrong call. Two logs, two failure modes, both indispensable."
 _tc_section_md = """\
 ## Section 2: `tool_choice` depth
 
-Four modes. Each one is a guarantee about what the model is *required* to do:
+**Analogy:** `tool_choice` is the **traffic light** at the intersection where the model decides whether to call a tool. Four colors:
 
-| Mode | Guarantee | Use when |
-|------|-----------|----------|
-| `{"type": "auto"}` | Model decides; may answer in prose | Default; the model picks tools or text |
-| `{"type": "any"}` | Model **must** call some tool, model picks which | You know action is required, model picks the verb |
-| `{"type": "tool", "name": "X"}` | Model **must** call tool X | Forced structured output; the Domain 4 cheat code |
-| `{"type": "none"}` | Tools registered, but model **cannot** call them | "Explain, don't act" turns |
+| Mode | Traffic-light analogy | Guarantee | Use when |
+|------|-----------------------|-----------|----------|
+| `{"type": "auto"}` | **Green light, no escort.** Model proceeds however it judges. | Model decides; may answer in prose | Default; let the model pick tools or text |
+| `{"type": "any"}` | **Green light, tow truck behind you.** You MUST move; you pick the lane. | Model **must** call some tool; model picks which | Action is required, model picks the verb |
+| `{"type": "tool", "name": "X"}` | **Forced left turn.** Only one legal move. | Model **must** call tool X | Forced structured output; the Domain 4 cheat code |
+| `{"type": "none"}` | **Red light.** Stay put and explain yourself. | Tools registered, but model **cannot** call them | "Explain, don't act" turns |
 
 Add **`disable_parallel_tool_use: true`** when ordering matters - the model emits one tool call per turn instead of a parallel batch.
 
-The next four cells exercise each mode against the live API and print the `stop_reason` flip.
+The next four cells exercise each mode against the live API. **The thing to watch in every demo is the `stop_reason` flip** - it's the API's ground-truth verdict on which branch the model took. Never parse the prose to decide; trust `stop_reason`.
 """
 
 _tc_auto_vs_any_md = """\
 ### `auto` vs `any` (live A/B)
 
-Same prompt, same tools, two `tool_choice` values. With `auto` the model may answer in prose if it thinks no tool is needed. With `any` it **must** call one - `stop_reason` will be `tool_use`, guaranteed.
+**Analogy:** `auto` is a green light at an empty intersection. The model can drive through, turn, or park. `any` is the same green light, but a tow truck is right behind you - you **must** move (call a tool), but you still pick the lane (which tool).
+
+Same prompt, same tools, two `tool_choice` values. The prompt is deliberately ambiguous (no city named, asks about "kinds of data") so the model has a real choice to make. With `auto` you should see prose. With `any` you should see a tool call - even though the prompt never named a city, the model is forced to call `get_weather` because `any` leaves no other move.
 """
 
 _tc_auto_vs_any_code = '''\
+# Use the first tool from our registered block (get_weather).
+# This is the SINGLE tool the model can pick from in this demo.
 WEATHER_TOOL = SAMPLE_TOOLS[0]
-# Deliberately ambiguous: the prompt asks a question the model could answer
-# from training data ("what tools should I think about?") without needing the
-# weather tool. With auto, the model should reason in prose. With any, it is
-# forced to call something - it will call get_weather even though the prompt
-# never named a city, because any leaves it no choice.
+
+# The prompt is deliberately ambiguous. It asks a meta-question about
+# "kinds of data" - the model could answer from training data without
+# calling any tool. That ambiguity is what makes the A/B meaningful:
+# under `auto` the model judges no tool is needed; under `any` it has
+# to call something anyway because the traffic-light analogy says
+# "tow truck behind you - move."
 PROMPT = "I'm building a travel app. What kinds of weather data are useful to surface to users?"
 
+
 def run(label: str, tool_choice: dict[str, Any]) -> None:
+    # The four kwargs that matter for this demo:
+    #   tools=[WEATHER_TOOL]  the SCHEMA block the model can call
+    #   tool_choice=...       the GUARANTEE we are asking for
+    #                         (auto = no guarantee, any = some-tool)
+    #   max_tokens=800        big enough budget that `auto` can
+    #                         finish a full prose answer; we are
+    #                         testing the BRANCH, not testing
+    #                         truncation behavior
+    #   messages=[...]        single user turn with our ambiguous prompt
     resp = client.messages.create(
         model=MODEL,
         max_tokens=800,
@@ -405,9 +427,25 @@ def run(label: str, tool_choice: dict[str, Any]) -> None:
         tool_choice=tool_choice,
         messages=[{"role": "user", "content": PROMPT}],
     )
+
+    # Two things to read on every response, in this order:
+    #   1. resp.stop_reason  - the API's verdict on what KIND of
+    #                          turn this was. Six values; we care
+    #                          about end_turn vs tool_use here.
+    #   2. resp.content      - the LIST of blocks the model emitted.
+    #                          Each block has a .type; that .type is
+    #                          how you route in code. Never inspect
+    #                          .text and pattern-match on prose to
+    #                          decide what branch you're on.
     block_types = [getattr(b, "type", "?") for b in resp.content]
     print(f"[{label:>5}] stop_reason={resp.stop_reason}  blocks={block_types}")
 
+
+# Expected output (this is the CONTRACT, not a guess):
+#   [ auto] stop_reason=end_turn  blocks=['text']
+#   [  any] stop_reason=tool_use  blocks=['tool_use']
+# If auto returns tool_use, the prompt was not ambiguous enough.
+# If any returns end_turn, the API contract is broken - file a bug.
 run("auto", {"type": "auto"})
 run("any",  {"type": "any"})
 
@@ -421,12 +459,28 @@ print("      even when no city was specified - the model will pick or invent one
 _tc_forced_md = """\
 ### Forced `tool` mode (the structured-output cheat code)
 
-This is **the** Domain 4 trick. Define a schema as a tool. Force the model to call that tool. The `tool_use.input` block is now schema-guaranteed - no JSON parsing, no `"```json"` fence, no validation rituals. The SDK validated the schema for you.
+**Analogy:** a forced left turn. The model gets exactly one legal move, and that move is "call this specific tool with arguments that match its schema." Compare with **passport-control**: the officer has a form, every field on the form must be filled, and "I'll write you a letter explaining" is not an answer.
 
-Segment 3 uses this pattern for invoice extraction. We strip it down to its skeleton here.
+This is **the** Domain 4 trick. Define a schema as a tool. Force the model to call that tool. The `tool_use.input` block is now schema-guaranteed - no JSON parsing, no ```` ```json ```` fence-stripping, no validation rituals. The SDK validated the schema for you. **The model can no more skip a required field than a passenger can skip the passport number on the entry form.**
+
+Segment 3 uses this pattern for invoice extraction. We strip it down to its skeleton here so you can see the moving parts before the production version adds Pydantic and retry loops.
 """
 
 _tc_forced_code = '''\
+# The tool definition IS the schema. The model will be forced to call
+# this tool, and its arguments must conform to this input_schema.
+# Read this block top-down:
+#   name             the identifier you'll use in tool_choice below
+#   description      what the model is being asked to extract
+#   input_schema     JSON Schema spec for the OUTPUT shape
+#     - properties     fields the model can populate
+#     - enum           closed set of legal values (sentiment can ONLY
+#                      be positive/neutral/negative; no other string
+#                      will pass the validator)
+#     - minimum/maximum  numeric bounds the model must respect
+#     - maxItems       array length cap
+#     - required       fields the model MUST populate (the others
+#                      are optional and may be omitted)
 EXTRACT_TOOL = {
     "name": "extract_sentiment",
     "description": "Extract sentiment from text.",
@@ -441,6 +495,13 @@ EXTRACT_TOOL = {
     },
 }
 
+# The call shape is the heart of the pattern:
+#   tools=[EXTRACT_TOOL]                          register the schema
+#   tool_choice={"type": "tool", "name": "..."}   force this exact tool
+#                                                 (forced left turn)
+# The user message is the raw text to extract from. No "respond in JSON"
+# instruction, no "use this schema" - the SDK enforces both via the
+# tool_choice forcing function.
 resp = client.messages.create(
     model=MODEL,
     max_tokens=512,
@@ -452,34 +513,57 @@ resp = client.messages.create(
     }],
 )
 
+# Expected output (the contract):
+#   stop_reason: tool_use
+#   extracted: {
+#     "sentiment": "negative" | "neutral" | "positive",
+#     "confidence": 0.0..1.0,
+#     "key_phrases": [...]   # optional, may be absent
+#   }
+# Watch: block.input is a Python DICT that already conforms to the
+# schema. NOT a JSON string. NOT inside a code fence. The SDK parsed
+# and validated for you - this is the load-bearing convenience of the
+# forced-tool pattern.
 print(f"stop_reason: {resp.stop_reason}")
 for block in resp.content:
     if getattr(block, "type", None) == "tool_use":
-        # block.input is a dict that ALREADY conforms to the schema above.
         print(f"extracted: {json.dumps(block.input, indent=2)}")
 '''
 
 _tc_none_md = """\
 ### `none` mode (tools registered, but the model cannot call them)
 
-Useful for explanation turns inside a multi-step pipeline. The model sees the tool surface (so it can describe options), but cannot act. **Trying to "ask the model what tools it has" without `tool_choice: none` will sometimes trigger a tool call** - we want narration, not action.
+**Analogy:** a red light. The model can see every other car at the intersection (the tools are still in the registered set, so the model knows they exist and can describe them) but it cannot enter the intersection itself (no tool call will be emitted). Like a tour guide pointing at exhibits without touching them.
+
+Useful for explanation turns inside a multi-step pipeline: surface the menu without ordering. **Without `tool_choice: none`, just asking "what tools do you have?" sometimes triggers a tool call** because the model thinks demonstrating is more helpful than describing. `none` removes that risk surgically.
 """
 
 _tc_none_code = '''\
+# Same registered tool block as the auto-vs-any demo, but now we
+# clamp the traffic light to RED via tool_choice. The model can read
+# the tool descriptions to answer the question, but cannot emit a
+# tool_use block no matter what the prompt says.
 resp = client.messages.create(
     model=MODEL,
     max_tokens=600,
     tools=SAMPLE_TOOLS,
-    tool_choice={"type": "none"},
+    tool_choice={"type": "none"},   # red light - no calls allowed
     messages=[{
         "role": "user",
         "content": "Briefly: what tools do you have, and when would you use each? Two sentences per tool, no more.",
     }],
 )
 
+# Expected output (contract):
+#   stop_reason: end_turn      # NOT tool_use, NOT max_tokens
+#   <text block describing each tool in prose>
+# If you see stop_reason=tool_use here, the API contract broke -
+# none is supposed to be an iron guarantee.
 print(f"stop_reason: {resp.stop_reason}")
 for block in resp.content:
     if getattr(block, "type", None) == "text":
+        # block.text is a string. Truncate to 600 chars so the cell
+        # output stays readable in the notebook.
         print(block.text[:600])
 
 print()
@@ -491,20 +575,23 @@ print("type=none guarantees, regardless of how the prompt is phrased.")
 _tc_disable_parallel_md = """\
 ### `disable_parallel_tool_use` (when ordering matters)
 
-By default, Claude may emit multiple tool_use blocks in one turn that you are expected to execute **in parallel**. That breaks down when one tool's output is the next tool's input - write-then-read, lookup-then-act, fetch-then-summarize.
+**Analogy:** a **kitchen ticket**. By default, a line cook reads the whole ticket and works the steaks, fries, and salad in **parallel** because none depend on each other. But if the ticket is "marinate the chicken, then grill it, then plate it," parallelism produces raw chicken on a plate. Some recipes are *serial*.
 
-Set `disable_parallel_tool_use: true` on `tool_choice` and the model emits one tool call per turn. You execute, return the result, the model emits the next.
+By default, Claude may emit multiple `tool_use` blocks in one turn that you are expected to execute **in parallel**. That breaks down when one tool's output is the next tool's input - write-then-read, lookup-then-act, fetch-then-summarize. Set `disable_parallel_tool_use: true` and the model emits one tool call per turn: you execute, return the result, the model emits the next.
 
-**Exam beat:** the flag lives on the `tool_choice` object, not as a top-level parameter.
+**Exam beat:** the flag lives on the `tool_choice` object (`{"type": "any", "disable_parallel_tool_use": True}`), **not** as a top-level parameter on `messages.create()`. Misplacing it is a common multiple-choice trap.
 """
 
 _tc_disable_parallel_code = '''\
-# Two tools, two clearly independent requests in one user turn.
-# Without the flag, the model is free to emit both tool_use blocks in
-# parallel. With the flag, it must emit them one per turn.
+# Two clearly independent requests in one user turn. Independent because
+# neither depends on the other's output - they're the kitchen-ticket
+# "steak AND fries" case (parallel-safe), not the "marinate THEN grill"
+# case (serial-required). We're using a parallel-safe prompt to show
+# what the FLAG controls: the flag is the cap on parallelism, not a
+# semantic test of whether parallelism is safe.
 PARALLEL_TOOLS = [
-    SAMPLE_TOOLS[0],  # get_weather
-    SAMPLE_TOOLS[1],  # lookup_order
+    SAMPLE_TOOLS[0],  # get_weather    (independent of order lookup)
+    SAMPLE_TOOLS[1],  # lookup_order   (independent of weather)
 ]
 PROMPT = (
     "In a single response, do BOTH of these for me: "
@@ -513,7 +600,12 @@ PROMPT = (
     "I need both answers."
 )
 
+
 def call(tool_choice: dict[str, Any]) -> None:
+    # We use tool_choice={"type": "any"} (or any + flag) to FORCE tool
+    # calls in both runs. Without forcing, the model might answer in
+    # prose and we'd be testing a different thing. The variable across
+    # the two runs is ONLY whether disable_parallel_tool_use is set.
     resp = client.messages.create(
         model=MODEL,
         max_tokens=512,
@@ -521,12 +613,22 @@ def call(tool_choice: dict[str, Any]) -> None:
         tool_choice=tool_choice,
         messages=[{"role": "user", "content": PROMPT}],
     )
+    # Filter the response blocks down to just tool_use blocks.
+    # Watch the COUNT - that is the load-bearing measurement.
     tool_uses = [b for b in resp.content if getattr(b, "type", None) == "tool_use"]
     print(f"  tool_choice={tool_choice}")
     print(f"  stop_reason={resp.stop_reason}  tool_use_blocks={len(tool_uses)}")
     for tu in tool_uses:
         print(f"    -> {tu.name}({list(tu.input.keys())})")
 
+
+# Expected output (the contract):
+#   Without the flag: tool_use_blocks=2   (both tools in one turn,
+#                                          ready to execute in parallel)
+#   With the flag:    tool_use_blocks=1   (only one tool; the second
+#                                          call comes in the next turn)
+# Watch: stop_reason is tool_use in BOTH runs. The flag doesn't change
+# the stop_reason - it changes the SHAPE of the content array.
 print("Without the flag (parallel allowed - expect 2 tool_use blocks in one turn):")
 call({"type": "any"})
 print()
@@ -546,6 +648,8 @@ print("not the floor. If the model judges sequential is right, you get sequentia
 
 _stop_section_md = """\
 ## Section 3: Stop conditions
+
+**Analogy:** treat the model like a **courtroom witness**. The witness will eventually stop talking. **Never INTERPRET why they stopped** ("I think they sounded done") - **ASK** ("are you finished, or did the judge cut you off, or do you need a recess?"). `stop_reason` is the official record of *why* the model stopped, and it has six possible answers. Production code branches on that record, not on prose intuition.
 
 Domain 1's hard rule: **never parse natural language to decide if the model is done. Always branch on `stop_reason`.**
 
@@ -584,12 +688,22 @@ Production agents have **exactly one** dispatcher that knows this match. Every o
 _stop_sequences_md = """\
 ### `stop_sequences` (deterministic cutoff)
 
-Pass an array of strings. When the model would emit any of them, generation stops and `stop_reason="stop_sequence"`. The matched token comes back in `resp.stop_sequence`. The string itself is **not** included in the output.
+**Analogy:** a **dog whistle** the model can't ignore. You give the API a list of trigger tokens; the moment the model would emit any of them, generation halts. The whistle blew, the model stopped, and you find out *which whistle* by reading `resp.stop_sequence`. The string itself is **not** included in the output - the boundary is **metadata**, not text you have to strip.
 
-Use case: **structured cutoff in streaming pipelines**. Generate a report, stop at `END_REPORT`, then start a new generation for the next section. No prompt fragility, no "and then nothing else please".
+Pass an array of strings. When the model would emit any of them, generation stops with `stop_reason="stop_sequence"` and the matched token comes back as `resp.stop_sequence`.
+
+**Use case:** structured cutoff in streaming pipelines. Generate a report, stop at `END_REPORT`, then start a new generation for the next section. No prompt fragility, no "and then nothing else please" begging. The contract is mechanical.
 """
 
 _stop_sequences_code = '''\
+# stop_sequences is a list of TRIGGER TOKENS. If the model would emit
+# any of them, generation halts. We register two:
+#   "END_REPORT"   - explicit end-of-document marker (what we want)
+#   "## Section"   - structural marker for safety (catches a model
+#                    that tries to write a new section header)
+# In production, register both your INTENDED end marker AND any
+# structural markers that signal "the model is going further than
+# you asked." Belt and suspenders.
 resp = client.messages.create(
     model=MODEL,
     max_tokens=512,
@@ -603,6 +717,16 @@ resp = client.messages.create(
     }],
 )
 
+# Three things to read on every stop_sequence response:
+#   1. resp.stop_reason     - should be "stop_sequence" exactly
+#   2. resp.stop_sequence   - the matched token (which whistle blew)
+#   3. resp.content[0].text - the body WITHOUT the matched token
+# Expected:
+#   stop_reason: stop_sequence
+#   stop_sequence: 'END_REPORT'
+#   text: <report body ending BEFORE END_REPORT>
+# Watch: the text does NOT contain "END_REPORT". This is the load-
+# bearing convenience of the feature - the boundary is metadata.
 print(f"stop_reason: {resp.stop_reason}")
 print(f"stop_sequence: {resp.stop_sequence!r}")
 print(f"text:\\n{resp.content[0].text}")
@@ -615,34 +739,58 @@ print("That is the whole point: the boundary is metadata, not text to strip.")
 _max_tokens_md = """\
 ### `max_tokens` as a control lever (not just a budget)
 
-Most learners treat `max_tokens` as "max bill". It is also a **deliberate cutoff** - set it low to force a `stop_reason="max_tokens"`, then **resume by feeding the partial assistant turn back in** as the next message and asking the model to continue.
+**Analogy:** a **breaker switch on a runaway lecture**. Most learners treat `max_tokens` as "max bill" - the cap that keeps the cost predictable. It's also a **deliberate cutoff**: set it deliberately low to force a `stop_reason="max_tokens"`, then **resume** by replaying the partial assistant turn as the next message and asking the model to continue from where the breaker tripped. Same lecture, different chapter.
 
-Use cases: agentic chunking, summary-then-detail pipelines, watchdog timeouts on runaway generation.
+Use cases: agentic chunking (force a checkpoint every N tokens), summary-then-detail pipelines (cheap summary first, costly detail only on follow-up), watchdog timeouts on runaway generation (any single turn over X tokens triggers human review).
 """
 
 _max_tokens_code = '''\
+# A prompt that the model will gladly fill 50+ items of output with.
+# We need a task long enough that an 80-token budget is GUARANTEED
+# to truncate. Listing 50 colors is the canonical "long enough" test.
 PROMPT = "List 50 distinct examples of color names. Number each one."
 
-# Pass 1: deliberately cut off
+# --- Pass 1: deliberately trip the breaker ---
+# max_tokens=80 is intentionally too small. We are NOT trying to fail;
+# we are trying to force stop_reason="max_tokens" so we can demo the
+# resumption pattern. In production this is the "watchdog" scenario.
 resp1 = client.messages.create(
     model=MODEL,
-    max_tokens=80,  # too small on purpose
+    max_tokens=80,
     messages=[{"role": "user", "content": PROMPT}],
 )
 print(f"Pass 1 stop_reason: {resp1.stop_reason}")
+
+# Save the PARTIAL assistant turn. This is the load-bearing piece -
+# we feed it back into pass 2 verbatim so the model knows where it
+# left off. There is no special "continuation" API; you just replay
+# the turn in the conversation history.
 partial = resp1.content[0].text
 print(f"Pass 1 text (truncated):\\n{partial}\\n")
 
-# Pass 2: resume by replaying the partial assistant turn
+# --- Pass 2: resume by replaying the partial turn ---
+# The shape of messages=[...] matters here. From the model's view,
+# the conversation is:
+#   user      "List 50 distinct examples of color names..."
+#   assistant <our partial response - the model thinks it wrote this>
+#   user      "continue the list from where you stopped"
+# This is the resumption contract. Bigger max_tokens this time so
+# the breaker doesn't trip again.
 resp2 = client.messages.create(
     model=MODEL,
     max_tokens=600,
     messages=[
         {"role": "user", "content": PROMPT},
-        {"role": "assistant", "content": partial},  # feed the partial back in
+        {"role": "assistant", "content": partial},   # the partial we saved
         {"role": "user", "content": "continue the list from where you stopped"},
     ],
 )
+
+# Expected output (contract):
+#   Pass 1 stop_reason: max_tokens          (the breaker tripped)
+#   Pass 2 stop_reason: end_turn            (this time it finishes)
+# Watch: the same prompt + the partial in history is how you turn
+# "you got cut off" into "you got chunked." No special API.
 print(f"Pass 2 stop_reason: {resp2.stop_reason}")
 print(f"Pass 2 text (continuation):\\n{resp2.content[0].text[:400]}")
 
@@ -669,7 +817,15 @@ Both are rare enough that a deliberate live demo is unreliable in a teaching win
 _console_section_md = """\
 ## Section 4: Claude Console assets are first-class SDK resources
 
-Claude Console is not a UI on top of Anthropic. It is a managed-agents control plane with a **full SDK surface**. The same key that authenticates `messages.create()` also authenticates `client.beta.memory_stores`, `client.beta.vaults`, `client.beta.agents`, and `client.beta.sessions`. Discovered live during course prep:
+**Analogy:** Claude Console is not a control room with a window onto the engine - it **is** the engine. **Same key, same wires.** The API token that calls `messages.create()` is the same one that addresses `client.beta.memory_stores`, `client.beta.vaults`, `client.beta.agents`, and `client.beta.sessions`. Two interfaces (UI and SDK), one runtime underneath.
+
+**Why this section exists:** Segment 1 taught you to build an agentic loop **from scratch** - your code drives messages, tool calls, and `stop_reason` branching. That's the right pattern when you need full control. But three production needs change the calculus:
+
+1. **Long-lived memory** (across kernel restarts, machine reboots, credential rotations) - hand-rolling this is a database design problem you do not want to own.
+2. **Third-party credentials** (GitHub tokens, vendor OAuth, MCP server secrets) - keeping these out of source while still letting the agent use them is a security design problem you do not want to own.
+3. **Multi-step agent recipes** (research, code review, deep summarization) - if the recipe is reusable across customers/projects/teams, the recipe should live in one place, not get re-coded in every client.
+
+Managed Agents give you these three for free. Claude Console is not a UI on top of Anthropic - it is a **managed-agents control plane with a full SDK surface**:
 
 | Console asset | SDK resource | Sub-resources |
 |---|---|---|
@@ -689,7 +845,9 @@ All of these require the beta header `anthropic-beta: managed-agents-2026-04-01`
 _console_memstore_md = """\
 ### `oreilly-memory-store` (Domain 5: context that survives restarts)
 
-A **memory store** is a Console-managed, server-side persistence layer for an agent's memories. Different from the **Memory tool** (`memory_20250818`), which is client-side and you implement the filesystem yourself.
+**Analogy:** a **safety-deposit box at your bank**. You don't carry the box around (it doesn't depend on which laptop you're using). The bank manages backups, durability, and access control. You hold a *reference* (the box number); the value lives at the bank. Different boxes can be shared across multiple people (multiple sessions) with the right key.
+
+A **memory store** is a Console-managed, server-side persistence layer for an agent's memories. Critically different from the **Memory tool** (`memory_20250818`), which is *client-side* - with the Memory tool, YOU implement the filesystem and YOU own durability. With a memory store, Anthropic does. Same conceptual goal, two very different runtime locations.
 
 Memory store advantages:
 
@@ -700,16 +858,28 @@ Memory store advantages:
 """
 
 _console_memstore_code = '''\
+# Almost every Managed Agents call needs the beta header. We set it
+# once via with_options() and use that wrapped client for the rest
+# of the section. The header tells the API "I know I'm using the
+# managed-agents beta surface; route accordingly."
 cli = client.with_options(default_headers=MANAGED_AGENTS_BETA)
 
-# 1. List all memory stores in the workspace, find ours by name
+# --- Step 1: list memory stores in this workspace ---
+# This is the Console-UI "Memory" tab via SDK. Same data, different
+# interface. Each store has a stable id (memstore_*), a human-readable
+# name, and metadata. The name is how YOUR CODE identifies the store;
+# the id is how the API does.
 print("Memory stores in this workspace:")
 stores = cli.beta.memory_stores.list()
 for s in stores.data:
     marker = " <-- oreilly-memory-store" if s.name == "oreilly-memory-store" else ""
     print(f"  id={s.id}  name={s.name!r}{marker}")
 
-# 2. Retrieve metadata for ours
+# --- Step 2: retrieve full metadata for our store ---
+# .list() returns a lightweight summary. .retrieve() returns full
+# detail including description, timestamps, and any custom metadata
+# you set in the Console. Production pattern: list to FIND the store
+# (or cache the id), then retrieve to USE it.
 ours = next((s for s in stores.data if s.name == "oreilly-memory-store"), None)
 if ours is None:
     print("\\n(no oreilly-memory-store in this workspace; create one in the Console)")
@@ -721,7 +891,13 @@ else:
     print(f"  description: {detail.description}")
     print(f"  created_at:  {detail.created_at}")
 
-    # 3. Memories inside the store are addressable too
+    # --- Step 3: peek at the .memories sub-resource ---
+    # The store CONTAINS memories. Each memory has its own CRUD surface
+    # (create, list, retrieve, update, delete). In production you would
+    # call cli.beta.memory_stores.memories.create(store_id=..., ...)
+    # to add a memory, or .list() to enumerate. We just print the
+    # method names here so you see the full SDK shape without writing
+    # to the store.
     memories_methods = [m for m in dir(cli.beta.memory_stores.memories) if not m.startswith("_")]
     print(f"\\n  memories sub-resource methods: {memories_methods}")
 '''
@@ -729,23 +905,32 @@ else:
 _console_vault_md = """\
 ### `oreilly-vault` (Domain 3: secrets out of source, even in notebooks)
 
-A **vault** stores credentials your agent uses to talk to third-party services - GitHub tokens, OpenAPI keys, MCP server OAuth tokens. Two SDK surfaces:
+**Analogy:** a **hotel safe**. The hotel knows you have a safe (the vault exists), the hotel knows what kinds of things you store (credential metadata), but the hotel does not know what is *inside* (the values). Only you can open it, and even then only at the safe (at agent-call time), never over the phone (never returned in an API response).
+
+A **vault** stores credentials your agent uses to talk to third-party services - GitHub tokens, OpenAI keys, MCP server OAuth tokens. Two SDK surfaces:
 
 - `client.beta.vaults` - manage the vault itself (create, list, archive)
-- `client.beta.vaults.credentials` - manage credentials inside it (create, retrieve, **`mcp_oauth_validate`** for MCP OAuth flows)
+- `client.beta.vaults.credentials` - manage credentials inside it (create, retrieve metadata, **`mcp_oauth_validate`** for MCP OAuth flows)
 
-**Production pattern:** mount vaults into a session via `sessions.create(vault_ids=[...])`. The agent's tools resolve credential references at call time. The credential values **never appear in your notebook**.
+**Production pattern:** mount vaults into a session via `sessions.create(vault_ids=[...])`. The agent's tools resolve credential **references** at call time. The credential **values** never appear in your notebook, your logs, or your laptop's process memory.
 """
 
 _console_vault_code = '''\
 cli = client.with_options(default_headers=MANAGED_AGENTS_BETA)
 
+# --- Step 1: list vaults in this workspace ---
+# Note: vaults use display_name, not name. Different attribute from
+# memory_stores - the Managed Agents resource shapes are not 100%
+# uniform across resource types yet.
 print("Vaults in this workspace:")
 vaults = cli.beta.vaults.list()
 for v in vaults.data:
     print(f"  id={v.id}  display_name={v.display_name!r}")
 
-# Find oreilly-vault by display_name
+# --- Step 2: retrieve our vault by display_name ---
+# We look up by display_name because that's what humans set in the
+# Console. The id (vlt_*) is stable across renames; cache that in
+# production. The display_name is the friendly handle.
 ours = next((v for v in vaults.data if v.display_name == "oreilly-vault"), None)
 if ours is None:
     print("\\n(no oreilly-vault in this workspace; create one in the Console)")
@@ -755,10 +940,19 @@ else:
     print(f"  id:           {detail.id}")
     print(f"  display_name: {detail.display_name}")
 
-    # List credentials in the vault (values are never returned, only refs)
+    # --- Step 3: list credentials in the vault ---
+    # CRITICAL teaching beat: the credentials API returns REFERENCES
+    # and METADATA only. Credential VALUES (the token bytes) are never
+    # returned to the client. Even in your own notebook, even with
+    # your own key. The safe-deposit-box analogy is literal here -
+    # the API tells you "yes, you have a token named X for service Y",
+    # not "the token is sk-ant-xxx".
     creds = cli.beta.vaults.credentials.list(vault_id=ours.id)
     print(f"\\nCredentials in this vault: {len(list(creds.data))}")
     for c in creds.data:
+        # model_dump() works if the SDK returned a Pydantic model;
+        # the fallback handles the case where credentials.list() ever
+        # returns a plain dict.
         print(f"  {c.model_dump() if hasattr(c, 'model_dump') else c}")
 
 print()
@@ -769,7 +963,9 @@ print("The vault returns refs; sessions resolve them at agent-call time.")
 _console_agent_md = """\
 ### Deep Researcher agent (Domain 1: agents you don't have to write the loop for)
 
-Segment 1 built an agentic loop **from scratch** - your code orchestrates messages, tool calls, and stop_reason branching. The Managed Agents surface is the alternative: **define the agent in the Console, invoke it via the SDK, let Anthropic run the loop**.
+**Analogy:** a **recipe vs. a kitchen**. Segment 1 built an agentic loop from scratch - your code is the kitchen, and you're also writing the recipe by hand every time. Managed Agents are **pre-written recipes**: the agent definition (`client.beta.agents`) is the recipe (system prompt, allowed tools, default model), and a **session** (`client.beta.sessions`) is a kitchen with that recipe loaded and running. You can swap kitchens (environments) without re-writing the recipe.
+
+Segment 1's agent loop is "I'll cook this myself, following a printed recipe." Managed Agents is "I'll order from a restaurant whose chef knows this dish by heart." The trade-off: less control, more reliability, and the recipe lives in one place rather than in every client.
 
 The Deep Researcher template agent in Tim's Default workspace:
 
@@ -783,29 +979,55 @@ You invoke it by creating a **session** that references the agent, an environmen
 _console_agent_code = '''\
 cli = client.with_options(default_headers=MANAGED_AGENTS_BETA)
 
-# 1. Find the Deep Researcher agent by name
+# --- Step 1: list agents in this workspace ---
+# Console-defined agents have names (set in the UI), unlike server tools
+# which are keyed by type. The Deep researcher is a Console TEMPLATE
+# (created from a built-in recipe); your own agents would appear here too.
 print("Agents in this workspace:")
 agents = cli.beta.agents.list()
 for a in agents.data:
     marker = " <-- target" if a.name == "Deep researcher" else ""
     print(f"  id={a.id}  name={a.name!r}{marker}")
 
+# --- Step 2: retrieve the full agent config (the "recipe") ---
+# .retrieve() returns the COMPLETE agent definition: model, tools,
+# system prompt, metadata. This is the recipe in our analogy. The
+# agent record is immutable per version; updates create a new version
+# (see .versions sub-resource).
 deep = next((a for a in agents.data if a.name == "Deep researcher"), None)
 if deep is None:
     print("\\n(no Deep researcher agent in this workspace)")
 else:
-    # 2. Retrieve the full agent config
     detail = cli.beta.agents.retrieve(deep.id)
     print(f"\\nDeep Researcher config:")
     print(f"  id:          {detail.id}")
+    # The model is part of the AGENT, not the session. Console-managed
+    # agents pin their model; your notebook's MODEL default does not
+    # override the agent's choice. Deep researcher is on Sonnet 4.6
+    # because the recipe says so.
     print(f"  model:       {detail.model.id}  (speed: {detail.model.speed})")
     print(f"  description: {detail.description}")
+    # Tools are stored as type-keyed dicts. agent_toolset_20260401 is
+    # the bundled research toolkit (web search + fetch + reading).
     print(f"  tools:       {[t.get('type') if isinstance(t, dict) else getattr(t, 'type', '?') for t in detail.tools]}")
     print(f"  template:    {detail.metadata.get('template')}")
     print()
+    # The system prompt is the heart of the recipe. We print just the
+    # first 200 chars because the full prompt is several hundred lines
+    # of opinionated research methodology.
     print(f"  system prompt (first 200 chars):")
     print(f"    {detail.system[:200]}...")
     print()
+    # --- Step 3: invocation, conceptually ---
+    # To actually RUN the agent, you create a session:
+    #   session = cli.beta.sessions.create(
+    #       agent=deep.id,                 # the recipe
+    #       environment_id=env.id,         # the kitchen (container config)
+    #       vault_ids=[my_vault.id],       # the keys to third-party services
+    #   )
+    # We don't burn tokens on a full research run in this notebook;
+    # the Console chat UI is the cheapest way to test an agent recipe
+    # before you wire it into your code.
     print("To invoke: client.beta.sessions.create(agent=deep.id, environment_id=...)")
     print("Sessions are the runtime; agents are the recipe. We don't burn tokens")
     print("on a full research run here - see the Console for a chat UI.")
