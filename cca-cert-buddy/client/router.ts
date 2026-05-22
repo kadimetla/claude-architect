@@ -46,7 +46,10 @@ async function renderCurrent(): Promise<void> {
   try {
     await view(app, params);
   } catch (err) {
-    app.innerHTML = `<p class="error">${err instanceof Error ? err.message : String(err)}</p>`;
+    const p = document.createElement("p");
+    p.className = "error";
+    p.textContent = err instanceof Error ? err.message : String(err);
+    app.replaceChildren(p);
   }
 }
 
