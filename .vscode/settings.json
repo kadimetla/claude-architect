@@ -1,0 +1,12 @@
+{
+  // The course's managed notebook environment lives one folder deep, under
+  // notebooks/.venv. VS Code's Python extension only auto-scans the workspace
+  // root, so without venvFolders it never discovers this interpreter and the
+  // notebook silently falls back to a bare root .venv that lacks ipykernel.
+  "python.venvFolders": [
+    "notebooks"
+  ],
+  // Make notebooks/.venv the default interpreter for the whole repo. Five of
+  // the six teaching notebooks plus the vendored cookbooks all expect this env.
+  "python.defaultInterpreterPath": "${workspaceFolder}/notebooks/.venv/Scripts/python.exe"
+}
