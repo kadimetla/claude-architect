@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#E8EEF7"/>
+
+  <rect x="0" y="0" width="1920" height="120" fill="#0F2A47"/>
+  <text x="60" y="62" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="44" font-weight="700"
+        fill="#FFFFFF">The agentic loop is a state machine</text>
+  <text x="60" y="92" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#F2A93B" letter-spacing="2">DOMAIN 1  -  BRANCH ON THE ENUM, NEVER ON PROSE</text>
+
+  <rect x="780" y="455" width="360" height="180" rx="18" fill="#0F2A47" stroke="#F2A93B" stroke-width="4"/>
+  <text x="960" y="515" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="34" font-weight="700"
+        fill="#FFFFFF" text-anchor="middle">Your code</text>
+  <text x="960" y="555" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#E8EEF7" text-anchor="middle">reads response.stop_reason</text>
+  <text x="960" y="590" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="20" font-weight="700"
+        fill="#F2A93B" text-anchor="middle">switch (stop_reason)</text>
+
+  <path d="M 780 545 C 700.0 545, 700.0 320, 620 320"
+        stroke="#1FA8B3" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <rect x="260" y="275" width="360" height="90" rx="10" fill="#FFFFFF" stroke="#1FA8B3" stroke-width="3"/>
+  <rect x="260" y="275" width="14" height="90" rx="0" fill="#1FA8B3"/>
+  <text x="295" y="313" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="26" font-weight="700"
+        fill="#1A2235">end_turn</text>
+  <text x="295" y="343" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#6B7A91">Return to user</text>
+
+  <path d="M 780 545 C 700.0 545, 700.0 590, 620 590"
+        stroke="#F2A93B" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <rect x="260" y="545" width="360" height="90" rx="10" fill="#FFFFFF" stroke="#F2A93B" stroke-width="3"/>
+  <rect x="260" y="545" width="14" height="90" rx="0" fill="#F2A93B"/>
+  <text x="295" y="583" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="26" font-weight="700"
+        fill="#1A2235">tool_use</text>
+  <text x="295" y="613" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#6B7A91">Execute tool, append result, loop</text>
+
+  <path d="M 780 545 C 700.0 545, 700.0 860, 620 860"
+        stroke="#3D6BB1" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <rect x="260" y="815" width="360" height="90" rx="10" fill="#FFFFFF" stroke="#3D6BB1" stroke-width="3"/>
+  <rect x="260" y="815" width="14" height="90" rx="0" fill="#3D6BB1"/>
+  <text x="295" y="853" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="26" font-weight="700"
+        fill="#1A2235">pause_turn</text>
+  <text x="295" y="883" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#6B7A91">Resume in next request</text>
+
+  <path d="M 1140 545 C 1220.0 545, 1220.0 320, 1300 320"
+        stroke="#3D6BB1" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <rect x="1300" y="275" width="360" height="90" rx="10" fill="#FFFFFF" stroke="#3D6BB1" stroke-width="3"/>
+  <rect x="1300" y="275" width="14" height="90" rx="0" fill="#3D6BB1"/>
+  <text x="1335" y="313" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="26" font-weight="700"
+        fill="#1A2235">max_tokens</text>
+  <text x="1335" y="343" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#6B7A91">Continue or surface limit</text>
+
+  <path d="M 1140 545 C 1220.0 545, 1220.0 590, 1300 590"
+        stroke="#1FA8B3" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <rect x="1300" y="545" width="360" height="90" rx="10" fill="#FFFFFF" stroke="#1FA8B3" stroke-width="3"/>
+  <rect x="1300" y="545" width="14" height="90" rx="0" fill="#1FA8B3"/>
+  <text x="1335" y="583" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="26" font-weight="700"
+        fill="#1A2235">stop_sequence</text>
+  <text x="1335" y="613" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#6B7A91">Honor the sequence, end turn</text>
+
+  <path d="M 1140 545 C 1220.0 545, 1220.0 860, 1300 860"
+        stroke="#D85A2A" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <rect x="1300" y="815" width="360" height="90" rx="10" fill="#FFFFFF" stroke="#D85A2A" stroke-width="3"/>
+  <rect x="1300" y="815" width="14" height="90" rx="0" fill="#D85A2A"/>
+  <text x="1335" y="853" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="26" font-weight="700"
+        fill="#1A2235">refusal</text>
+  <text x="1335" y="883" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#6B7A91">Surface category (cyber / bio)</text>
+
+  <rect x="60" y="940" width="1800" height="70" rx="8" fill="#D85A2A" opacity="0.15"/>
+  <rect x="60" y="940" width="14" height="70" fill="#D85A2A"/>
+  <text x="90" y="985" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="24" font-weight="600" fill="#1A2235">
+    Anti-pattern:  parsing natural-language signals.  "It said thanks, so I assume it's done."  That is how production agents go feral.
+  </text>
+
+  <rect x="0" y="1030" width="1920" height="50" fill="#0F2A47" opacity="0.92"/>
+  <text x="60" y="1065" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="600"
+        fill="#F2A93B" letter-spacing="1">DOMAIN 1 - AGENTIC ARCHITECTURE (27%)</text>
+  <text x="1860" y="1065" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#FFFFFF" text-anchor="end">Segment 1</text>
+</svg>

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#E8EEF7"/>
+
+  <rect x="0" y="0" width="1920" height="120" fill="#0F2A47"/>
+  <text x="60" y="62" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="44" font-weight="700"
+        fill="#FFFFFF">Defense in depth: three layers, three strengths</text>
+  <text x="60" y="92" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#F2A93B" letter-spacing="2">DOMAIN 1  -  THE PROMPT ADVISES.  THE HOOK ENFORCES.</text>
+
+  <rect x="160" y="190" width="1600" height="220" rx="14" fill="#FFFFFF" stroke="#3D6BB1" stroke-width="3"/>
+  <rect x="160" y="190" width="22" height="220" fill="#3D6BB1"/>
+  <text x="220" y="240" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="600"
+        fill="#3D6BB1" letter-spacing="2">LAYER 1  -  SOFT</text>
+  <text x="220" y="290" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="40" font-weight="700"
+        fill="#1A2235">Prompt</text>
+  <text x="220" y="335" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="24" font-weight="400"
+        fill="#1A2235">"Do not exceed the refund cap."  -  Model reads it, usually cooperates, occasionally negotiates.</text>
+  <text x="220" y="378" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#6B7A91">Best for:  intent, tone, formatting.  Worst for:  guarantees you cannot afford to lose.</text>
+
+  <rect x="160" y="450" width="1600" height="220" rx="14" fill="#FFFFFF" stroke="#1FA8B3" stroke-width="3"/>
+  <rect x="160" y="450" width="22" height="220" fill="#1FA8B3"/>
+  <text x="220" y="500" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="600"
+        fill="#1FA8B3" letter-spacing="2">LAYER 2  -  STRUCTURAL</text>
+  <text x="220" y="550" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="40" font-weight="700"
+        fill="#1A2235">Tool description + input_schema</text>
+  <text x="220" y="595" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="24" font-weight="400"
+        fill="#1A2235">"amount_cents:  integer, max 50000."  Schema rejects bad shapes.  Description shapes intent.</text>
+  <text x="220" y="638" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#6B7A91">Best for:  input validation, "when to call vs. when not to."  Worst for:  business-policy enforcement.</text>
+
+  <rect x="160" y="710" width="1600" height="220" rx="14" fill="#0F2A47" stroke="#F2A93B" stroke-width="4"/>
+  <rect x="160" y="710" width="22" height="220" fill="#F2A93B"/>
+  <text x="220" y="760" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="600"
+        fill="#F2A93B" letter-spacing="2">LAYER 3  -  HARD</text>
+  <text x="220" y="810" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="40" font-weight="700"
+        fill="#FFFFFF">PreToolUse hook</text>
+  <text x="220" y="855" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="24" font-weight="400"
+        fill="#E8EEF7">if amount &gt; 50000:  permissionDecision = "deny."  Your code, your call.  The model cannot route around it.</text>
+  <text x="220" y="898" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#E8EEF7">Best for:  policy, compliance, audit, anything that MUST hold.  Fail closed when the hook itself errors.</text>
+
+  <rect x="0" y="1030" width="1920" height="50" fill="#0F2A47" opacity="0.92"/>
+  <text x="60" y="1065" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="600"
+        fill="#F2A93B" letter-spacing="1">DOMAIN 1 - HOOKS AND DETERMINISTIC GUARANTEES</text>
+  <text x="1860" y="1065" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#FFFFFF" text-anchor="end">Segment 1</text>
+</svg>

@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#E8EEF7"/>
+
+  <rect x="0" y="0" width="1920" height="120" fill="#0F2A47"/>
+  <text x="60" y="62" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="44" font-weight="700"
+        fill="#FFFFFF">MCP transports - one config shape, three runtimes</text>
+  <text x="60" y="92" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#F2A93B" letter-spacing="2">DOMAIN 2  -  .MCP.JSON SPEAKS STDIO, SSE, AND HTTP</text>
+
+  <rect x="60" y="200" width="1840" height="80" fill="#0F2A47"/>
+
+  <text x="160" y="250" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="600"
+        fill="#F2A93B" text-anchor="middle" letter-spacing="2">TRANSPORT</text>
+
+  <text x="465" y="250" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="600"
+        fill="#FFFFFF" text-anchor="middle" letter-spacing="2">NETWORK</text>
+
+  <text x="875" y="250" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="600"
+        fill="#FFFFFF" text-anchor="middle" letter-spacing="2">CONFIG KEYS</text>
+
+  <text x="1285" y="250" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="600"
+        fill="#FFFFFF" text-anchor="middle" letter-spacing="2">AUTH PATTERN</text>
+
+  <text x="1695" y="250" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="600"
+        fill="#FFFFFF" text-anchor="middle" letter-spacing="2">WHEN TO PICK IT</text>
+
+  <rect x="60" y="280" width="1840" height="180" fill="#FFFFFF"/>
+
+  <rect x="60" y="280" width="200" height="180" fill="#1FA8B3" opacity="0.18"/>
+  <rect x="60" y="280" width="14" height="180" fill="#1FA8B3"/>
+  <text x="160" y="382" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="34" font-weight="700"
+        fill="#1A2235" text-anchor="middle">stdio</text>
+
+  <text x="290" y="382" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">Local subprocess</text>
+
+  <text x="700" y="382" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">command, args, env</text>
+
+  <text x="1110" y="382" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">env-var inheritance</text>
+
+  <text x="1520" y="382" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">Local tools.  CLI you trust.</text>
+
+  <rect x="60" y="460" width="1840" height="180" fill="#F8F4EC"/>
+
+  <rect x="60" y="460" width="200" height="180" fill="#3D6BB1" opacity="0.18"/>
+  <rect x="60" y="460" width="14" height="180" fill="#3D6BB1"/>
+  <text x="160" y="562" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="34" font-weight="700"
+        fill="#1A2235" text-anchor="middle">SSE</text>
+
+  <text x="290" y="562" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">Remote stream</text>
+
+  <text x="700" y="562" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">type, url, headers</text>
+
+  <text x="1110" y="562" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">Authorization: Bearer</text>
+
+  <text x="1520" y="562" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">Vendor.  Deprecating soon.</text>
+
+  <rect x="60" y="640" width="1840" height="180" fill="#FFFFFF"/>
+
+  <rect x="60" y="640" width="200" height="180" fill="#F2A93B" opacity="0.18"/>
+  <rect x="60" y="640" width="14" height="180" fill="#F2A93B"/>
+  <text x="160" y="742" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="34" font-weight="700"
+        fill="#1A2235" text-anchor="middle">HTTP</text>
+
+  <text x="290" y="742" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">Remote request</text>
+
+  <text x="700" y="742" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">type, url, headers</text>
+
+  <text x="1110" y="742" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">X-API-Key  /  Bearer</text>
+
+  <text x="1520" y="742" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#1A2235">Vendor.  Modern default.</text>
+
+  <rect x="60" y="945" width="1840" height="60" rx="8" fill="#F2A93B" opacity="0.18"/>
+  <rect x="60" y="945" width="14" height="60" fill="#F2A93B"/>
+  <text x="90" y="985" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="600" fill="#1A2235">
+    $&#123;ENV_VAR&#125; expansion works in env, args, AND headers across all three transports.  Commit the config.  Source the secret.
+  </text>
+
+  <rect x="0" y="1030" width="1920" height="50" fill="#0F2A47" opacity="0.92"/>
+  <text x="60" y="1065" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="600"
+        fill="#F2A93B" letter-spacing="1">DOMAIN 2 - MCP INTEGRATION</text>
+  <text x="1860" y="1065" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#FFFFFF" text-anchor="end">Segment 2</text>
+</svg>

@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#E8EEF7"/>
+
+  <rect x="0" y="0" width="1920" height="120" fill="#0F2A47"/>
+  <text x="60" y="62" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="44" font-weight="700"
+        fill="#FFFFFF">Forced tool_choice = guaranteed JSON shape</text>
+  <text x="60" y="92" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#F2A93B" letter-spacing="2">DOMAIN 4  -  THE STRUCTURED-OUTPUT CHEAT CODE, WITH ONE RETRY GUARD</text>
+
+  <rect x="405" y="175" width="1110" height="96" rx="10" fill="#FFFFFF" stroke="#3D6BB1" stroke-width="3"/>
+  <rect x="405" y="175" width="18" height="96" fill="#3D6BB1"/>
+  <text x="443" y="213" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Define Pydantic model</text>
+  <text x="443" y="251" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="20" font-weight="400" fill="#6B7A91">class Invoice(BaseModel): ...</text>
+
+  <path d="M 960 273 L 960 287 M 952 281 L 960 289 L 968 281"
+        stroke="#6B7A91" stroke-width="3" fill="none"/>
+
+  <rect x="405" y="295" width="1110" height="96" rx="10" fill="#FFFFFF" stroke="#3D6BB1" stroke-width="3"/>
+  <rect x="405" y="295" width="18" height="96" fill="#3D6BB1"/>
+  <text x="443" y="333" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Convert to JSON Schema</text>
+  <text x="443" y="371" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="20" font-weight="400" fill="#6B7A91">Invoice.model_json_schema()  -  Pydantic gives this for free</text>
+
+  <path d="M 960 393 L 960 407 M 952 401 L 960 409 L 968 401"
+        stroke="#6B7A91" stroke-width="3" fill="none"/>
+
+  <rect x="405" y="415" width="1110" height="96" rx="10" fill="#FFFFFF" stroke="#1FA8B3" stroke-width="3"/>
+  <rect x="405" y="415" width="18" height="96" fill="#1FA8B3"/>
+  <text x="443" y="453" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Register as a tool</text>
+  <text x="443" y="491" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="20" font-weight="400" fill="#6B7A91">{ "name": "extract_invoice", "input_schema": &lt;schema&gt; }</text>
+
+  <path d="M 960 513 L 960 527 M 952 521 L 960 529 L 968 521"
+        stroke="#6B7A91" stroke-width="3" fill="none"/>
+
+  <rect x="405" y="535" width="1110" height="96" rx="10" fill="#FFFFFF" stroke="#F2A93B" stroke-width="3"/>
+  <rect x="405" y="535" width="18" height="96" fill="#F2A93B"/>
+  <text x="443" y="573" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Force the call</text>
+  <text x="443" y="611" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="20" font-weight="400" fill="#6B7A91">tool_choice = { "type": "tool", "name": "extract_invoice" }</text>
+
+  <path d="M 960 633 L 960 647 M 952 641 L 960 649 L 968 641"
+        stroke="#6B7A91" stroke-width="3" fill="none"/>
+
+  <rect x="405" y="655" width="1110" height="96" rx="10" fill="#FFFFFF" stroke="#1FA8B3" stroke-width="3"/>
+  <rect x="405" y="655" width="18" height="96" fill="#1FA8B3"/>
+  <text x="443" y="693" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Receive tool_use block</text>
+  <text x="443" y="731" font-family="'Cascadia Code', 'Consolas', 'Menlo', monospace" font-size="20" font-weight="400" fill="#6B7A91">block.input is a dict matching your schema.  No json.loads, no fence-stripping.</text>
+
+  <path d="M 960 770 L 1160 820 L 960 870 L 760 820 Z"
+        fill="#0F2A47"/>
+  <text x="960" y="816" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="700"
+        fill="#FFFFFF" text-anchor="middle">Invoice(**block.input)</text>
+  <text x="960" y="844" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#F2A93B" text-anchor="middle">validates?</text>
+
+  <path d="M 960 753 L 960 768 M 952 760 L 960 770 L 968 760"
+        stroke="#6B7A91" stroke-width="3" fill="none"/>
+
+  <path d="M 760 820 L 250 820" stroke="#1FA8B3" stroke-width="3" fill="none"/>
+  <text x="740" y="808" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#1FA8B3" text-anchor="end">YES</text>
+  <rect x="90" y="770" width="320" height="100" rx="10" fill="#1FA8B3"/>
+  <text x="250" y="814" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF" text-anchor="middle">Typed object</text>
+  <text x="250" y="844" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#E8EEF7" text-anchor="middle">ship it</text>
+
+  <path d="M 1160 820 L 1670 820" stroke="#D85A2A" stroke-width="3" fill="none"/>
+  <text x="1180" y="808" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#D85A2A" text-anchor="end">NO</text>
+  <rect x="1510" y="770" width="320" height="100" rx="10" fill="#D85A2A"/>
+  <text x="1670" y="814" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF" text-anchor="middle">Retry once</text>
+  <text x="1670" y="844" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#F8F4EC" text-anchor="middle">max_retries = 1</text>
+
+  <path d="M 1670 770 C 1670 580, 1670 480, 1535 480 L 1535 510"
+        stroke="#D85A2A" stroke-width="3" fill="none" stroke-dasharray="6,6"/>
+  <path d="M 1529 502 L 1537 514 L 1543 500"
+        stroke="#D85A2A" stroke-width="3" fill="none"/>
+  <text x="1830" y="450" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#D85A2A" letter-spacing="1" text-anchor="end">APPEND ERROR AS TOOL_RESULT</text>
+
+  <rect x="0" y="1030" width="1920" height="50" fill="#0F2A47" opacity="0.92"/>
+  <text x="60" y="1065" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="600"
+        fill="#F2A93B" letter-spacing="1">DOMAIN 4 - PROMPTS AND STRUCTURED OUTPUT (20%)</text>
+  <text x="1860" y="1065" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#FFFFFF" text-anchor="end">Segment 3</text>
+</svg>

@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#E8EEF7"/>
+
+  <rect x="0" y="0" width="1920" height="120" fill="#0F2A47"/>
+  <text x="60" y="62" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="44" font-weight="700"
+        fill="#FFFFFF">Escalation triggers:  policy, complexity, risk, explicit request</text>
+  <text x="60" y="92" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="400"
+        fill="#F2A93B" letter-spacing="2">DOMAIN 5  -  SENTIMENT ALONE IS NOT A ROUTING SIGNAL</text>
+
+  <rect x="710" y="180" width="500" height="80" rx="10" fill="#0F2A47"/>
+  <text x="960" y="218" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700"
+        fill="#FFFFFF" text-anchor="middle">Customer signal arrives</text>
+  <text x="960" y="248" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#F2A93B" text-anchor="middle">What kind?</text>
+
+  <path d="M 960 262 L 960 295 M 952 287 L 960 297 L 968 287" stroke="#6B7A91" stroke-width="3" fill="none"/>
+
+  <rect x="90" y="320" width="720" height="110" rx="10" fill="#FFFFFF" stroke="#D85A2A" stroke-width="3"/>
+  <rect x="90" y="320" width="18" height="110" fill="#D85A2A"/>
+  <text x="120" y="362" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Explicit human request</text>
+  <text x="120" y="398" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#6B7A91">"I want a human NOW."  Do not clarify.  Do not try one more tool.</text>
+
+  <rect x="90" y="446" width="720" height="110" rx="10" fill="#FFFFFF" stroke="#D85A2A" stroke-width="3"/>
+  <rect x="90" y="446" width="18" height="110" fill="#D85A2A"/>
+  <text x="120" y="488" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Policy violation</text>
+  <text x="120" y="524" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#6B7A91">Refund > $500, account closure, refund-on-non-customer.  Application-layer block.</text>
+
+  <rect x="90" y="572" width="720" height="110" rx="10" fill="#FFFFFF" stroke="#D85A2A" stroke-width="3"/>
+  <rect x="90" y="572" width="18" height="110" fill="#D85A2A"/>
+  <text x="120" y="614" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Complexity</text>
+  <text x="120" y="650" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#6B7A91">Multi-system failure, cross-account, security incident.  One agent cannot own this.</text>
+
+  <rect x="90" y="698" width="720" height="110" rx="10" fill="#FFFFFF" stroke="#D85A2A" stroke-width="3"/>
+  <rect x="90" y="698" width="18" height="110" fill="#D85A2A"/>
+  <text x="120" y="740" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Risk / compliance</text>
+  <text x="120" y="776" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#6B7A91">PII exposure, audit-flagged action, regulated workflow.  Human signs the audit log.</text>
+
+  <rect x="90" y="830" width="720" height="80" rx="10" fill="#D85A2A"/>
+  <text x="450" y="880" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="34" font-weight="700"
+        fill="#FFFFFF" text-anchor="middle" letter-spacing="3">ESCALATE</text>
+
+  <rect x="1110" y="320" width="720" height="110" rx="10" fill="#FFFFFF" stroke="#1FA8B3" stroke-width="3"/>
+  <rect x="1110" y="320" width="18" height="110" fill="#1FA8B3"/>
+  <text x="1140" y="362" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Frustration  ("ugh, this is the worst")</text>
+  <text x="1140" y="398" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#6B7A91">Acknowledge it.  Resolve the underlying issue.  Frustration is not complexity.</text>
+
+  <rect x="1110" y="446" width="720" height="110" rx="10" fill="#FFFFFF" stroke="#1FA8B3" stroke-width="3"/>
+  <rect x="1110" y="446" width="18" height="110" fill="#1FA8B3"/>
+  <text x="1140" y="488" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Length of conversation</text>
+  <text x="1140" y="524" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#6B7A91">A 40-turn thread on a $5 refund is still a $5 refund.  Solve, do not punt.</text>
+
+  <rect x="1110" y="572" width="720" height="110" rx="10" fill="#FFFFFF" stroke="#1FA8B3" stroke-width="3"/>
+  <rect x="1110" y="572" width="18" height="110" fill="#1FA8B3"/>
+  <text x="1140" y="614" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Negative sentiment alone</text>
+  <text x="1140" y="650" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#6B7A91">Calm user with a multi-account dispute escalates.  Angry user with a PIN reset does not.</text>
+
+  <rect x="1110" y="698" width="720" height="110" rx="10" fill="#FFFFFF" stroke="#1FA8B3" stroke-width="3"/>
+  <rect x="1110" y="698" width="18" height="110" fill="#1FA8B3"/>
+  <text x="1140" y="740" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#1A2235">Repeat contacts in a week</text>
+  <text x="1140" y="776" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#6B7A91">Investigate the root cause.  Escalation does not fix recurring failure modes.</text>
+
+  <rect x="1110" y="830" width="720" height="80" rx="10" fill="#1FA8B3"/>
+  <text x="1470" y="880" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="34" font-weight="700"
+        fill="#FFFFFF" text-anchor="middle" letter-spacing="3">CONTINUE  -  RESOLVE</text>
+
+  <text x="450" y="305" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="700"
+        fill="#D85A2A" text-anchor="middle" letter-spacing="3">IF ANY OF THESE  -  ESCALATE</text>
+  <text x="1470" y="305" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="700"
+        fill="#1FA8B3" text-anchor="middle" letter-spacing="3">NONE OF THESE ARE ESCALATION SIGNALS</text>
+
+  <rect x="90" y="940" width="1740" height="68" rx="8" fill="#F2A93B" opacity="0.18"/>
+  <rect x="90" y="940" width="18" height="68" fill="#F2A93B"/>
+  <text x="120" y="975" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="600" fill="#1A2235">
+    On escalation:  pass a STRUCTURED summary to the human queue.  Not the transcript.  Who, what, what was tried, what is blocked.
+  </text>
+
+  <rect x="0" y="1030" width="1920" height="50" fill="#0F2A47" opacity="0.92"/>
+  <text x="60" y="1065" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="600"
+        fill="#F2A93B" letter-spacing="1">DOMAIN 5 - CONTEXT AND RELIABILITY (15%)</text>
+  <text x="1860" y="1065" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="400"
+        fill="#FFFFFF" text-anchor="end">Segment 3</text>
+</svg>
