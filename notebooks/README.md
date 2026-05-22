@@ -63,7 +63,7 @@ $env:ANTHROPIC_API_KEY = "sk-ant-..."     # current shell only
 
 Or create `C:\github\claude-architect\.env` (already in `.gitignore`):
 
-```
+```ini
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 

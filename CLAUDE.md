@@ -22,10 +22,11 @@ The repo ships these artifacts:
 - `PRE-CLASS-CHECKLIST.md` - instructor pre-flight (PowerShell)
 - `domain-1-agentic.md` through `domain-5-context.md` - post-course reference scaffolds, one per CCA-F exam domain
 - `CERT-PROGRAM-BRIEFING.md` - Segment 4 talk-track reference (exam mechanics, domain weights, week-before punchlist, all public-sourced)
-- `PRACTICE-QUESTIONS.md` - 60-question cohort take-home, extracted from the community study repo with provenance disclaimer
-- `practice-questions.json` - machine-readable practice-question source (Segment 4 notebook samples 10 from this)
-- `scripts/extract-practice-questions.py` - build-time extractor that regenerates the two practice-question files from the upstream HTML
-- `.mcp.json` - Segment 2 MCP config anchor (4 servers, 3 transports, env-var expansion)
+- `PRACTICE-QUESTIONS.md` - 60-question cohort take-home. **Hand-maintained.** Question stems are community-sourced; the answer explanations are repo-authored, with per-distractor rationale and Anthropic-doc citations grounded via Context7.
+- `practice-questions.json` - machine-readable practice-question source, hand-maintained (Segment 4 notebook samples 10 from this). Its explanations are the shorter originals; the enriched per-distractor rationale lives only in `PRACTICE-QUESTIONS.md`, so the two diverge by design.
+- `scripts/extract-practice-questions.py` - **RETIRED.** Was the build-time extractor for the two practice-question files; retired because a regeneration from the upstream HTML would overwrite the hand-authored explanations in `PRACTICE-QUESTIONS.md`. Both files are now hand-maintained; edit them directly.
+- `.mcp.json` - Segment 2 MCP config anchor (5 servers, 3 transports, env-var expansion). The fifth server, `document-mcp`, is stdio and points Claude Code at the course's own FastMCP demo (`examples/mcp_cli/mcp_server.py`).
+- `.vscode/mcp.json` - VS Code / GitHub Copilot agent-mode MCP config. Sibling schema to `.mcp.json`, NOT the same file: VS Code keys servers under `servers` (Claude Code uses `mcpServers`), allows JSONC comments, and uses `${workspaceFolder}` / `${env:VAR}` / `${input:id}` variables. Carries the same `document-mcp` server. The two files must be kept in sync by hand. Note: this file is local-only (untracked), not committed; only `.vscode/settings.json` is in version control.
 - `hooks-example.py` - real PreToolUse / PostToolUse reference cited from Segment 1
 - `coordinator-subagent-sketch.py` - Domain 1 coordinator-subagent scaffold (renamed from the old `testing.md`)
 - `examples/mcp_cli/` - vendored reference MCP CLI app from Anthropic's Skilljar course (Segment 2 anchor; separate uv project with its own `pyproject.toml`, `uv.lock`, and `.python-version` pinning 3.13). Attribution in `examples/mcp_cli/NOTICE.md`.
@@ -54,7 +55,7 @@ For interactive teaching sessions, prefer the **lifecycle helper scripts** over 
 
 Smoke tests run via `uv run` too: `uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-0-pre-flight.ipynb --output _smoke-0.ipynb` (budget ~$0.05 per notebook against the live API). Builder scripts (`scripts/build-notebooks.py` and `scripts/_notebooks/*.py`) are pure Python with no third-party deps; they run with the system Python directly, no venv required.
 
-`examples/mcp_cli/` is a **separate uv project** with its own `pyproject.toml` and `uv.lock`. Bootstrap it independently with `cd examples/mcp_cli && uv run main.py`. Intentional separation: it is reference code from Anthropic's Skilljar course (see `examples/mcp_cli/NOTICE.md`), not part of the notebook environment.
+`examples/mcp_cli/` is a **separate uv project** with its own `pyproject.toml` and `uv.lock`. Bootstrap it independently with `cd examples/mcp_cli && uv run main.py`. Intentional separation: it is reference code from Anthropic's Skilljar course (see `examples/mcp_cli/NOTICE.md`), not part of the notebook environment. Two **on-rails MCP launchers** wrap it for Segment 2 demos: `.\scripts\run-mcp-cli.ps1` starts the vendored MCP CLI app with the same single-command UX as the notebooks, and `.\scripts\run-mcp-inspector.ps1` launches the MCP Inspector (`mcp dev`) against the FastMCP demo server `examples/mcp_cli/mcp_server.py` - it owns Inspector ports 6274 (web UI) and 6277 (proxy) and clears any Windows half-state before launch, mirroring the `run-jupyter.ps1` / `stop-jupyter.ps1` posture.
 
 ## Architecture: how the pieces fit
 
@@ -222,8 +223,10 @@ uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/s
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-3-invoice-extractor.ipynb --output _smoke-3.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-4-cca-f-capstone.ipynb --output _smoke-4.ipynb
 
-# Regenerate practice questions from upstream HTML (run only after the community repo updates)
-python scripts/extract-practice-questions.py
+# Practice-question files are HAND-MAINTAINED. The old extractor
+# (scripts/extract-practice-questions.py) is RETIRED - a regeneration would
+# clobber the authored explanations in PRACTICE-QUESTIONS.md. Edit the two
+# files directly; do not run the extractor.
 ```
 
 There is no build or test suite, but `package.json` ships two real scripts: `npm run lint:voice` (runs the voice-lint sweep above) and `npm run preflight` (executes `scripts/preflight.ps1`). The repo's "tests" are these scripts plus the live PRE-CLASS-CHECKLIST run-through.

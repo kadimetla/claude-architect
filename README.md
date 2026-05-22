@@ -56,14 +56,15 @@ claude-architect/
 ├── COURSE-FLOW.md              # Master instructor punchlist (4 segments × 50 min)
 ├── PRE-CLASS-CHECKLIST.md      # Instructor pre-flight (PowerShell)
 ├── CERT-PROGRAM-BRIEFING.md    # Segment 4 talk-track: exam mechanics, domain weights, week-before punchlist
-├── PRACTICE-QUESTIONS.md       # 60-question community-sourced practice bank (cohort take-home)
+├── PRACTICE-QUESTIONS.md       # 60-question practice bank, hand-maintained (cohort take-home)
 ├── practice-questions.json     # Machine-readable practice-question source
 ├── domain-1-agentic.md         # Reference: Agentic Architecture & Orchestration
 ├── domain-2-tools-mcp.md       # Reference: Tool Design & MCP Integration
 ├── domain-3-claude-code.md     # Reference: Claude Code Configuration & Workflows
 ├── domain-4-prompts.md         # Reference: Prompt Engineering & Structured Output
 ├── domain-5-context.md         # Reference: Context Management & Reliability
-├── .mcp.json                   # Segment 2 Demo A anchor (4 servers, 3 transports)
+├── .mcp.json                   # Segment 2 Demo A anchor (5 servers, 3 transports)
+├── .vscode/mcp.json            # VS Code / GitHub Copilot agent-mode MCP config (sibling schema to .mcp.json)
 ├── hooks-example.py            # Agent SDK hooks: compliance enforcement
 ├── coordinator-subagent-sketch.py  # Domain 1 coordinator-subagent scaffold (read-only reference)
 ├── scenario-cicd-integration.md # Codebase analysis skill with frontmatter
@@ -87,7 +88,7 @@ claude-architect/
     ├── voice-lint.ps1                     # Voice-lint sweep (no em dashes, no AWS, etc.) - run via `npm run lint:voice`
     ├── preflight.ps1                      # Instructor pre-flight - run via `npm run preflight`
     ├── build-deck.py                      # Rebuilds the slide deck
-    └── extract-practice-questions.py      # Build-time extractor for the practice-question files
+    └── extract-practice-questions.py      # RETIRED extractor (practice-question files are now hand-maintained)
 ```
 
 ## Getting started
@@ -243,7 +244,7 @@ This repo bundles three distinct bodies of work. The split matters for attributi
 - **Original content by Tim Warner.** Everything in [`notebooks/`](./notebooks/), the five [`domain-*.md`](./domain-1-agentic.md) reference files, [`COURSE-FLOW.md`](./COURSE-FLOW.md), [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md), [`PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md), [`INSTRUCTOR-SETUP.md`](./INSTRUCTOR-SETUP.md), [`CLAUDE.md`](./CLAUDE.md), and everything under [`scripts/`](./scripts/) is authored by Tim Warner and licensed under MIT via this repo's [`LICENSE`](./LICENSE) file.
 - **Vendored Anthropic content.** [`claude-cookbooks-main/`](./claude-cookbooks-main/) is a vendored copy of Anthropic's official [Claude Cookbooks](https://github.com/anthropics/claude-cookbooks), MIT licensed, **Copyright (c) 2023 Anthropic**. Full attribution, upstream commit reference, and the unmodified MIT license live in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md) and [`claude-cookbooks-main/LICENSE`](./claude-cookbooks-main/LICENSE). It is committed here so learners get the entire reference library on `git clone` without a second clone step.
 - **Reference application from Anthropic's Skilljar course.** [`examples/mcp_cli/`](./examples/mcp_cli/) is a complete MCP CLI application (stdio FastMCP server + client + interactive chat with `@doc-id` retrieval and `/prompt-name` commands) distributed as starter material with Anthropic's [Claude with the Anthropic API](https://anthropic.skilljar.com/claude-with-the-anthropic-api/) Skilljar course. Treated as Anthropic-authored instructional reference; full attribution and the two minor modifications (rename `.env` to `.env.example`, add `NOTICE.md`) are documented in [`examples/mcp_cli/NOTICE.md`](./examples/mcp_cli/NOTICE.md). Segment 2 of the course opens its `mcp_server.py` source during Demo A.
-- **Community-sourced practice bank.** [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) is community-sourced from Paul Larionov's study repo (see the [Disclaimer](#disclaimer) below for the full provenance and calibration-only framing).
+- **Practice bank with split provenance.** In [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) the question stems, options, and correct answers are community-sourced from Paul Larionov's study repo; the answer explanations are this repo's own work, grounded in Anthropic documentation. The file is hand-maintained (see the [Disclaimer](#disclaimer) below for the full provenance and calibration-only framing).
 - **Point-in-time snapshots, not submodules.** Both [`claude-cookbooks-main/`](./claude-cookbooks-main/) and [`examples/mcp_cli/`](./examples/mcp_cli/) are static snapshots, not git submodules. Refresh procedures are documented in each directory's `NOTICE.md`.
 
 ## Disclaimer

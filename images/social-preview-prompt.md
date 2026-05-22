@@ -21,7 +21,7 @@ Tim Warner, taught on O'Reilly Live Learning. It teaches developers
 how to architect production-grade AI agents using Anthropic's Claude
 API, the Model Context Protocol (MCP), and Claude Code.
 
-VISUAL STYLE — production-architect / engineering blueprint aesthetic:
+VISUAL STYLE - production-architect / engineering blueprint aesthetic:
 
 - Dark navy or near-black background (think #0A0F1E to #111827 range,
   not pure black). The background should suggest depth, not flat.
@@ -29,9 +29,9 @@ VISUAL STYLE — production-architect / engineering blueprint aesthetic:
   geometric primitives, a sense of an architectural diagram or
   circuit blueprint laid out across the frame.
 - Sparse, deliberate accent color: a single warm orange (think the
-  #E07B47 to #D97757 range — warm, slightly muted, not neon, not
+  #E07B47 to #D97757 range - warm, slightly muted, not neon, not
   pure red, not Stripe-purple, not corporate-blue). The orange is
-  for accent strokes and one or two focal elements only — never
+  for accent strokes and one or two focal elements only, never
   more than 10 percent of total pixel coverage.
 - Optional secondary accent: a very soft cool blue or teal (#3B82F6
   at low opacity) used for line work or grid elements that should
@@ -53,7 +53,7 @@ COMPOSITION (left-to-right reading order):
   white at about 70 percent opacity.
 - RIGHT TWO THIRDS: an abstract technical-blueprint illustration
   suggesting an agentic system. Schematic-style elements you might
-  include (pick a tasteful subset — do NOT cram all of them in):
+  include (pick a tasteful subset, do NOT cram all of them in):
     * thin geometric nodes connected by clean lines (suggesting
       a coordinator-subagent topology)
     * a small "loop" motif somewhere (suggesting the agentic loop)
@@ -67,7 +67,7 @@ COMPOSITION (left-to-right reading order):
   NOT glowing neon, NOT a brain or robot, NOT a head silhouette
   with circuits inside, NOT abstract swirly AI art.
 
-CRITICAL NEGATIVE PROMPTS — what NOT to include:
+CRITICAL NEGATIVE PROMPTS - what NOT to include:
 
 - NO photorealistic humans, faces, or hands
 - NO robot imagery, NO brain imagery, NO neural network "node and
@@ -76,7 +76,7 @@ CRITICAL NEGATIVE PROMPTS — what NOT to include:
 - NO chatbot speech bubbles
 - NO fake corporate logos that resemble real companies (no fake
   Anthropic logo, no fake OpenAI logo, no fake GitHub logo)
-- NO fictional code that contains AI hallucinations — if any code
+- NO fictional code that contains AI hallucinations, if any code
   appears, keep it to two or three lines of plausible Python and
   proofread it
 - NO emoji

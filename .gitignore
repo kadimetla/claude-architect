@@ -238,3 +238,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 ENHANCEMENTS.md
+
+# Claude Code personal project settings (per-machine overrides, never committed).
+# .claude/settings.json IS committed for team-wide config; .local.json is yours alone.
+.claude/settings.local.json

@@ -3,10 +3,13 @@
   // notebooks/.venv. VS Code's Python extension only auto-scans the workspace
   // root, so without venvFolders it never discovers this interpreter and the
   // notebook silently falls back to a bare root .venv that lacks ipykernel.
-  "python.venvFolders": [
-    "notebooks"
-  ],
+  "python.venvFolders": ["notebooks"],
   // Make notebooks/.venv the default interpreter for the whole repo. Five of
   // the six teaching notebooks plus the vendored cookbooks all expect this env.
-  "python.defaultInterpreterPath": "${workspaceFolder}/notebooks/.venv/Scripts/python.exe"
+  "python.defaultInterpreterPath": "${workspaceFolder}/notebooks/.venv/Scripts/python.exe",
+  "chat.mcp.serverSampling": {
+    "claude-architect/.vscode/mcp.json: oreilly-document-mcp": {
+      "allowedModels": ["copilot/auto", "copilotcli/claude-sonnet-4.6"]
+    }
+  }
 }

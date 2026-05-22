@@ -17,10 +17,7 @@
     "github": {
       "_comment": "stdio transport with secret. GITHUB_TOKEN expands from environment. The token never lands in git because the value lives in your shell env, not in this file.",
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
+      "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
         "GITHUB_TOKEN": "${GITHUB_TOKEN}"
       }
@@ -40,6 +37,11 @@
       "headers": {
         "Authorization": "Bearer ${INTERNAL_KB_TOKEN}"
       }
+    },
+    "document-mcp": {
+      "_comment": "stdio transport. The course's own FastMCP demo server (examples/mcp_cli/mcp_server.py), the same DocumentMCP you run under `mcp dev` with the Inspector. `uv run --directory` makes uv resolve the examples/mcp_cli/ project and its .venv, then runs the script, whose __main__ guard calls mcp.run(transport='stdio'). No auth: it runs as your user, in-process docs, no network.",
+      "command": "uv",
+      "args": ["run", "--directory", "examples/mcp_cli", "mcp_server.py"]
     }
   }
 }
