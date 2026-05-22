@@ -1,4 +1,4 @@
-"""Build the five teaching notebooks for Claude Architect Foundations.
+"""Build the seven teaching/reference notebooks for Claude Architect Foundations.
 
 Run this when notebook content changes. It writes .ipynb files into
 ``notebooks/`` with cleared outputs and no trailing metadata that would
@@ -6,8 +6,9 @@ diff noisily under git. The source-of-truth lives here in Python so the
 notebooks are reviewable in PRs without nbdiff.
 
 Usage:
-    python scripts/build-notebooks.py            # builds all five
-    python scripts/build-notebooks.py segment-1  # builds one by slug
+    python scripts/build-notebooks.py                      # builds all seven
+    python scripts/build-notebooks.py segment-1            # builds one by slug
+    python scripts/build-notebooks.py cca-f-exam-mastery   # the standalone reference
 """
 
 from __future__ import annotations
@@ -31,6 +32,7 @@ from _notebooks import (  # noqa: E402  (local module after path setup)
     segment_2_5_control_surfaces,
     segment_3_invoice_extractor,
     segment_4_capstone,
+    segment_5_exam_mastery,
 )
 
 BUILDERS = {
@@ -40,6 +42,7 @@ BUILDERS = {
     "segment-2-5-control-surfaces": segment_2_5_control_surfaces.cells,
     "segment-3-invoice-extractor": segment_3_invoice_extractor.cells,
     "segment-4-cca-f-capstone": segment_4_capstone.cells,
+    "cca-f-exam-mastery": segment_5_exam_mastery.cells,
 }
 
 
