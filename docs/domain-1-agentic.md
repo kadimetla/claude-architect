@@ -38,12 +38,12 @@ Decomposition is a design call, not a default. Sometimes the agent is better off
 
 See **COURSE-FLOW.md Segment 1** for the live build. Code references:
 
-- `claude-cookbooks-main/tool_use/customer_service_agent.ipynb` - primary demo anchor (4 tools, hook-enforced policy)
-- `claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb` - coordinator-subagent example
-- `claude-cookbooks-main/patterns/agents/orchestrator_workers.ipynb` - orchestration patterns
-- `claude-cookbooks-main/managed_agents/CMA_coordinate_specialist_team.ipynb` - specialist team coordination
-- `./hooks-example.py` - Tim's `enforce_refund_policy` hook ($500 cap)
-- `./coordinator-subagent-sketch.py` - coordinator-subagent scaffold (read-only reference)
+- `../claude-cookbooks-main/tool_use/customer_service_agent.ipynb` - primary demo anchor (4 tools, hook-enforced policy)
+- `../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb` - coordinator-subagent example
+- `../claude-cookbooks-main/patterns/agents/orchestrator_workers.ipynb` - orchestration patterns
+- `../claude-cookbooks-main/managed_agents/CMA_coordinate_specialist_team.ipynb` - specialist team coordination
+- `../hooks-example.py` - Tim's `enforce_refund_policy` hook ($500 cap)
+- `../coordinator-subagent-sketch.py` - coordinator-subagent scaffold (read-only reference)
 
 ## Production tips (Tim's voice)
 
@@ -58,10 +58,10 @@ See **COURSE-FLOW.md Segment 1** for the live build. Code references:
 - Anthropic: stop_reason semantics - https://docs.claude.com/en/api/messages (search for stop_reason)
 - Anthropic: Claude Agent SDK - https://docs.claude.com/en/agent-sdk
 - Claude Code hooks - https://docs.claude.com/en/docs/claude-code/hooks
-- `claude-cookbooks-main/claude_agent_sdk/` - full agent SDK cookbook (8 notebooks covering chief-of-staff, observability, SRE, vulnerability-detection patterns)
-- `claude-cookbooks-main/managed_agents/` - managed agent examples
+- `../claude-cookbooks-main/claude_agent_sdk/` - full agent SDK cookbook (8 notebooks covering chief-of-staff, observability, SRE, vulnerability-detection patterns)
+- `../claude-cookbooks-main/managed_agents/` - managed agent examples
 
 Next Best Steps:
-1) Validate the referenced cookbook paths under `claude-cookbooks-main/` and the local `hooks-example.py` actually exist so learners don't hit broken links.
+1) Validate the referenced cookbook paths under `../claude-cookbooks-main/` and the local `hooks-example.py` actually exist so learners don't hit broken links.
 2) Mirror this scaffold structure into `domain-2-*.md` through `domain-5-*.md` so the post-course reference set has consistent shape across all five CCA-F domains.
 3) Cross-link this file from `COURSE-FLOW.md` Segment 1 and from any top-level `README.md` study path so learners can navigate from course flow to domain reference without hunting.

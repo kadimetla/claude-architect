@@ -16,9 +16,9 @@
 
 Reference architectures, code examples, and practice scenarios for the **Claude Architect** role. This 4-hour O'Reilly Media live training is **skills-first** for Segments 1-3, then closes with a **CCA-F certification capstone** in Segment 4 (cert briefing + weighted practice questions). It teaches the production patterns that define a Claude Architect (agentic orchestration, tool design with MCP, Claude Code workflows, prompt engineering, context management) and gives you a runway to Anthropic's CCA-F exam.
 
-> Anthropic's **Claude Certified Architect: Foundations (CCA-F)** exam is currently restricted to Anthropic partners. The five reference files in this repo map to the published 5-domain exam blueprint, and [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md) walks through exam mechanics, prep stack, and a week-before punchlist.
+> Anthropic's **Claude Certified Architect: Foundations (CCA-F)** exam is currently restricted to Anthropic partners. The five reference files in this repo map to the published 5-domain exam blueprint, and [`CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md) walks through exam mechanics, prep stack, and a week-before punchlist.
 
-> **New: [`EXAM-STUDY-PATH.md`](./EXAM-STUDY-PATH.md)** is the learner-facing bridge from this workshop's notebooks to CCA-F domains and scenario families. Read it after the course-at-a-glance table below if you are aiming at the exam.
+> **New: [`EXAM-STUDY-PATH.md`](./docs/EXAM-STUDY-PATH.md)** is the learner-facing bridge from this workshop's notebooks to CCA-F domains and scenario families. Read it after the course-at-a-glance table below if you are aiming at the exam.
 
 ## What is a Claude Architect?
 
@@ -40,34 +40,37 @@ Total live class time: 4 hours (4 × 50-min segments + 3 × 10-min breaks). Segm
 
 | Domain | Weight | Reference file | Focus |
 |---|---|---|---|
-| 1 - Agentic Architecture & Orchestration | **27%** | [domain-1-agentic.md](./domain-1-agentic.md) | Agentic loops, multi-agent coordination, hooks, session management |
-| 2 - Tool Design & MCP Integration | 18% | [domain-2-tools-mcp.md](./domain-2-tools-mcp.md) | Tool descriptions, structured errors, scoped distribution, MCP config |
-| 3 - Claude Code Configuration & Workflows | 20% | [domain-3-claude-code.md](./domain-3-claude-code.md) | CLAUDE.md hierarchy, skills, slash commands, plan mode, CI/CD |
-| 4 - Prompt Engineering & Structured Output | 20% | [domain-4-prompts.md](./domain-4-prompts.md) | Explicit criteria, few-shot prompting, JSON schemas via tool use, batch API |
-| 5 - Context Management & Reliability | 15% | [domain-5-context.md](./domain-5-context.md) | Context preservation, escalation, error propagation, provenance |
+| 1 - Agentic Architecture & Orchestration | **27%** | [domain-1-agentic.md](./docs/domain-1-agentic.md) | Agentic loops, multi-agent coordination, hooks, session management |
+| 2 - Tool Design & MCP Integration | 18% | [domain-2-tools-mcp.md](./docs/domain-2-tools-mcp.md) | Tool descriptions, structured errors, scoped distribution, MCP config |
+| 3 - Claude Code Configuration & Workflows | 20% | [domain-3-claude-code.md](./docs/domain-3-claude-code.md) | CLAUDE.md hierarchy, skills, slash commands, plan mode, CI/CD |
+| 4 - Prompt Engineering & Structured Output | 20% | [domain-4-prompts.md](./docs/domain-4-prompts.md) | Explicit criteria, few-shot prompting, JSON schemas via tool use, batch API |
+| 5 - Context Management & Reliability | 15% | [domain-5-context.md](./docs/domain-5-context.md) | Context preservation, escalation, error propagation, provenance |
 
-**Exam mechanics:** 60 multiple-choice questions, 120 minutes, scaled 100-1000 with **720 passing**, proctored via ProctorFree, **one attempt only**, $99 (partner discount available). See [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md) for the full briefing.
+**Exam mechanics:** 60 multiple-choice questions, 120 minutes, scaled 100-1000 with **720 passing**, proctored via ProctorFree, **one attempt only**, $99 (partner discount available). See [`CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md) for the full briefing.
 
 ## Repository layout
 
 ```text
 claude-architect/
-├── INSTRUCTOR-SETUP.md         # Multi-day setup arc (machine config, env vars, repo clone, backup plans)
 ├── COURSE-FLOW.md              # Master instructor punchlist (4 segments × 50 min)
-├── PRE-CLASS-CHECKLIST.md      # Instructor pre-flight (PowerShell)
-├── CERT-PROGRAM-BRIEFING.md    # Segment 4 talk-track: exam mechanics, domain weights, week-before punchlist
-├── PRACTICE-QUESTIONS.md       # 60-question practice bank, hand-maintained (cohort take-home)
+├── docs/                       # Reference scaffolds and instructor/learner guides (moved out of repo root)
+│   ├── INSTRUCTOR-SETUP.md         # Multi-day setup arc (machine config, env vars, repo clone, backup plans)
+│   ├── PRE-CLASS-CHECKLIST.md      # Instructor pre-flight (PowerShell)
+│   ├── CERT-PROGRAM-BRIEFING.md    # Segment 4 talk-track: exam mechanics, domain weights, week-before punchlist
+│   ├── EXAM-STUDY-PATH.md          # Learner-facing bridge from notebooks to CCA-F domains and scenarios
+│   ├── PRACTICE-QUESTIONS.md       # 60-question practice bank, hand-maintained (cohort take-home)
+│   ├── COOKBOOK-INDEX.md           # Index of the vendored Anthropic cookbook notebooks cited by the course
+│   ├── scenario-cicd-integration.md # Codebase analysis skill with frontmatter
+│   ├── domain-1-agentic.md         # Reference: Agentic Architecture & Orchestration
+│   ├── domain-2-tools-mcp.md       # Reference: Tool Design & MCP Integration
+│   ├── domain-3-claude-code.md     # Reference: Claude Code Configuration & Workflows
+│   ├── domain-4-prompts.md         # Reference: Prompt Engineering & Structured Output
+│   └── domain-5-context.md         # Reference: Context Management & Reliability
 ├── practice-questions.json     # Machine-readable practice-question source
-├── domain-1-agentic.md         # Reference: Agentic Architecture & Orchestration
-├── domain-2-tools-mcp.md       # Reference: Tool Design & MCP Integration
-├── domain-3-claude-code.md     # Reference: Claude Code Configuration & Workflows
-├── domain-4-prompts.md         # Reference: Prompt Engineering & Structured Output
-├── domain-5-context.md         # Reference: Context Management & Reliability
 ├── .mcp.json                   # Segment 2 Demo A anchor (5 servers, 3 transports)
 ├── .vscode/mcp.json            # VS Code / GitHub Copilot agent-mode MCP config (sibling schema to .mcp.json)
 ├── hooks-example.py            # Agent SDK hooks: compliance enforcement
 ├── coordinator-subagent-sketch.py  # Domain 1 coordinator-subagent scaffold (read-only reference)
-├── scenario-cicd-integration.md # Codebase analysis skill with frontmatter
 ├── SKILL.md                    # Example slash-command / skill definition
 ├── CLAUDE.md                   # Claude Code project instructions for this repo
 ├── notebooks/                  # Tim's six teaching notebooks (five live + one self-study deep dive)
@@ -138,7 +141,7 @@ First run creates `examples/mcp_cli/.env` from the template, lifts `ANTHROPIC_AP
 1. **Read [COURSE-FLOW.md](./COURSE-FLOW.md)** for the full 4-segment teaching arc.
 2. **Walk the five `domain-*.md` reference files** in order. Each maps to a course segment and points at runnable cookbook notebooks.
 3. **Run the five live-teaching notebooks in [`notebooks/`](./notebooks/)** in order, plus the [`segment-2-5-control-surfaces.ipynb`](./notebooks/segment-2-5-control-surfaces.ipynb) self-study deep dive when time allows. These are the primary teaching surface - markdown cells carry the concepts, code cells run the demos. Anthropic's official cookbooks ship alongside in [`claude-cookbooks-main/`](./claude-cookbooks-main/) as the bundled-in reference library (full attribution in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md)).
-4. **Work through [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md)** and the [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) bank if you're aiming at the CCA-F exam.
+4. **Work through [`CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md)** and the [`PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md) bank if you're aiming at the CCA-F exam.
 5. **Build something.** The reference architectures only land when you wire one of these patterns into a real workflow.
 
 ## Practice scenarios (CCA-F exam pool)
@@ -241,15 +244,15 @@ All reachable from the SDK with `anthropic-beta: managed-agents-2026-04-01`:
 
 This repo bundles three distinct bodies of work. The split matters for attribution and for reuse:
 
-- **Original content by Tim Warner.** Everything in [`notebooks/`](./notebooks/), the five [`domain-*.md`](./domain-1-agentic.md) reference files, [`COURSE-FLOW.md`](./COURSE-FLOW.md), [`CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md), [`PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md), [`INSTRUCTOR-SETUP.md`](./INSTRUCTOR-SETUP.md), [`CLAUDE.md`](./CLAUDE.md), and everything under [`scripts/`](./scripts/) is authored by Tim Warner and licensed under MIT via this repo's [`LICENSE`](./LICENSE) file.
+- **Original content by Tim Warner.** Everything in [`notebooks/`](./notebooks/), the five [`domain-*.md`](./docs/domain-1-agentic.md) reference files, [`COURSE-FLOW.md`](./COURSE-FLOW.md), [`CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md), [`PRE-CLASS-CHECKLIST.md`](./docs/PRE-CLASS-CHECKLIST.md), [`INSTRUCTOR-SETUP.md`](./docs/INSTRUCTOR-SETUP.md), [`CLAUDE.md`](./CLAUDE.md), and everything under [`scripts/`](./scripts/) is authored by Tim Warner and licensed under MIT via this repo's [`LICENSE`](./LICENSE) file.
 - **Vendored Anthropic content.** [`claude-cookbooks-main/`](./claude-cookbooks-main/) is a vendored copy of Anthropic's official [Claude Cookbooks](https://github.com/anthropics/claude-cookbooks), MIT licensed, **Copyright (c) 2023 Anthropic**. Full attribution, upstream commit reference, and the unmodified MIT license live in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md) and [`claude-cookbooks-main/LICENSE`](./claude-cookbooks-main/LICENSE). It is committed here so learners get the entire reference library on `git clone` without a second clone step.
 - **Reference application from Anthropic's Skilljar course.** [`examples/mcp_cli/`](./examples/mcp_cli/) is a complete MCP CLI application (stdio FastMCP server + client + interactive chat with `@doc-id` retrieval and `/prompt-name` commands) distributed as starter material with Anthropic's [Claude with the Anthropic API](https://anthropic.skilljar.com/claude-with-the-anthropic-api/) Skilljar course. Treated as Anthropic-authored instructional reference; full attribution and the two minor modifications (rename `.env` to `.env.example`, add `NOTICE.md`) are documented in [`examples/mcp_cli/NOTICE.md`](./examples/mcp_cli/NOTICE.md). Segment 2 of the course opens its `mcp_server.py` source during Demo A.
-- **Practice bank with split provenance.** In [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) the question stems, options, and correct answers are community-sourced from Paul Larionov's study repo; the answer explanations are this repo's own work, grounded in Anthropic documentation. The file is hand-maintained (see the [Disclaimer](#disclaimer) below for the full provenance and calibration-only framing).
+- **Practice bank with split provenance.** In [`PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md) the question stems, options, and correct answers are community-sourced from Paul Larionov's study repo; the answer explanations are this repo's own work, grounded in Anthropic documentation. The file is hand-maintained (see the [Disclaimer](#disclaimer) below for the full provenance and calibration-only framing).
 - **Point-in-time snapshots, not submodules.** Both [`claude-cookbooks-main/`](./claude-cookbooks-main/) and [`examples/mcp_cli/`](./examples/mcp_cli/) are static snapshots, not git submodules. Refresh procedures are documented in each directory's `NOTICE.md`.
 
 ## Disclaimer
 
-This is an **unofficial study guide** built around Anthropic's publicly documented CCA-F exam blueprint. Practice questions in [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) are community-sourced from [Paul Larionov's study repo](https://github.com/paullarionov/claude-certified-architect) and are intended for **calibration only**, not as exam predictors. The authoritative source for exam content, registration, and policy is **Anthropic** (see the [public CCA-F page](https://anthropic.skilljar.com/) and the Exam Policy). Use Anthropic's own Practice Exam to gauge readiness before scheduling.
+This is an **unofficial study guide** built around Anthropic's publicly documented CCA-F exam blueprint. Practice questions in [`PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md) are community-sourced from [Paul Larionov's study repo](https://github.com/paullarionov/claude-certified-architect) and are intended for **calibration only**, not as exam predictors. The authoritative source for exam content, registration, and policy is **Anthropic** (see the [public CCA-F page](https://anthropic.skilljar.com/) and the Exam Policy). Use Anthropic's own Practice Exam to gauge readiness before scheduling.
 
 ## Contributing
 

@@ -23,7 +23,7 @@ Per Claude Code docs: files in the directory hierarchy **above** the working dir
 
 A **skill** is a versioned, reusable instruction set you ship with your repo. Skills live in `~/.claude/skills/<name>/SKILL.md` (user-wide) or `.claude/skills/<name>/SKILL.md` (project-scoped). The frontmatter (`name`, `description`) is how Claude decides whether to invoke the skill at all. The **description is the search query** the model runs against your skill library, so write it like a help-desk ticket title, not a marketing tagline. Skills can bundle scripts, templates, and reference docs alongside the `SKILL.md`.
 
-**Slash commands** live in `~/.claude/commands/<name>.md` or `.claude/commands/<name>.md` and become `/name` invocations. This repo's `./SKILL.md` is a worked example with frontmatter (`context`, `allowed-tools`, `argument-hint`) and an instruction body. Skills are how you package institutional knowledge into a version-controlled artifact instead of re-typing it every session.
+**Slash commands** live in `~/.claude/commands/<name>.md` or `.claude/commands/<name>.md` and become `/name` invocations. A command file carries frontmatter (`context`, `allowed-tools`, `argument-hint`) and an instruction body. Skills are how you package institutional knowledge into a version-controlled artifact instead of re-typing it every session.
 
 ### Path-specific rules
 
@@ -83,7 +83,7 @@ MCP servers (project-level `.mcp.json`):
 }
 ```
 
-For the **Agent SDK** equivalent, hooks are Python callables (see `./hooks-example.py` for the Domain 1 normalization + policy-gate pattern). Same mental model: **hooks are deterministic, prompts are probabilistic**. Use hooks when business rules require a guarantee.
+For the **Agent SDK** equivalent, hooks are Python callables (see `../hooks-example.py` for the Domain 1 normalization + policy-gate pattern). Same mental model: **hooks are deterministic, prompts are probabilistic**. Use hooks when business rules require a guarantee.
 
 ### Iterative refinement
 
@@ -93,12 +93,11 @@ The progressive-development loop: small change, `claude -p "review"`, apply feed
 
 See **COURSE-FLOW.md Segment 2** for the live walkthrough. Code references in this repo:
 
-- `./CLAUDE.md`. This repo's own project-level CLAUDE.md as a worked example.
-- `./SKILL.md`. Slash-command / skill definition with frontmatter (`context`, `allowed-tools`, `argument-hint`).
+- `../CLAUDE.md`. This repo's own project-level CLAUDE.md as a worked example.
 - `./scenario-cicd-integration.md`. `claude -p` in a CI pipeline.
-- `./hooks-example.py`. Agent SDK hook pattern (same mental model as `settings.json` hooks).
-- `./settings.json`. Editor settings example for the repo.
-- `claude-cookbooks-main/skills/`. Anthropic skill examples (private; do not commit).
+- `../hooks-example.py`. Agent SDK hook pattern (same mental model as `settings.json` hooks).
+- `../settings.json`. Editor settings example for the repo.
+- `../claude-cookbooks-main/skills/`. Anthropic skill examples (private; do not commit).
 
 ## Production tips (Tim's voice)
 
@@ -116,4 +115,4 @@ See **COURSE-FLOW.md Segment 2** for the live walkthrough. Code references in th
 - Headless mode. https://docs.claude.com/en/docs/claude-code/headless
 - Skills. https://docs.claude.com/en/docs/claude-code/skills
 - Hooks. https://docs.claude.com/en/docs/claude-code/hooks
-- `claude-cookbooks-main/skills/`. Anthropic's own skill examples.
+- `../claude-cookbooks-main/skills/`. Anthropic's own skill examples.

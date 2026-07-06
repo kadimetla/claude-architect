@@ -110,11 +110,11 @@ Write a custom tool only when a built-in cannot do the job. The classic anti-pat
 
 See **COURSE-FLOW.md Segment 2** for the live walkthrough. Code references:
 
-- `claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` - Pydantic → JSON Schema → tool input_schema pattern
-- `claude-cookbooks-main/tool_use/tool_choice.ipynb` - tool_choice mode examples
-- `claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel tool execution
-- `claude-cookbooks-main/managed_agents/cma-mcp/` - MCP server configuration walk-through
-- `claude-cookbooks-main/tool_use/customer_service_agent.ipynb` - multi-tool agent
+- `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` - Pydantic → JSON Schema → tool input_schema pattern
+- `../claude-cookbooks-main/tool_use/tool_choice.ipynb` - tool_choice mode examples
+- `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel tool execution
+- `../claude-cookbooks-main/managed_agents/cma-mcp/` - MCP server configuration walk-through
+- `../claude-cookbooks-main/tool_use/customer_service_agent.ipynb` - multi-tool agent
 
 ## Production tips (Tim's voice)
 
@@ -130,4 +130,4 @@ See **COURSE-FLOW.md Segment 2** for the live walkthrough. Code references:
 - Anthropic: tool_choice parameter - https://docs.claude.com/en/api/messages
 - Claude Code: MCP integration - https://docs.claude.com/en/docs/claude-code/mcp
 - Model Context Protocol spec - https://modelcontextprotocol.io
-- `claude-cookbooks-main/tool_use/` - full tool-use cookbook (~15 notebooks)
+- `../claude-cookbooks-main/tool_use/` - full tool-use cookbook (~15 notebooks)

@@ -2,7 +2,7 @@
 
 Quick map of the **Anthropic Claude Cookbooks** vendored in this repo: what each heavy-rotation notebook teaches, where it lives, and how to run it in VS Code.
 
-The full cookbook collection is vendored at `claude-cookbooks-main/` (MIT, Copyright (c) 2023 Anthropic - see `claude-cookbooks-main/NOTICE.md`). This index covers only the **8 cookbooks the course cites 2+ times**.
+The full cookbook collection is vendored at `../claude-cookbooks-main/` (MIT, Copyright (c) 2023 Anthropic - see `../claude-cookbooks-main/NOTICE.md`). This index covers only the **8 cookbooks the course cites 2+ times**.
 
 ## How to run any of these in VS Code
 
@@ -12,20 +12,20 @@ The full cookbook collection is vendored at `claude-cookbooks-main/` (MIT, Copyr
 4. Set your API key before launching VS Code: `$env:ANTHROPIC_API_KEY = '<your-key>'`. These notebooks hit the live API.
 5. Run cells top-to-bottom.
 
-**The venv is auto-discovered.** `.vscode/settings.json` sets `python.venvFolders` to scan the `notebooks/` subfolder, so `notebooks\.venv` appears in the kernel picker without you entering a path by hand.
+**The venv is auto-discovered.** `../.vscode/settings.json` sets `python.venvFolders` to scan the `notebooks/` subfolder, so `notebooks\.venv` appears in the kernel picker without you entering a path by hand.
 
 ## The 8 heavy-rotation cookbooks
 
 | Cookbook | Path | What it teaches | Status |
 |---|---|---|---|
-| **Tool choice** | `claude-cookbooks-main/tool_use/tool_choice.ipynb` | `tool_choice` modes (`auto`, `any`, `tool`) and `disable_parallel_tool_use` - how to force, forbid, or steer tool calls | PASS - runs as-is |
-| **Customer service agent** | `claude-cookbooks-main/tool_use/customer_service_agent.ipynb` | End-to-end agentic loop: a support agent that calls tools across multiple turns | PASS - declares `ant-tools-sdk`, pick the venv kernel manually |
-| **Tool use with Pydantic** | `claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` | Generating type-safe tool inputs validated by Pydantic models | PASS - declares `ant-tools-sdk`, pick the venv kernel manually |
-| **Structured JSON extraction** | `claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` | Forcing Claude to return structured JSON via a tool schema | PASS - declares `ant-tools-sdk`, pick the venv kernel manually |
-| **Prompt caching** | `claude-cookbooks-main/misc/prompt_caching.ipynb` | Automatic vs explicit `cache_control`; cache write/read token counters; the multi-turn cache breakpoint | PASS - declares `python3`, binds cleanly |
-| **Parallel tools** | `claude-cookbooks-main/tool_use/parallel_tools.ipynb` | Claude emitting multiple `tool_use` blocks in one turn for concurrent execution | FAIL - upstream bug (emits `tool_use` without matching `tool_result`) |
-| **Context compaction** | `claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb` | Automatically compacting long agent context to stay under the window | FAIL - upstream SDK drift (`block.text` vs dict) |
-| **Chief of staff agent (SDK)** | `claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb` | A managed agent built on the Claude Agent SDK | NOT SMOKED - needs `claude-agent-sdk` pkg + Claude Code CLI |
+| **Tool choice** | `../claude-cookbooks-main/tool_use/tool_choice.ipynb` | `tool_choice` modes (`auto`, `any`, `tool`) and `disable_parallel_tool_use` - how to force, forbid, or steer tool calls | PASS - runs as-is |
+| **Customer service agent** | `../claude-cookbooks-main/tool_use/customer_service_agent.ipynb` | End-to-end agentic loop: a support agent that calls tools across multiple turns | PASS - declares `ant-tools-sdk`, pick the venv kernel manually |
+| **Tool use with Pydantic** | `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` | Generating type-safe tool inputs validated by Pydantic models | PASS - declares `ant-tools-sdk`, pick the venv kernel manually |
+| **Structured JSON extraction** | `../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` | Forcing Claude to return structured JSON via a tool schema | PASS - declares `ant-tools-sdk`, pick the venv kernel manually |
+| **Prompt caching** | `../claude-cookbooks-main/misc/prompt_caching.ipynb` | Automatic vs explicit `cache_control`; cache write/read token counters; the multi-turn cache breakpoint | PASS - declares `python3`, binds cleanly |
+| **Parallel tools** | `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` | Claude emitting multiple `tool_use` blocks in one turn for concurrent execution | FAIL - upstream bug (emits `tool_use` without matching `tool_result`) |
+| **Context compaction** | `../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb` | Automatically compacting long agent context to stay under the window | FAIL - upstream SDK drift (`block.text` vs dict) |
+| **Chief of staff agent (SDK)** | `../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb` | A managed agent built on the Claude Agent SDK | NOT SMOKED - needs `claude-agent-sdk` pkg + Claude Code CLI |
 
 ## The `ant-tools-sdk` kernel - pick the venv manually
 

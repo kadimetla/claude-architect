@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Teaching and reference material for the **Claude Architect Foundations** 4-hour live training (O'Reilly Media). The course is **skills-first** for Segments 1-3, then closes with a **CCA-F certification capstone** in Segment 4 (cert briefing + weighted practice questions). Domain 5 (Context Management) is folded into Segment 3 alongside Domain 4.
 
-**The class is taught from the five live-teaching Jupyter notebooks in `./notebooks/`.** Each notebook IS its segment - markdown cells carry the concepts, code cells carry the demos. A sixth **self-study deep-dive notebook** (Segment 2.5) ships alongside for cohort homework and Q&A overflow but is not on the 4-hour clock. The .md files below are the supporting reference scaffolds.
+**The class is taught from the five live-teaching Jupyter notebooks in `./notebooks/`.** Each notebook IS its segment - markdown cells carry the concepts, code cells carry the demos. A sixth **self-study deep-dive notebook** (Segment 2.5) ships alongside for cohort homework and Q&A overflow but is not on the 4-hour clock. A seventh **standalone exam-mastery reference** (`cca-f-exam-mastery.ipynb`) maps 1:1 to all five domains and all 30 task statements; it is off-clock post-class study, not live-taught. The reference scaffold .md files live in `./docs/`.
 
 The repo ships these artifacts:
 
@@ -16,15 +16,17 @@ The repo ships these artifacts:
 - `notebooks/segment-2-5-control-surfaces.ipynb` - **Segment 2.5 self-study deep dive** (all five domains): full `tool_choice` modes + `disable_parallel_tool_use`, `stop_sequences` and `max_tokens` as control levers, MCP `list_tools` discovery, and the Claude Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`). Not live-taught.
 - `notebooks/segment-3-invoice-extractor.ipynb` - Segment 3 (Domains 4 + 5)
 - `notebooks/segment-4-cca-f-capstone.ipynb` - Segment 4 (cert briefing + weighted practice questions)
+- `notebooks/cca-f-exam-mastery.ipynb` - **standalone exam-mastery reference** (built by `scripts/_notebooks/segment_5_exam_mastery.py`). Seven parts, one per domain plus a mechanics-and-coverage part, mapping every CCA-F task statement (TS1.1-TS5.6) to a runnable minimal demo. Off the 4-hour clock; post-class study. Uses `claude-haiku-4-5` throughout except the Part 4 forced-extraction cell, which uses `claude-sonnet-4-6` (same reasoning-depth exception as Segment 3).
 - `notebooks/README.md`, `notebooks/pyproject.toml`, `notebooks/uv.lock`, `notebooks/requirements.txt` - notebook setup (uv-native, pip fallback), smoke commands, voice-lint
 - `scripts/build-notebooks.py` + `scripts/_notebooks/*.py` - source-of-truth Python builders; the .ipynb files are generated artifacts
 - `COURSE-FLOW.md` - master instructor punchlist (4 segments × 50 min, demos, exercises, bridges)
-- `PRE-CLASS-CHECKLIST.md` - instructor pre-flight (PowerShell)
-- `domain-1-agentic.md` through `domain-5-context.md` - post-course reference scaffolds, one per CCA-F exam domain
-- `CERT-PROGRAM-BRIEFING.md` - Segment 4 talk-track reference (exam mechanics, domain weights, week-before punchlist, all public-sourced)
-- `PRACTICE-QUESTIONS.md` - 60-question cohort take-home. **Hand-maintained.** Question stems are community-sourced; the answer explanations are repo-authored, with per-distractor rationale and Anthropic-doc citations grounded via Context7.
-- `practice-questions.json` - machine-readable practice-question source, hand-maintained (Segment 4 notebook samples 10 from this). Its explanations are the shorter originals; the enriched per-distractor rationale lives only in `PRACTICE-QUESTIONS.md`, so the two diverge by design.
-- `scripts/extract-practice-questions.py` - **RETIRED.** Was the build-time extractor for the two practice-question files; retired because a regeneration from the upstream HTML would overwrite the hand-authored explanations in `PRACTICE-QUESTIONS.md`. Both files are now hand-maintained; edit them directly.
+- `docs/PRE-CLASS-CHECKLIST.md` - instructor pre-flight (PowerShell)
+- `docs/domain-1-agentic.md` through `docs/domain-5-context.md` - post-course reference scaffolds, one per CCA-F exam domain
+- `docs/CERT-PROGRAM-BRIEFING.md` - Segment 4 talk-track reference (exam mechanics, domain weights, week-before punchlist, all public-sourced)
+- `docs/PRACTICE-QUESTIONS.md` - 60-question cohort take-home. **Hand-maintained.** Question stems are community-sourced; the answer explanations are repo-authored, with per-distractor rationale and Anthropic-doc citations grounded via Context7.
+- `docs/INSTRUCTOR-SETUP.md`, `docs/EXAM-STUDY-PATH.md`, `docs/COOKBOOK-INDEX.md`, `docs/scenario-cicd-integration.md` - supporting reference docs (instructor setup, study-path map, cookbook wire-up index, CI/CD scenario walkthrough)
+- `practice-questions.json` - machine-readable practice-question source, hand-maintained (Segment 4 notebook samples 10 from this). Stays at repo root, not in docs/. Its explanations are the shorter originals; the enriched per-distractor rationale lives only in `docs/PRACTICE-QUESTIONS.md`, so the two diverge by design.
+- `scripts/extract-practice-questions.py` - **RETIRED.** Was the build-time extractor for the two practice-question files; retired because a regeneration from the upstream HTML would overwrite the hand-authored explanations in `docs/PRACTICE-QUESTIONS.md`. Both files are now hand-maintained; edit them directly.
 - `.mcp.json` - Segment 2 MCP config anchor (5 servers, 3 transports, env-var expansion). The fifth server, `document-mcp`, is stdio and points Claude Code at the course's own FastMCP demo (`examples/mcp_cli/mcp_server.py`).
 - `.vscode/mcp.json` - VS Code / GitHub Copilot agent-mode MCP config. Sibling schema to `.mcp.json`, NOT the same file: VS Code keys servers under `servers` (Claude Code uses `mcpServers`), allows JSONC comments, and uses `${workspaceFolder}` / `${env:VAR}` / `${input:id}` variables. Carries the same `document-mcp` server. The two files must be kept in sync by hand. Note: this file is local-only (untracked), not committed; only `.vscode/settings.json` is in version control.
 - `hooks-example.py` - real PreToolUse / PostToolUse reference cited from Segment 1
@@ -87,10 +89,10 @@ These are not aesthetic preferences. They are linter errors in this repo:
 After editing any MD file, run:
 
 ```bash
-grep -P "—|\bAWS\b" COURSE-FLOW.md PRE-CLASS-CHECKLIST.md domain-*.md
+grep -P "—|\bAWS\b" COURSE-FLOW.md docs/PRE-CLASS-CHECKLIST.md docs/domain-*.md
 ```
 
-Expect zero matches. The 2026-05-16 build leaked 18 em dashes into `domain-2-tools-mcp.md` despite explicit prompts; agent self-reports of "voice compliant" cannot be trusted - verify with Grep.
+Expect zero matches. The 2026-05-16 build leaked 18 em dashes into `docs/domain-2-tools-mcp.md` despite explicit prompts; agent self-reports of "voice compliant" cannot be trusted - verify with Grep.
 
 ## Editing conventions
 
@@ -104,7 +106,7 @@ Expect zero matches. The 2026-05-16 build leaked 18 em dashes into `domain-2-too
 - Python examples include docstrings explaining the production pattern being demonstrated
 - Comments explain **why**, not what (these are teaching materials)
 - Type hints on all Python function signatures
-- Tool errors follow the structured pattern: `is_error: true` plus `errorCategory` and `isRetryable` fields inside the tool_result content (never raise exceptions)
+- Tool errors follow the structured pattern (never raise exceptions). Two distinct keys, two different casings, both deliberate: the SDK/MCP protocol flag on the `tool_result` block is snake_case `is_error: true`; the metadata payload the model reads inside that block's `content` is camelCase, `{"isError": true, "errorCategory": ..., "isRetryable": ...}`. The builders and COURSE-FLOW.md use this split consistently; do not "fix" the payload keys to snake_case
 - All API key references use `os.environ` / `$env:ANTHROPIC_API_KEY` - never hardcoded
 
 ## Demo-verification norm: smoke before commit
@@ -164,7 +166,7 @@ Of the 16 cookbooks the course cites from `claude-cookbooks-main/`, the 8 heavy-
 ## Model policy (course-wide, do not regress)
 
 - **Haiku 4.5 (`claude-haiku-4-5`) is the default** for every notebook and every script in this repo. It handles tool use, agentic loops, structured errors, caching demos, and MCP discovery at production quality for ~1/5 the Sonnet cost.
-- **Sonnet 4.6 (`claude-sonnet-4-6`) is reserved** for places where reasoning depth measurably lifts behavior. The only such place in this course is **Segment 3** (nested invoice schemas with retry-on-validation-error). The Segment 3 builder's `MODEL` line carries a comment justifying the exception.
+- **Sonnet 4.6 (`claude-sonnet-4-6`) is reserved** for places where reasoning depth measurably lifts behavior. It appears in exactly two cells: **Segment 3** (nested invoice schemas with retry-on-validation-error; the builder's `MODEL` line carries a comment justifying the exception) and the **Part 4 forced-extraction cell** of the off-clock `cca-f-exam-mastery.ipynb` reference. Both are the same reasoning-depth exception; every other cell in the repo uses Haiku 4.5.
 - **Opus is never used** in code in this repo. Three legacy mentions in caching-floor prose ("Sonnet 4.x: 1024 / Haiku 4.5: 4096 tokens") have been stripped of their "/Opus" tail; do not re-add it.
 - **Console-managed agents** (e.g. Deep Researcher) carry their own configured `model` field. The SDK respects whatever the Console sets, so the agent's resolved model may legitimately be Sonnet 4.6 even when this notebook's default is Haiku 4.5. That is not a policy violation; it is the agent's recipe.
 - When adding a new MODEL constant, prefer the unversioned alias (`claude-haiku-4-5`) unless a specific feature requires a dated snapshot (Segment 0's pre-flight uses `claude-haiku-4-5-20251001` to pin the SDK floor check).
@@ -180,20 +182,22 @@ Of the 16 cookbooks the course cites from `claude-cookbooks-main/`, the 8 heavy-
 ## Common operations
 
 ```bash
-# Verify all course artifacts present
-ls COURSE-FLOW.md PRE-CLASS-CHECKLIST.md domain-*.md CERT-PROGRAM-BRIEFING.md PRACTICE-QUESTIONS.md practice-questions.json scripts/extract-practice-questions.py
+# Verify all course artifacts present (reference scaffolds live in docs/; practice-questions.json stays at root)
+ls COURSE-FLOW.md CLAUDE.md practice-questions.json \
+   docs/PRE-CLASS-CHECKLIST.md docs/domain-*.md docs/CERT-PROGRAM-BRIEFING.md docs/PRACTICE-QUESTIONS.md
 
-# Verify all six teaching notebooks present (five live + one self-study deep dive)
+# Verify all seven teaching notebooks present (five live + one self-study deep dive + one exam-mastery reference)
 ls notebooks/segment-0-pre-flight.ipynb \
    notebooks/segment-1-customer-support-agent.ipynb \
    notebooks/segment-2-tool-design-and-mcp.ipynb \
    notebooks/segment-2-5-control-surfaces.ipynb \
    notebooks/segment-3-invoice-extractor.ipynb \
-   notebooks/segment-4-cca-f-capstone.ipynb
+   notebooks/segment-4-cca-f-capstone.ipynb \
+   notebooks/cca-f-exam-mastery.ipynb
 
 # Voice lint sweep on Tim-authored files (must return 0 matches).
-# PRACTICE-QUESTIONS.md is community-sourced and excluded; its disclaimer header covers voice drift.
-grep -P "—|\bAWS\b" COURSE-FLOW.md PRE-CLASS-CHECKLIST.md CLAUDE.md CERT-PROGRAM-BRIEFING.md domain-*.md
+# docs/PRACTICE-QUESTIONS.md is community-sourced and excluded; its disclaimer header covers voice drift.
+grep -P "—|\bAWS\b" COURSE-FLOW.md CLAUDE.md docs/PRE-CLASS-CHECKLIST.md docs/CERT-PROGRAM-BRIEFING.md docs/domain-*.md
 
 # Voice lint sweep on notebook markdown cells (must return 0 matches)
 python -c "import json, re, pathlib, sys; hits=0; \
@@ -204,7 +208,7 @@ python -c "import json, re, pathlib, sys; hits=0; \
  for m in re.finditer(r'—|\bAWS\b', ''.join(c['source']))]; sys.exit(1 if hits else 0)"
 
 # Verify domain headers are correct (1-5, no mislabels)
-grep -nH "^# Domain" domain-*.md
+grep -nH "^# Domain" docs/domain-*.md
 
 # Verify .mcp.json parses
 node -e "JSON.parse(require('fs').readFileSync('.mcp.json'))" && echo ok
@@ -215,13 +219,14 @@ python -c "import json; print(len(json.load(open('practice-questions.json', enco
 # Rebuild notebooks from source after editing scripts/_notebooks/*.py
 python scripts/build-notebooks.py
 
-# Smoke test all six notebooks against the API (budget ~$1)
+# Smoke test all seven notebooks against the API (budget ~$1)
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-0-pre-flight.ipynb --output _smoke-0.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-1-customer-support-agent.ipynb --output _smoke-1.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-2-tool-design-and-mcp.ipynb --output _smoke-2.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-2-5-control-surfaces.ipynb --output _smoke-2-5.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-3-invoice-extractor.ipynb --output _smoke-3.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-4-cca-f-capstone.ipynb --output _smoke-4.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/cca-f-exam-mastery.ipynb --output _smoke-exam-mastery.ipynb
 
 # Practice-question files are HAND-MAINTAINED. The old extractor
 # (scripts/extract-practice-questions.py) is RETIRED - a regeneration would

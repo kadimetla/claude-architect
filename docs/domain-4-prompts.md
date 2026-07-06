@@ -102,7 +102,7 @@ tool_block = next(b for b in response.content if b.type == "tool_use")
 invoice = Invoice.model_validate(tool_block.input)  # Pydantic validates on parse
 ```
 
-Reference: `claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb`.
+Reference: `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb`.
 
 ### Validation, retry, and feedback loops
 
@@ -136,16 +136,16 @@ For high-stakes extractions (medical, legal, financial), run the same prompt thr
 - **Agreement across passes** -> high confidence, route to automation.
 - **Disagreement** -> route to human review.
 
-Cost is roughly **3x baseline** but catches systematic biases that a single pass cannot detect. Reference: `claude-cookbooks-main/patterns/agents/evaluator_optimizer.ipynb`.
+Cost is roughly **3x baseline** but catches systematic biases that a single pass cannot detect. Reference: `../claude-cookbooks-main/patterns/agents/evaluator_optimizer.ipynb`.
 
 ## Demo anchor
 
 See **COURSE-FLOW.md Segment 3** for the live build (invoice extractor). Segment 3 now also covers Domain 5 (context preservation, escalation triage), so the demo is tightened to a single notebook on screen. Code references:
 
-- `claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` - primary structured-output pattern, opened live
-- `claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` - Pydantic + tool_use integration, referenced inline (not opened live)
-- `claude-cookbooks-main/patterns/agents/evaluator_optimizer.ipynb` - multi-pass review pattern, self-study
-- `claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel extraction, self-study
+- `../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` - primary structured-output pattern, opened live
+- `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` - Pydantic + tool_use integration, referenced inline (not opened live)
+- `../claude-cookbooks-main/patterns/agents/evaluator_optimizer.ipynb` - multi-pass review pattern, self-study
+- `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel extraction, self-study
 
 ## Production tips (Tim's voice)
 
@@ -161,5 +161,5 @@ See **COURSE-FLOW.md Segment 3** for the live build (invoice extractor). Segment
 - Anthropic: Prompt engineering overview - https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview
 - Anthropic: Tool use for structured output - https://docs.claude.com/en/docs/agents-and-tools/tool-use
 - Anthropic: Message Batches API - https://docs.claude.com/en/docs/build-with-claude/batch-processing
-- `claude-cookbooks-main/tool_use/` - full tool-use cookbook
-- `claude-cookbooks-main/patterns/agents/` - agent design patterns
+- `../claude-cookbooks-main/tool_use/` - full tool-use cookbook
+- `../claude-cookbooks-main/patterns/agents/` - agent design patterns

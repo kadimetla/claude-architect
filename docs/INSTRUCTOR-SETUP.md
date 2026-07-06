@@ -4,7 +4,7 @@ The full setup arc for the 4-hour O'Reilly live training, from "course was appro
 
 - **This file** - one-time and multi-day setup (machine config, env vars, dep installs, asset verification, broadcast rehearsal)
 - **[`./PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md)** - the 30-minutes-before-go-live ritual (verifies the work this file did is still intact)
-- **[`./COURSE-FLOW.md`](./COURSE-FLOW.md)** - the live teaching reference Tim reads from during the session
+- **[`../COURSE-FLOW.md`](../COURSE-FLOW.md)** - the live teaching reference Tim reads from during the session
 
 If you've never taught this course before, work top-to-bottom. If you've taught it before, skim to **"Day-of timeline"** at the bottom.
 
@@ -168,7 +168,7 @@ Expect: `node_modules/` appears, no errors. On any machine where you've already 
 
 ### 2.2 Verify the bundled Anthropic cookbook
 
-The training cites **Anthropic's official cookbook**, which is **vendored at `claude-cookbooks-main/` and committed to this repo** (MIT, Copyright (c) 2023 Anthropic, attribution in [`./claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md)). You get it automatically on the `git clone` from 2.1. No second clone required.
+The training cites **Anthropic's official cookbook**, which is **vendored at `claude-cookbooks-main/` and committed to this repo** (MIT, Copyright (c) 2023 Anthropic, attribution in [`../claude-cookbooks-main/NOTICE.md`](../claude-cookbooks-main/NOTICE.md)). You get it automatically on the `git clone` from 2.1. No second clone required.
 
 Verify the five referenced cookbook notebooks are present:
 
@@ -196,7 +196,7 @@ If you skip this clone, nothing in the live course breaks.
 
 ### 2.4 Verify the bundled MCP reference app
 
-Segment 2's MCP server-source walkthrough cell reads from [`./examples/mcp_cli/`](./examples/mcp_cli/), a reference MCP CLI app from Anthropic's [Claude with the Anthropic API](https://anthropic.skilljar.com/claude-with-the-anthropic-api/) Skilljar course (attribution in [`./examples/mcp_cli/NOTICE.md`](./examples/mcp_cli/NOTICE.md)). It ships with the repo; no separate clone.
+Segment 2's MCP server-source walkthrough cell reads from [`../examples/mcp_cli/`](../examples/mcp_cli/), a reference MCP CLI app from Anthropic's [Claude with the Anthropic API](https://anthropic.skilljar.com/claude-with-the-anthropic-api/) Skilljar course (attribution in [`../examples/mcp_cli/NOTICE.md`](../examples/mcp_cli/NOTICE.md)). It ships with the repo; no separate clone.
 
 Verify the entrypoints are present:
 
@@ -210,7 +210,7 @@ Verify the entrypoints are present:
 ) | ForEach-Object { "$_ : $(Test-Path "C:/github/claude-architect/examples/mcp_cli/$_")" }
 ```
 
-Expect `True` for all five. The app is **not required** to be runnable during class - Segment 2 only reads `mcp_server.py` as source, not as a running process. If you want to run it as a post-class lab, the setup is documented in [`./examples/mcp_cli/README.md`](./examples/mcp_cli/README.md) (uv venv, copy `.env.example` to `.env`, paste your `ANTHROPIC_API_KEY`, `uv run main.py`).
+Expect `True` for all five. The app is **not required** to be runnable during class - Segment 2 only reads `mcp_server.py` as source, not as a running process. If you want to run it as a post-class lab, the setup is documented in [`../examples/mcp_cli/README.md`](../examples/mcp_cli/README.md) (uv venv, copy `.env.example` to `.env`, paste your `ANTHROPIC_API_KEY`, `uv run main.py`).
 
 ### 2.4 Verify `.gitignore` protects confidential content
 
@@ -246,7 +246,7 @@ npm install
 
 ### 3.2 Refresh the bundled cookbook (only if upstream changed materially)
 
-The cookbook at `claude-cookbooks-main/` is a **point-in-time snapshot, not a git submodule**. You only refresh it when Anthropic ships material changes you want to teach. To refresh, follow the procedure documented in [`./claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md), commit the result to `claude-architect`, and re-run 3.4 below.
+The cookbook at `claude-cookbooks-main/` is a **point-in-time snapshot, not a git submodule**. You only refresh it when Anthropic ships material changes you want to teach. To refresh, follow the procedure documented in [`../claude-cookbooks-main/NOTICE.md`](../claude-cookbooks-main/NOTICE.md), commit the result to `claude-architect`, and re-run 3.4 below.
 
 If a notebook **referenced by COURSE-FLOW.md** changes signature or imports after a refresh, the matching `domain-*.md` reference may also need a refresh.
 

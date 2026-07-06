@@ -730,6 +730,8 @@ The MCP `isError` flag is the protocol-level signal; the body carries the metada
 - **`permission`** (auth, scope) - the model escalates, does not retry
 - **`business`** (policy rule, refund cap) - the model escalates, does not retry
 
+The exam tests the **pattern**, not a fixed vocabulary. Segment 2 taught a coarser three-value set (`transient` / `permanent` / `policy`); this reference splits `permanent` into `validation` and `permission`, and renames `policy` to `business`, because the four-way split maps more cleanly to the four things the model can do (retry, reformulate, escalate-on-auth, escalate-on-rule). Pick a closed set that fits your domain and use it consistently. What the exam rewards is that the category **tells the model what to do next**, not the specific words you choose.
+
 The cell below returns a structured-business-error from a `process_refund` tool and lets the model react.
 """
 

@@ -13,7 +13,7 @@ The 4-hour instructor punchlist for the O'Reilly live training. Skills-first, de
 
 **Total class time:** 4 hours (4 x 50-min segments + 3 x 10-min breaks).
 
-**Pre-class verification:** [`./PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md). Run it the day before. Don't skip it.
+**Pre-class verification:** [`./docs/PRE-CLASS-CHECKLIST.md`](./docs/PRE-CLASS-CHECKLIST.md). Run it the day before. Don't skip it.
 
 ## Course roadmap
 
@@ -21,7 +21,7 @@ We move outside-in. **Segment 1** builds an **agent** that decides what to do. *
 
 ## Prerequisites
 
-Run [`./PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md) end-to-end before class. The short version:
+Run [`./docs/PRE-CLASS-CHECKLIST.md`](./docs/PRE-CLASS-CHECKLIST.md) end-to-end before class. The short version:
 
 - **Python 3.13+** on PATH
 - **`uv`** package manager (`pip install uv` once, then `uv` handles everything else)
@@ -39,7 +39,7 @@ If any of those fail, fix them before segment 1. We will not pause class to inst
 ## Segment 1 - Building AI Agents That Use Tools
 
 **Duration:** 50 minutes (40 content + 5 exercise + 5 Q&A)
-**Maps to:** Domain 1 (Reference: [`./domain-1-agentic.md`](./domain-1-agentic.md))
+**Maps to:** Domain 1 (Reference: [`./docs/domain-1-agentic.md`](./docs/domain-1-agentic.md))
 **Self-study deep dive:** [`./notebooks/segment-2-5-control-surfaces.ipynb`](./notebooks/segment-2-5-control-surfaces.ipynb) - lens 2 (runtime loop introspection) and the full `stop_reason` decision tree.
 
 ### Learning objectives
@@ -142,7 +142,7 @@ Anticipated questions:
 ## Segment 2 - Tool Design, Integration, and Claude Code Workflows
 
 **Duration:** 50 minutes (40 content + 5 exercise + 5 Q&A)
-**Maps to:** Domain 2 + Domain 3 (References: [`./domain-2-tools-mcp.md`](./domain-2-tools-mcp.md), [`./domain-3-claude-code.md`](./domain-3-claude-code.md))
+**Maps to:** Domain 2 + Domain 3 (References: [`./docs/domain-2-tools-mcp.md`](./docs/domain-2-tools-mcp.md), [`./docs/domain-3-claude-code.md`](./docs/domain-3-claude-code.md))
 **Self-study deep dive:** [`./notebooks/segment-2-5-control-surfaces.ipynb`](./notebooks/segment-2-5-control-surfaces.ipynb) - all four `tool_choice` modes live, `disable_parallel_tool_use`, MCP `list_tools` discovery, and the Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`).
 
 ### Learning objectives
@@ -253,7 +253,7 @@ Anticipated questions:
 ## Segment 3 - Structured Output, Context, and Production Reliability
 
 **Duration:** 50 minutes (40 content + 5 exercise + 5 Q&A)
-**Maps to:** Domain 4 (Reference: [`./domain-4-prompts.md`](./domain-4-prompts.md)) and Domain 5 (Reference: [`./domain-5-context.md`](./domain-5-context.md))
+**Maps to:** Domain 4 (Reference: [`./docs/domain-4-prompts.md`](./docs/domain-4-prompts.md)) and Domain 5 (Reference: [`./docs/domain-5-context.md`](./docs/domain-5-context.md))
 **Self-study deep dive:** [`./notebooks/segment-2-5-control-surfaces.ipynb`](./notebooks/segment-2-5-control-surfaces.ipynb) - forced `tool_choice` skeleton (Section 2), `stop_sequences` + `max_tokens` as control levers (Section 3), Console memory stores (Section 4).
 
 ### Learning objectives
@@ -335,7 +335,7 @@ Anticipated questions:
 - **`cache_control: {"type": "ephemeral"}` on the system block** pins case facts cheaply; `cache_read_input_tokens` on call 2 verifies the hit. Same pattern Segment 2 ran on the tool block.
 - **Tool-output pruning** keeps long conversations coherent without burning tokens. Compaction (`claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb`) is the post-class self-study lab.
 - **Escalation triggers on policy, complexity, risk, or explicit request.** Sentiment is not a signal.
-- Further self-study: [`./domain-5-context.md`](./domain-5-context.md) covers error propagation, provenance preservation, and confidence calibration depth.
+- Further self-study: [`./docs/domain-5-context.md`](./docs/domain-5-context.md) covers error propagation, provenance preservation, and confidence calibration depth.
 
 ### Bridge to Segment 4
 > "You now have the skills. The exam is how you signal them. Last segment is the certification debrief: what's on it, what Anthropic expects, and ten practice questions to calibrate where you stand."
@@ -345,7 +345,7 @@ Anticipated questions:
 ## Segment 4 - CCA-F Certification Capstone
 
 **Duration:** 50 minutes (12 briefing + 28 practice questions + 10 Q&A and close)
-**Maps to:** All five CCA-F domains. References [`./CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md) and [`./PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md).
+**Maps to:** All five CCA-F domains. References [`./docs/CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md) and [`./docs/PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md).
 
 ### Learning objectives
 
@@ -358,7 +358,7 @@ By the end of this segment, attendees will be able to:
 
 ### Cert program briefing (12 minutes)
 
-**Live delivery:** Tim freestyles over [`./CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md) projected on screen. Hit these load-bearing facts at minimum:
+**Live delivery:** Tim freestyles over [`./docs/CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md) projected on screen. Hit these load-bearing facts at minimum:
 
 1. **What CCA-F is.** Anthropic's first official certification. ~301 level. Targets architects already shipping with the Agent SDK, Claude Code, Claude API, and MCP.
 2. **Exam mechanics.** 60 multiple-choice. 120 minutes. Single session. No breaks. Scaled 100-1000, **passing is 720**, no penalty for guessing. ProctorFree, English, results in 2 business days.
@@ -372,7 +372,7 @@ Encourage cohort to download the briefing from the repo and use the punchlist ve
 
 ### Practice questions: weighted live sample (28 minutes)
 
-**Setup:** Open `C:/github/claude-architect/notebooks/segment-4-cca-f-capstone.ipynb`. The notebook renders 10 weighted practice questions inline with collapsible answers (markdown-driven) and is sourced from `practice-questions.json`. Optional backup: `private/claude-certified-architect-main/practical_test_en.html` in a browser tab for an alternate scoreboard UI. Cohort gets the full 60-question [`./PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) as take-home.
+**Setup:** Open `C:/github/claude-architect/notebooks/segment-4-cca-f-capstone.ipynb`. The notebook renders 10 weighted practice questions inline with collapsible answers (markdown-driven) and is sourced from `practice-questions.json`. Optional backup: `private/claude-certified-architect-main/practical_test_en.html` in a browser tab for an alternate scoreboard UI. Cohort gets the full 60-question [`./docs/PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md) as take-home.
 
 **Source disclaimer to read aloud once:** "These questions are community-sourced from Paul Larionov's study repo. They are calibration practice, not exam predictors. Treat them as a self-assessment, not a guarantee."
 
@@ -427,8 +427,8 @@ Anticipated questions to invite:
 
 1. **This week:** wire one of today's agents into a real production workflow. Do not let the demo code die in a notebook.
 2. **Next:** read the 5 domain reference files in this repo for deeper dives on each area.
-3. **Toward the exam:** work through [`./CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md), take the Anthropic Practice Exam (target >900/1000), then schedule. Remember it is one attempt only.
-4. **Calibration practice:** use [`./PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) (community-sourced, calibration only) to self-assess between Anthropic Practice Exam attempts.
+3. **Toward the exam:** work through [`./docs/CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md), take the Anthropic Practice Exam (target >900/1000), then schedule. Remember it is one attempt only.
+4. **Calibration practice:** use [`./docs/PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md) (community-sourced, calibration only) to self-assess between Anthropic Practice Exam attempts.
 
 Thanks for spending four hours. Now go ship something that does not lie.
 
