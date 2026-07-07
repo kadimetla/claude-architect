@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(c:/github/claude-architect/notebooks/.venv/Scripts/python.exe -c \"import anthropic, dotenv; print\\('anthropic', anthropic.__version__\\); print\\('dotenv OK'\\)\")",
+      "Bash(c:/github/claude-architect/notebooks/.venv/Scripts/python.exe -c \"import subprocess, sys; subprocess.run\\(['uv','pip','install','--python',sys.executable,'anthropic','python-dotenv'],check=True\\); print\\('Dependencies ready.'\\)\")",
+      "Bash(python -c \"import json; nb=json.load\\(open\\('examples/first_request.ipynb',encoding='utf-8'\\)\\); [print\\(f'--- cell {i} [{c[\\\\\"cell_type\\\\\"]}] ---\\\\n'+''.join\\(c['source']\\)\\) for i,c in enumerate\\(nb['cells']\\)]\")",
+      "Bash(python -c \"import json; nb=json.load\\(open\\('examples/first_request.ipynb',encoding='utf-8'\\)\\); [print\\(i, c['cell_type'], repr\\(c.get\\('id'\\)\\), '|', ''.join\\(c['source']\\)[:60].replace\\(chr\\(10\\),' '\\)\\) for i,c in enumerate\\(nb['cells']\\)]\")"
+    ]
+  }
+}
