@@ -4,8 +4,8 @@ Curated reference applications that complement the six teaching notebooks in `..
 
 ## Index
 
-| Directory | What it is | Source | When to study |
-|---|---|---|---|
+| Directory  | What it is                                                                                                               | Source                                                                    | When to study                         |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------------------- |
 | `mcp_cli/` | Reference MCP CLI: stdio FastMCP server + client + interactive chat with `@doc-id` retrieval and `/prompt-name` commands | Anthropic Skilljar course, see [`mcp_cli/NOTICE.md`](./mcp_cli/NOTICE.md) | After Segment 2 (Tool Design and MCP) |
 
 ## Conventions
