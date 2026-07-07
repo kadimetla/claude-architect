@@ -4,9 +4,28 @@ Curated reference applications that complement the six teaching notebooks in `..
 
 ## Index
 
-| Directory  | What it is                                                                                                               | Source                                                                    | When to study                         |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------------------- |
-| `mcp_cli/` | Reference MCP CLI: stdio FastMCP server + client + interactive chat with `@doc-id` retrieval and `/prompt-name` commands | Anthropic Skilljar course, see [`mcp_cli/NOTICE.md`](./mcp_cli/NOTICE.md) | After Segment 2 (Tool Design and MCP) |
+| Directory / file | What it is                                                                                                               | Source                                                                    | When to study                         |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------------------- |
+| `mcp_cli/`       | Reference MCP CLI: stdio FastMCP server + client + interactive chat with `@doc-id` retrieval and `/prompt-name` commands | Anthropic Skilljar course, see [`mcp_cli/NOTICE.md`](./mcp_cli/NOTICE.md) | After Segment 2 (Tool Design and MCP) |
+| `001_*` - `005_*.ipynb` | Messages API primer notebooks: requests, system prompts, temperature, streaming, controlled output, plus three exercises | Adapted with thanks from [jaozc/building-with-the-claude-api](https://github.com/jaozc/building-with-the-claude-api/tree/main) | Alongside Segment 1 (first API calls) |
+
+## Running the primer notebooks (001-005)
+
+These were adapted from [jaozc/building-with-the-claude-api](https://github.com/jaozc/building-with-the-claude-api/tree/main). Three changes make them run in this repo's **uv**-managed world:
+
+- **Install cell uses uv, not `%pip`.** uv-managed venvs ship without pip, so the first cell shells out to `uv pip install` pointed at the running kernel's interpreter. Idempotent - it no-ops when packages are already present.
+- **Model is `claude-haiku-4-5`** - the repo default (see the model policy in the root `CLAUDE.md`).
+- **Prompts are Azure-first** - the streaming and controlled-output demos ask for Azure Event Grid and Azure CLI samples.
+
+### Kernel: pick "Claude Architect (notebooks/.venv)"
+
+Every notebook here requests a course kernel named **`claude-architect`** whose interpreter path is pinned to `notebooks/.venv`. When you open a notebook, that kernel is auto-selected and starred. If it is missing on a fresh clone, register it once:
+
+```powershell
+uv run --project notebooks python -m ipykernel install --user --name claude-architect --display-name "Claude Architect (notebooks/.venv)"
+```
+
+An API key must be present. These notebooks read `examples/.env` (gitignored) via `python-dotenv`; put `ANTHROPIC_API_KEY=...` there, or export it in your shell.
 
 ## Conventions
 
