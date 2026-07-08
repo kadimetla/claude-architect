@@ -1,6 +1,6 @@
 """Generate the Claude Architect Foundations PPTX from the reference template.
 
-Inherits layouts/theme from context-engineering-april-2026.pptx (Tim Warner's
+Inherits layouts/theme from context-engineering-june-2026.pptx (Tim Warner's
 proven O'Reilly live-training deck), then populates the deck against the
 RICH layout library in Master 2 - Section Header, Demo, Course Title,
 Important Statement, Comparison, References, Up Next, Module Overview, etc.
@@ -17,7 +17,7 @@ Slide budget (matches the current 4-segment + Segment 2.5 course flow):
 - 2 Segment 2.5 callouts: bridge + self-study deep-dive pointer
 - 5 outro slides:        recap, CCA-F brief, study path, resources, thanks
 
-Output: C:/github/claude-architect/slides/warner-claude-architect-may-2026.pptx
+Output: C:/github/claude-architect/slides/warner-claude-architect-july-2026.pptx
 """
 
 from __future__ import annotations
@@ -33,8 +33,8 @@ from pptx.util import Inches, Pt
 # reference template sits in the sibling repo (context-engineering); the
 # fallback inside main() handles the case where the sibling isn't checked out.
 REPO_ROOT = Path(__file__).resolve().parent.parent
-REF = REPO_ROOT.parent / "context-engineering" / "instructor" / "context-engineering-april-2026.pptx"
-OUT = REPO_ROOT / "slides" / "warner-claude-architect-may-2026.pptx"
+REF = REPO_ROOT.parent / "context-engineering" / "instructor" / "context-engineering-june-2026.pptx"
+OUT = REPO_ROOT / "slides" / "warner-claude-architect-july-2026.pptx"
 
 # ---------------------------------------------------------------------------
 # Layout vocabulary

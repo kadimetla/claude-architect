@@ -1,6 +1,6 @@
 # Domain 5: Context Management & Reliability
 
-> Reference scaffold, maps to **COURSE-FLOW.md Segment 4**
+> Reference scaffold, maps to **COURSE-FLOW.md Segment 3** (shared with Domain 4)
 
 ## What this domain covers
 

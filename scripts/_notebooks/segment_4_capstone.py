@@ -35,7 +35,7 @@ _title_md = """\
 
 **Duration:** 50 minutes (12 min briefing + 28 min weighted practice + 10 min Q&A and close)
 **Maps to:** All five CCA-F domains
-**References:** [`../CERT-PROGRAM-BRIEFING.md`](../CERT-PROGRAM-BRIEFING.md), [`../PRACTICE-QUESTIONS.md`](../PRACTICE-QUESTIONS.md)
+**References:** [`../docs/CERT-PROGRAM-BRIEFING.md`](../docs/CERT-PROGRAM-BRIEFING.md), [`../docs/PRACTICE-QUESTIONS.md`](../docs/PRACTICE-QUESTIONS.md)
 
 You have the skills. The exam is how you signal them. This segment is the **CCA-F debrief**: what is on the test, what Anthropic expects, and a weighted live practice run so you leave knowing your weakest domain.
 """
@@ -130,7 +130,7 @@ The Anthropic Practice Exam is the authoritative practice signal. Treat communit
 _week_before_md = """\
 ## Tim's week-before-the-exam punchlist
 
-The full 13-item version lives in [`../CERT-PROGRAM-BRIEFING.md`](../CERT-PROGRAM-BRIEFING.md). The headlines:
+The full 13-item version lives in [`../docs/CERT-PROGRAM-BRIEFING.md`](../docs/CERT-PROGRAM-BRIEFING.md). The headlines:
 
 1. **Score >900** on the Anthropic Practice Exam cold
 2. **Rebuild Segment 1 from memory** in 30 minutes (you should be able to write the agent loop and a hook without looking)
@@ -161,7 +161,7 @@ Because D1 carries the highest weight, **three of your ten will exercise D1 patt
 _practice_intro_md = """\
 ## Weighted live practice (28 minutes)
 
-We will run **10 questions** weighted across the four scenarios in our community study set. The 60-question full set ships as take-home in [`../PRACTICE-QUESTIONS.md`](../PRACTICE-QUESTIONS.md).
+We will run **10 questions** weighted across the four scenarios in our community study set. The 60-question full set ships as take-home in [`../docs/PRACTICE-QUESTIONS.md`](../docs/PRACTICE-QUESTIONS.md).
 
 **Source disclaimer (read aloud once):**
 > These questions are community-sourced from Paul Larionov's study repo. They are **calibration practice**, not exam predictors. Treat them as a self-assessment.
@@ -301,8 +301,8 @@ _close_md = """\
 
 1. **This week:** wire one of today's agents into a real production workflow. Do not let the demo code die in a notebook.
 2. **Next:** read the 5 domain reference files in this repo for deeper dives - especially `domain-1-agentic.md` (27% domain) and `domain-5-context.md` (the topics Segment 3 did not have time for).
-3. **Toward the exam:** work through [`../CERT-PROGRAM-BRIEFING.md`](../CERT-PROGRAM-BRIEFING.md), take the Anthropic Practice Exam (target >900/1000), then schedule. **One attempt only.**
-4. **Calibration practice:** use [`../PRACTICE-QUESTIONS.md`](../PRACTICE-QUESTIONS.md) (community-sourced) to self-assess between Anthropic Practice Exam attempts.
+3. **Toward the exam:** work through [`../docs/CERT-PROGRAM-BRIEFING.md`](../docs/CERT-PROGRAM-BRIEFING.md), take the Anthropic Practice Exam (target >900/1000), then schedule. **One attempt only.**
+4. **Calibration practice:** use [`../docs/PRACTICE-QUESTIONS.md`](../docs/PRACTICE-QUESTIONS.md) (community-sourced) to self-assess between Anthropic Practice Exam attempts.
 
 Thanks for spending four hours. Now go ship something that does not lie.
 

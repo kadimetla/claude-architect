@@ -1,6 +1,6 @@
 # Claude Architect Foundations - Notebooks
 
-The six teaching notebooks for the four-hour O'Reilly live training: five live-taught segments plus one self-study deep dive (Segment 2.5). The class is taught **from these notebooks**. Markdown cells carry the concepts. Code cells carry the demos. Run them top to bottom.
+The seven teaching notebooks for the four-hour O'Reilly live training: five live-taught segments, one self-study deep dive (Segment 2.5), and one off-clock exam-mastery reference. The class is taught **from these notebooks**. Markdown cells carry the concepts. Code cells carry the demos. Run them top to bottom.
 
 ## What's here
 
@@ -12,6 +12,7 @@ The six teaching notebooks for the four-hour O'Reilly live training: five live-t
 | `segment-2-5-control-surfaces.ipynb` | **Segment 2.5: Control surfaces, tool enumeration, Console assets (self-study)** | *off-clock* |
 | `segment-3-invoice-extractor.ipynb` | Segment 3: Structured Output, Context, Reliability | 50 min |
 | `segment-4-cca-f-capstone.ipynb` | Segment 4: CCA-F Certification Capstone | 50 min |
+| `cca-f-exam-mastery.ipynb` | **Exam-mastery reference: all five domains, all 30 task statements (post-class study)** | *off-clock* |
 
 Each segment notebook ships with **Learning Objectives**, **Concept** markdown cells, **Demo** code cells, **Exercise** prompts, **Key Takeaways**, and a **Bridge to next segment**. The four-hour class is the five live segments in order plus three ten-minute breaks. Segment 2.5 is a deep-dive self-study notebook that ties together every control surface the live segments touch lightly: all four `tool_choice` modes plus `disable_parallel_tool_use`, `stop_sequences`, `max_tokens` as a control lever, MCP `list_tools` discovery, and the live Claude Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`). Walked end to end it runs about 75 minutes against the live API.
 
@@ -69,7 +70,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 The notebooks call `dotenv.load_dotenv()` if the file exists. Never hardcode the key in a cell.
 
-## Smoke test (run all six end-to-end)
+## Smoke test (run all seven end-to-end)
 
 This is the dry-run before each cohort delivery. Budget roughly **$1** in API spend.
 
@@ -81,6 +82,7 @@ uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\s
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-2-5-control-surfaces.ipynb --output _smoke-2-5.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-3-invoice-extractor.ipynb --output _smoke-3.ipynb
 uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\segment-4-cca-f-capstone.ipynb --output _smoke-4.ipynb
+uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks\cca-f-exam-mastery.ipynb --output _smoke-exam-mastery.ipynb
 Remove-Item notebooks\_smoke-*.ipynb
 ```
 
@@ -131,4 +133,4 @@ Before each cohort delivery, in order:
 2. `$env:ANTHROPIC_API_KEY` set in the shell you will record from
 3. Run the smoke command above (budget ~$1)
 4. Run the voice lint (must return zero hits)
-5. Read `..\PRE-CLASS-CHECKLIST.md` for everything that lives outside this directory
+5. Read `..\docs\PRE-CLASS-CHECKLIST.md` for everything outside this directory

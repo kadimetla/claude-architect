@@ -73,7 +73,7 @@ _title_md = """\
 
 **Duration:** 50 minutes
 **Maps to:** CCA-F Domain 1 (Agentic Architecture, 27% exam weight)
-**Reference:** [`../domain-1-agentic.md`](../domain-1-agentic.md)
+**Reference:** [`../docs/domain-1-agentic.md`](../docs/domain-1-agentic.md)
 
 We are going to build a **customer support agent** that decides which tools to call, in what order, and when to escalate. The dramatic beat: the model will *want* to break a refund policy. A **PreToolUse hook** will say no. The agent will re-plan and escalate correctly. The guarantee comes from your code, not from begging the prompt.
 
@@ -106,7 +106,7 @@ This is the whole platform. Everything else in this course is layers on top of t
 
 If Segment 0 (pre-flight) passed for you, both are already true. If you skipped Segment 0 and this cell fails, that is the fix.
 
-**Why Haiku 4.5 for the warm-up?** Cheapest, fastest model that gets a single-sentence answer right. We will switch to Sonnet 4.6 the moment we add tools, because Sonnet is the better orchestrator. Model selection is itself a Domain 1 skill: pick the smallest model that does the job.
+**Why Haiku 4.5 for the warm-up?** Cheapest, fastest model that gets a single-sentence answer right. It stays our default once we add tools, too: Haiku 4.5 handles the agentic loop at production quality for roughly a fifth of the Sonnet cost. We promote to Sonnet 4.6 only in Segment 3, where nested-schema extraction genuinely rewards the extra reasoning depth. Model selection is itself a Domain 1 skill: pick the smallest model that does the job.
 """
 
 _warm_up_code = """\
@@ -129,7 +129,7 @@ from anthropic import Anthropic
 client = Anthropic()
 
 resp = client.messages.create(
-    model="claude-haiku-4-5-20251001",
+    model="claude-haiku-4-5",
     max_tokens=128,
     messages=[
         {"role": "user", "content": "In one sentence, what is an agentic loop?"},
@@ -1006,5 +1006,5 @@ You already ran a bare-API version above. The production wrapper is the Claude *
 - **Agent SDK chief-of-staff example** - `../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb`
 - **Orchestrator-workers pattern** - `../claude-cookbooks-main/patterns/agents/orchestrator_workers.ipynb`
 - **Self-study scaffold** - `../coordinator-subagent-sketch.py` (40-line conceptual outline)
-- **Domain depth** - [`../domain-1-agentic.md`](../domain-1-agentic.md), the "Coordinator-subagent orchestration" section
+- **Domain depth** - [`../docs/domain-1-agentic.md`](../docs/domain-1-agentic.md), the "Coordinator-subagent orchestration" section
 """

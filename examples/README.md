@@ -1,6 +1,6 @@
 # examples/
 
-Curated reference applications that complement the six teaching notebooks in `../notebooks/`. Each subdirectory is a complete, runnable example, attributed where the source is not Tim Warner's own work.
+Curated reference applications that complement the seven teaching notebooks in `../notebooks/`. Each subdirectory is a complete, runnable example, attributed where the source is not Tim Warner's own work.
 
 ## Index
 
@@ -8,7 +8,7 @@ Curated reference applications that complement the six teaching notebooks in `..
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------------------- |
 | `mcp_cli/`       | Reference MCP CLI: stdio FastMCP server + client + interactive chat with `@doc-id` retrieval and `/prompt-name` commands | Anthropic Skilljar course, see [`mcp_cli/NOTICE.md`](./mcp_cli/NOTICE.md) | After Segment 2 (Tool Design and MCP) |
 | `messages_api/`  | Messages API primer notebooks (`001_*` - `005_*`): requests, system prompts, temperature, streaming, controlled output, plus three exercises, `first_request`, and `multi_turn_conversation` | Adapted with thanks from [jaozc/building-with-the-claude-api](https://github.com/jaozc/building-with-the-claude-api/tree/main) | Alongside Segment 1 (first API calls) |
-| `agents_api/`    | Managed-agents notebooks (Console asset surface: memory stores, vaults, agents, sessions). **Under active construction in a separate session - do not edit.** | Tim Warner | After Segment 2.5 (Control Surfaces) |
+| `agents_api/`    | Managed-agents notebooks (Console asset surface: memory stores, vaults, agents, sessions). Six notebooks, `01` through `06`. | Tim Warner | After Segment 2.5 (Control Surfaces) |
 
 ## Running the primer notebooks (`messages_api/`)
 

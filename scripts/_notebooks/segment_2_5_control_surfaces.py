@@ -80,7 +80,7 @@ _title_md = """\
 
 **Duration:** ~75 minutes if walked end-to-end. Self-study / Q&A overflow, not live-taught in the 4-hour window.
 **Maps to:** CCA-F **all five domains** (Domain 1 stop_reason, Domain 2 tool_choice, Domain 3 Console assets, Domain 4 forced extraction, Domain 5 memory).
-**References:** [`../domain-1-agentic.md`](../domain-1-agentic.md), [`../domain-2-tools-mcp.md`](../domain-2-tools-mcp.md), [`../domain-3-claude-code.md`](../domain-3-claude-code.md), [`../domain-4-prompts.md`](../domain-4-prompts.md), [`../domain-5-context.md`](../domain-5-context.md).
+**References:** [`../docs/domain-1-agentic.md`](../docs/domain-1-agentic.md), [`../docs/domain-2-tools-mcp.md`](../docs/domain-2-tools-mcp.md), [`../docs/domain-3-claude-code.md`](../docs/domain-3-claude-code.md), [`../docs/domain-4-prompts.md`](../docs/domain-4-prompts.md), [`../docs/domain-5-context.md`](../docs/domain-5-context.md).
 
 Segments 1-3 teach the agentic loop, tool design, and structured extraction. This bridge notebook teaches the **control surfaces** underneath those demos: the levers you reach for when a production agent misbehaves. Four levers, one Console asset surface, one cheat sheet, five practice questions.
 

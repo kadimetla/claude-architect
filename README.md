@@ -60,7 +60,7 @@ claude-architect/
 │   ├── EXAM-STUDY-PATH.md          # Learner-facing bridge from notebooks to CCA-F domains and scenarios
 │   ├── PRACTICE-QUESTIONS.md       # 60-question practice bank, hand-maintained (cohort take-home)
 │   ├── COOKBOOK-INDEX.md           # Index of the vendored Anthropic cookbook notebooks cited by the course
-│   ├── scenario-cicd-integration.md # Codebase analysis skill with frontmatter
+│   ├── scenario-cicd-integration.md # Exam scenario 5: `claude -p` headless in a GitHub Actions PR review
 │   ├── domain-1-agentic.md         # Reference: Agentic Architecture & Orchestration
 │   ├── domain-2-tools-mcp.md       # Reference: Tool Design & MCP Integration
 │   ├── domain-3-claude-code.md     # Reference: Claude Code Configuration & Workflows
@@ -71,21 +71,21 @@ claude-architect/
 ├── .vscode/mcp.json            # VS Code / GitHub Copilot agent-mode MCP config (sibling schema to .mcp.json)
 ├── hooks-example.py            # Agent SDK hooks: compliance enforcement
 ├── coordinator-subagent-sketch.py  # Domain 1 coordinator-subagent scaffold (read-only reference)
-├── SKILL.md                    # Example slash-command / skill definition
 ├── CLAUDE.md                   # Claude Code project instructions for this repo
-├── notebooks/                  # Tim's six teaching notebooks (five live + one self-study deep dive)
+├── notebooks/                  # Tim's seven teaching notebooks (five live + one self-study deep dive + one exam-mastery reference)
 │   ├── segment-0-pre-flight.ipynb
 │   ├── segment-1-customer-support-agent.ipynb
 │   ├── segment-2-tool-design-and-mcp.ipynb
 │   ├── segment-2-5-control-surfaces.ipynb     # self-study; control surfaces + Console assets
 │   ├── segment-3-invoice-extractor.ipynb
-│   └── segment-4-cca-f-capstone.ipynb
+│   ├── segment-4-cca-f-capstone.ipynb
+│   └── cca-f-exam-mastery.ipynb               # off-clock; all five domains, all 30 task statements
 ├── claude-cookbooks-main/      # Vendored snapshot of Anthropic's official Claude Cookbooks (MIT, Copyright (c) 2023 Anthropic). See claude-cookbooks-main/NOTICE.md
 ├── examples/                   # Curated reference applications (study material, not core course)
 │   └── mcp_cli/                # Reference MCP CLI (FastMCP server + client + chat), from Anthropic's Skilljar course. See examples/mcp_cli/NOTICE.md
 ├── slides/                     # Course slide deck (rebuilt from scripts/build-deck.py)
 └── scripts/
-    ├── build-notebooks.py                 # Rebuilds the six teaching notebooks from source (sha256-deterministic, idempotent)
+    ├── build-notebooks.py                 # Rebuilds the seven teaching notebooks from source (sha256-deterministic, idempotent)
     ├── run-jupyter.ps1                    # Lifecycle helper: starts JupyterLab on port 8888 with Jupyter AI v3 persona override
     ├── stop-jupyter.ps1                   # Lifecycle helper: port-scoped clean shutdown with PID fallback for Windows half-states
     ├── voice-lint.ps1                     # Voice-lint sweep (no em dashes, no AWS, etc.) - run via `npm run lint:voice`
@@ -102,7 +102,7 @@ claude-architect/
 - [**uv**](https://docs.astral.sh/uv/) (the Python package manager): `pip install uv` or `winget install astral-sh.uv`
 - [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed and authenticated. On Windows the native installer is the fastest path: `irm https://claude.ai/install.ps1 | iex`
 - An [Anthropic API key](https://console.anthropic.com/) set as `ANTHROPIC_API_KEY` (PowerShell: `$env:ANTHROPIC_API_KEY = "sk-ant-..."`, or place it in a gitignored `.env` at repo root)
-- **VS Code** with the **Python** and **Jupyter** extensions (the six teaching notebooks open here)
+- **VS Code** with the **Python** and **Jupyter** extensions (the seven teaching notebooks open here)
 - Optional, instructors only: [Node.js](https://nodejs.org/) 18+ for the two npm scripts ([`npm run lint:voice`](./scripts/voice-lint.ps1), [`npm run preflight`](./scripts/preflight.ps1)). Learners can skip Node entirely.
 
 ### Setup (on-rails, one command)
@@ -221,7 +221,7 @@ All reachable from the SDK with `anthropic-beta: managed-agents-2026-04-01`:
 ### Model policy
 
 - **Haiku 4.5 default everywhere.** Production-quality tool use, agentic loops, and MCP discovery at ~1/5 the Sonnet cost.
-- **Sonnet 4.6 reserved** for one demo: Segment 3's nested invoice schemas with retry-on-validation-error.
+- **Sonnet 4.6 reserved** for two cells: Segment 3's nested invoice schemas with retry-on-validation-error, and the Part 4 forced-extraction cell of the off-clock `cca-f-exam-mastery.ipynb`.
 - **Opus never used** in code in this repo. Console-managed agents carry their own configured model field (Deep Researcher resolves to Sonnet 4.6); the SDK respects what the Console sets.
 
 ### Context and reliability

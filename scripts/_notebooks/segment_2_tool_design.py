@@ -46,7 +46,7 @@ _title_md = """\
 
 **Duration:** 50 minutes
 **Maps to:** CCA-F Domain 2 (Tools/MCP, 18%) + Domain 3 (Claude Code, 20%) = **38% of the exam**
-**References:** [`../domain-2-tools-mcp.md`](../domain-2-tools-mcp.md), [`../domain-3-claude-code.md`](../domain-3-claude-code.md)
+**References:** [`../docs/domain-2-tools-mcp.md`](../docs/domain-2-tools-mcp.md), [`../docs/domain-3-claude-code.md`](../docs/domain-3-claude-code.md)
 
 In Segment 1 you wrote the agent. Now we go one level deeper: the **tools** the agent calls, the **MCP servers** that ship those tools to multiple agents, and the **Claude Code instruction hierarchy** that lets a team enforce conventions without writing them in every prompt.
 """

@@ -48,7 +48,7 @@ _title_md = """\
 
 **Duration:** 50 minutes
 **Maps to:** CCA-F Domain 4 (Prompts + Structured Output, 20%) + Domain 5 (Context + Reliability, 15%)
-**References:** [`../domain-4-prompts.md`](../domain-4-prompts.md), [`../domain-5-context.md`](../domain-5-context.md)
+**References:** [`../docs/domain-4-prompts.md`](../docs/domain-4-prompts.md), [`../docs/domain-5-context.md`](../docs/domain-5-context.md)
 
 Segment 1 built the agent. Segment 2 wired its hands. Segment 3 makes the **outputs trustworthy**. We will use the **forced-tool-call pattern** to extract typed `Invoice` objects from messy raw text, with a bounded retry loop, then close on the context and escalation patterns that keep long sessions honest.
 """
@@ -767,7 +767,7 @@ _key_takeaways_md = """\
 - `../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` (few-shot + structured extraction)
 - `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` (Pydantic-as-schema reference)
 - `../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb` (compaction as a fallback)
-- [`../domain-5-context.md`](../domain-5-context.md) for error propagation, provenance, and confidence calibration depth.
+- [`../docs/domain-5-context.md`](../docs/domain-5-context.md) for error propagation, provenance, and confidence calibration depth.
 """
 
 _bridge_md = """\

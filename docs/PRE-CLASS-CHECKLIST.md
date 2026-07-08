@@ -119,13 +119,13 @@ The class is taught **from the five live-teaching notebooks in `./notebooks/`**;
 
 - [ ] **CCA-F cert briefing reference exists**
   ```powershell
-  Test-Path C:/github/claude-architect/CERT-PROGRAM-BRIEFING.md
+  Test-Path C:/github/claude-architect/docs/CERT-PROGRAM-BRIEFING.md
   ```
   **Expect:** `True`. The Segment 4 notebook references it for the full week-before punchlist.
 
 - [ ] **Practice questions Markdown (cohort take-home)**
   ```powershell
-  Test-Path C:/github/claude-architect/PRACTICE-QUESTIONS.md
+  Test-Path C:/github/claude-architect/docs/PRACTICE-QUESTIONS.md
   ```
   **Expect:** `True`. 60-question take-home reference.
 

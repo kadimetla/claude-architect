@@ -144,8 +144,8 @@ Expect: account info, no rate-limit warnings.
 
 - **Claude.ai** (logged in to your Max account) - this is your fallback if API rate-limits during a live build
 - **O'Reilly instructor console** - https://learning.oreilly.com/live-events/ (your specific event link from the prep email)
-- **Anthropic docs** - https://docs.claude.com/en/home - for grounding questions during Q&A
-- **Anthropic API console** - https://console.anthropic.com/ - for live rate-limit / usage check
+- **Anthropic docs** - https://platform.claude.com/docs/en/intro - for grounding questions during Q&A
+- **Anthropic API console** - https://platform.claude.com/ - for live rate-limit / usage check
 - **Cookbook GitHub** - https://github.com/anthropics/claude-cookbooks - upstream of the vendored `claude-cookbooks-main/` snapshot, in case you need to verify a notebook against the latest version
 
 ---
