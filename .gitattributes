@@ -2,7 +2,6 @@
 # Git auto-detects text vs binary. Working trees on Windows still get CRLF
 # via core.autocrlf, but what's committed stays LF for clean diffs.
 * text=auto eol=lf
-
 # Explicitly mark common binaries so Git doesn't try to text-process them.
 *.png binary
 *.jpg binary
@@ -15,5 +14,5 @@
 *.tar binary
 *.docx binary
 *.xlsx binary
-*.pptx binary
+*.pptx filter=lfs diff=lfs merge=lfs -text
 *.ipynb binary
