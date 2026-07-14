@@ -101,6 +101,32 @@ function Test-PortHeld {
     [bool](Get-NetTCPConnection -LocalPort $P -State Listen -ErrorAction SilentlyContinue)
 }
 
+# A bound port is NOT proof the service is usable. An orphaned node process from
+# a dead Inspector holds 6274/6277 forever, which made the old skip path report
+# "already up" while there was no window to drive and no Inspector to look at.
+# Same lesson as the wt.exe no-op: probe the real thing, not a proxy for it.
+function Test-HttpAlive {
+    param([string]$Url, [int]$TimeoutSec = 5)
+    try {
+        $r = Invoke-WebRequest -Uri $Url -TimeoutSec $TimeoutSec -UseBasicParsing -ErrorAction Stop
+        return ($r.StatusCode -ge 200 -and $r.StatusCode -lt 400)
+    }
+    catch { return $false }
+}
+
+# Free a port whose listener is not actually serving. Scoped to the exact port,
+# so this can never take down an unrelated service on the box.
+function Clear-StalePort {
+    param([int]$P, [string]$Label)
+    $conns = Get-NetTCPConnection -LocalPort $P -State Listen -ErrorAction SilentlyContinue
+    foreach ($procId in ($conns | Select-Object -ExpandProperty OwningProcess -Unique)) {
+        $name = (Get-Process -Id $procId -ErrorAction SilentlyContinue)?.ProcessName ?? 'unknown'
+        Write-Warning "Port $P ($Label) held by a dead $name (PID $procId). Reclaiming it."
+        Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Milliseconds 750
+}
+
 # --- Preflight -------------------------------------------------------------
 if (-not $SkipPreflight) {
     Write-Host 'Running preflight...' -ForegroundColor Cyan
@@ -147,10 +173,20 @@ else {
     })
 }
 
-if ((Test-PortHeld -P 6274) -or (Test-PortHeld -P 6277)) {
-    Write-Host 'MCP Inspector already up on 6274/6277. Skipping.' -ForegroundColor DarkGray
+# Skip ONLY if the Inspector is genuinely reachable. A held port with no HTTP
+# answer is an orphan from a prior run: it must be reclaimed, not respected.
+$inspectorHeld = (Test-PortHeld -P 6274) -or (Test-PortHeld -P 6277)
+$inspectorAlive = $inspectorHeld -and (Test-HttpAlive -Url 'http://localhost:6274')
+
+if ($inspectorAlive) {
+    Write-Host 'MCP Inspector already up and answering on http://localhost:6274. Skipping.' -ForegroundColor DarkGray
 }
 else {
+    if ($inspectorHeld) {
+        Write-Host 'MCP Inspector ports are held but nothing is serving. Reclaiming them.' -ForegroundColor Yellow
+        Clear-StalePort -P 6274 -Label 'Inspector UI'
+        Clear-StalePort -P 6277 -Label 'Inspector proxy'
+    }
     $tabs.Add([pscustomobject]@{
         Title   = 'MCP Inspector'
         Command = "& '$(Join-Path $scriptsDir 'run-mcp-inspector.ps1')'"
@@ -172,7 +208,12 @@ if ($tabs.Count -eq 0) {
     Write-Host ''
     Write-Host 'Everything is already running. Nothing to do.' -ForegroundColor Green
     if (-not $NoJupyter) { Write-Host "  JupyterLab      http://localhost:$Port" }
-    Write-Host '  MCP Inspector   http://localhost:6274'
+    # Reaching here means the Inspector answered HTTP above, so this URL is a
+    # verified claim, not a hopeful one.
+    Write-Host '  MCP Inspector   http://localhost:6274  (verified answering)'
+    Write-Host ''
+    Write-Host 'No Inspector window in front of you? It is running headless from an'
+    Write-Host 'earlier launch. Re-run with -Restart to get a window you can Ctrl+C.'
     exit 0
 }
 
@@ -293,7 +334,13 @@ else {
     Write-Host "  JupyterLab      http://localhost:$Port"
 }
 Write-Host '  MCP Inspector   http://localhost:6274  (opens automatically)'
-if (-not $NoMcpCli) {
+if ($NoMcpCli) {
+    # -NoMcpCli is easy to pass and easy to forget you passed. Say the exact
+    # command to start it by hand rather than leaving you to go find it.
+    Write-Host '  MCP CLI         SKIPPED (-NoMcpCli). Start it yourself with:' -ForegroundColor Yellow
+    Write-Host '                    .\scripts\run-mcp-cli.ps1' -ForegroundColor Yellow
+}
+else {
     Write-Host '  MCP CLI         chat REPL in its own window'
 }
 Write-Host ''
