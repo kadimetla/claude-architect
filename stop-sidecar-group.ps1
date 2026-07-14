@@ -38,7 +38,7 @@
     That was the right fear aimed at the wrong discriminator: `pwsh` is a guess,
     the launcher filename is exact. Both sweeps additionally skip this process and
     every one of its ancestors, because a sweep that matches on command-line text
-    will otherwise match the shell running the sweep.
+    will otherwise match the shell running the sweep and kill it mid-run.
 #>
 [CmdletBinding()]
 param(
@@ -118,8 +118,9 @@ Stop-Port -P 6277 -Label 'Inspector proxy'
 # launcher script's own filename in their command line; an instructor's shell
 # never does. That string is exact, not a heuristic.
 #
-# Two guard rails, both load-bearing:
+# Two guard rails. Drop either one and this sweep eats something it should not:
 #   1. Require run-mcp-cli.ps1 / run-mcp-inspector.ps1 literally in the cmdline.
+#      Without it, the filter widens to every pwsh on the box, including yours.
 #   2. Never touch this process or any of its ancestors. A sweep that matches on
 #      command-line text WILL match the shell running the sweep. Ask me how I know.
 function Get-SelfAncestry {
