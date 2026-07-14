@@ -268,12 +268,30 @@ else {
 # Only the port-backed sidecars can be probed. Jupyter and the Inspector both
 # bind ports; the MCP CLI is a REPL with nothing to listen on, so it is launched
 # but not asserted.
+#
+# Where a sidecar serves HTTP, the bound port is the WEAK signal and the HTTP
+# answer is the strong one. The Inspector is the case that matters: `mcp dev`
+# binds the proxy (6277) seconds before the Vite UI (6274) starts serving, so
+# waiting on 6277 alone declares "up" while the page you actually open still
+# refuses connections. Wait on the URL you are about to hand the room.
 $expectPorts = [System.Collections.Generic.List[object]]::new()
-if ($tabs.Title -contains 'Jupyter')       { $expectPorts.Add(@{ N = $Port; Label = 'JupyterLab' }) }
-if ($tabs.Title -contains 'MCP Inspector') { $expectPorts.Add(@{ N = 6277;  Label = 'MCP Inspector' }) }
+if ($tabs.Title -contains 'Jupyter') {
+    $expectPorts.Add(@{ N = $Port; Label = 'JupyterLab'; Url = $null })
+}
+if ($tabs.Title -contains 'MCP Inspector') {
+    $expectPorts.Add(@{ N = 6274; Label = 'MCP Inspector'; Url = 'http://localhost:6274' })
+}
+
+# A sidecar is "up" when its port is bound AND, if it serves HTTP, it answers.
+function Test-SidecarUp {
+    param([hashtable]$Sidecar)
+    if (-not (Test-PortHeld -P $Sidecar.N)) { return $false }
+    if (-not $Sidecar.Url) { return $true }
+    return (Test-HttpAlive -Url $Sidecar.Url -TimeoutSec 3)
+}
 
 if ($expectPorts.Count -gt 0) {
-    Write-Host 'Waiting for sidecars to bind their ports...' -ForegroundColor DarkGray
+    Write-Host 'Waiting for sidecars to come up (port bound, and answering if HTTP)...' -ForegroundColor DarkGray
 
     # Cold start pulls a uv venv and an npx download on a clean box. 90s is
     # generous on purpose: a false "did not come up" that sends you chasing a
@@ -283,7 +301,7 @@ if ($expectPorts.Count -gt 0) {
 
     while ((Get-Date) -lt $deadline -and $pending.Count -gt 0) {
         foreach ($p in @($pending)) {
-            if (Test-PortHeld -P $p.N) {
+            if (Test-SidecarUp -Sidecar $p) {
                 Write-Host ("  UP    {0} (port {1})" -f $p.Label, $p.N) -ForegroundColor Green
                 $pending.Remove($p) | Out-Null
             }
@@ -292,20 +310,18 @@ if ($expectPorts.Count -gt 0) {
     }
 
     if ($pending.Count -gt 0 -and $wt) {
-        # wt was on PATH but nothing bound. Near-certainly the Store-alias no-op.
-        # Retry the same sidecars in plain pwsh windows, which always work.
+        # wt was on PATH but nothing came up. Near-certainly the Store-alias no-op,
+        # which means NOTHING wt was asked to open actually opened - including the
+        # portless MCP CLI, whose absence we cannot detect by probing. So relaunch
+        # every tab, not just the pending port-backed ones. The Inspector's own
+        # launcher reclaims its ports first, so a double-launch cannot collide.
         Write-Warning 'Windows Terminal did not open (Store execution alias no-op). Retrying in plain pwsh windows.'
-        $retry = $tabs | Where-Object {
-            ($_.Title -eq 'Jupyter'       -and ($pending.Label -contains 'JupyterLab')) -or
-            ($_.Title -eq 'MCP Inspector' -and ($pending.Label -contains 'MCP Inspector')) -or
-            ($_.Title -eq 'MCP CLI')
-        }
-        Start-InPlainWindows -Tabs $retry
+        Start-InPlainWindows -Tabs $tabs
 
         $deadline = (Get-Date).AddSeconds(90)
         while ((Get-Date) -lt $deadline -and $pending.Count -gt 0) {
             foreach ($p in @($pending)) {
-                if (Test-PortHeld -P $p.N) {
+                if (Test-SidecarUp -Sidecar $p) {
                     Write-Host ("  UP    {0} (port {1})" -f $p.Label, $p.N) -ForegroundColor Green
                     $pending.Remove($p) | Out-Null
                 }
@@ -315,7 +331,7 @@ if ($expectPorts.Count -gt 0) {
     }
 
     foreach ($p in $pending) {
-        Write-Warning ("DOWN  {0} (port {1}) never bound. Read that sidecar's window for the error." -f $p.Label, $p.N)
+        Write-Warning ("DOWN  {0} (port {1}) never came up. Read that sidecar's window for the error." -f $p.Label, $p.N)
     }
 
     if ($pending.Count -gt 0) {
