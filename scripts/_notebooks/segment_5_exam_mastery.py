@@ -864,6 +864,8 @@ _part2_mcp_discovery_code = '''\
 # Wrapped in try/except so a missing dependency or a subprocess
 # failure does not break the notebook smoke - the .mcp.json
 # inspection above already covered TS2.4.
+import io  # for the UnsupportedOperation guard below
+
 try:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
@@ -888,12 +890,26 @@ try:
     print("Code, Cursor, your custom agent - uses the same three list_*")
     print("primitives. Add a new tool to the server, every connected client")
     print("picks it up on the next list_tools call. (TS2.4)")
+except io.UnsupportedOperation as exc:
+    # Headless-only failure, and it is NOT a broken environment.
+    # stdio_client spawns a subprocess wired to sys.stdin/sys.stdout. Under
+    # `nbconvert --execute` those are in-memory buffers with no OS file
+    # descriptor, so .fileno() raises. A real kernel (JupyterLab, VS Code)
+    # has genuine descriptors and this cell runs clean. Do not "fix" the
+    # discovery code above; it works. Verified 2026-07-14.
+    print(f"(Skipped under headless nbconvert: {exc}.)")
+    print("This is NOT a setup problem. stdio needs a real file descriptor,")
+    print("and nbconvert replaces stdin/stdout with in-memory buffers.")
+    print("Run this cell from JupyterLab or VS Code and it discovers live:")
+    print("     tools: ['read_doc_contents', 'edit_document']")
+    print(" resources: ['docs://documents']")
+    print("   prompts: ['format']")
 except Exception as exc:
-    print(f"(MCP discovery skipped: {type(exc).__name__}: {str(exc)[:160]})")
-    print("The .mcp.json inspection above already demonstrates TS2.4.")
-    print("To run this cell live: ensure `uv` and the `mcp` Python SDK are")
-    print("installed, and that examples/mcp_cli/ has been bootstrapped via")
-    print("`uv sync` in that directory.")
+    # A real failure. Say so plainly rather than blaming the environment.
+    print(f"(MCP discovery FAILED: {type(exc).__name__}: {str(exc)[:160]})")
+    print("This one is real. Check that `uv` is on PATH and that")
+    print("examples/mcp_cli/ is bootstrapped (`uv sync` in that directory).")
+    print("The .mcp.json inspection above still demonstrates TS2.4.")
 '''
 
 _part2_builtin_tools_md = """\
