@@ -36,7 +36,7 @@ Optional fields worth knowing: **`cache_control`** with `{"type": "ephemeral", "
 
 ### Structured error responses
 
-The anti-pattern: a tool throws an uncaught exception, the runtime crashes, the agent loop dies. Almost as bad: the tool returns an empty string on failure, the model assumes success, and the conversation goes off a cliff.
+The anti-pattern: a tool throws an uncaught exception, the runtime crashes, and the agent loop stops. Almost as bad: the tool returns an empty string on failure, the model assumes success, and the conversation goes off a cliff.
 
 The correct pattern is to **return errors as content inside `tool_result`**, with `isError: true` plus structured metadata the model can reason over. Add fields like `errorCategory` (`"transient"`, `"permanent"`, `"policy"`) and `isRetryable` (`true`/`false`). The model then decides: retry the call, fall back to another tool, or surface the failure to the user.
 
@@ -76,6 +76,8 @@ Three transports are supported:
 
 `${ENV_VAR}` expansion works in `env`, `args`, and `headers` (recent fix per the changelog), so secrets stay out of git.
 
+**Scope trap worth internalizing.** Project scope is the repo-root **`.mcp.json`**, and that's the only project-scoped MCP file Claude Code reads. There is no `.claude/mcp.json`; that path is silently ignored, which is a miserable way to spend an afternoon. `.claude/settings.json` holds permissions and hooks, and its only MCP-adjacent keys are the `enabledMcpjsonServers` and `disabledMcpjsonServers` approval toggles, never server definitions. This repo's own [`.mcp.json`](../.mcp.json) is the worked example: six servers across three transports, including **`oreilly-cca-mcp`**, the course-owned stdio server that points Claude Code at [`examples/mcp_cli/mcp_server.py`](../examples/mcp_cli/mcp_server.py).
+
 ```json
 // stdio (local subprocess)
 {
@@ -108,13 +110,23 @@ Write a custom tool only when a built-in cannot do the job. The classic anti-pat
 
 ## Demo anchor
 
-See **COURSE-FLOW.md Segment 2** for the live walkthrough. Code references:
+See **COURSE-FLOW.md Segment 2** for the live walkthrough, which is taught from [`segment-2-tool-design-and-mcp.ipynb`](../notebooks/segment-2-tool-design-and-mcp.ipynb). Code references:
 
-- `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` - Pydantic → JSON Schema → tool input_schema pattern
+- `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` - Pydantic to JSON Schema to tool input_schema pattern
 - `../claude-cookbooks-main/tool_use/tool_choice.ipynb` - tool_choice mode examples
-- `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel tool execution
+- `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel tool execution. Read it for the pattern, but note it currently **fails to run**: an upstream bug emits a `tool_use` block with no matching `tool_result`. See [`COOKBOOK-INDEX.md`](./COOKBOOK-INDEX.md).
 - `../claude-cookbooks-main/managed_agents/cma-mcp/` - MCP server configuration walk-through
 - `../claude-cookbooks-main/tool_use/customer_service_agent.ipynb` - multi-tool agent
+
+### Go deeper on the control surfaces
+
+[`segment-2-5-control-surfaces.ipynb`](../notebooks/segment-2-5-control-surfaces.ipynb) is the off-clock self-study deep dive, and it's where this domain gets its full treatment: the three tiers tools come from (Anthropic-hosted server tools, MCP-server tools, the Claude Code harness surface), all four `tool_choice` modes run live as an A/B, `disable_parallel_tool_use` when ordering matters, and **runtime MCP discovery via `list_tools`**. If one notebook in this repo earns a second pass before the exam, it's that one.
+
+For the managed-agent view of tool design, [`examples/agents_api/03_tools_and_structured_errors.ipynb`](../examples/agents_api/03_tools_and_structured_errors.ipynb) runs one custom tool plus a structured tool error with retry-once, where the result comes back as a `user.custom_tool_result` event keyed by `custom_tool_use_id` and carrying `is_error`. Same contract as the `tool_result` shape above, different transport.
+
+### Task-statement coverage
+
+[`notebooks/cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb) **Part 2** covers all five Domain 2 task statements (TS2.1 through TS2.5): descriptions as the contract, the four `tool_choice` modes, the four structured-error categories, `.mcp.json` scope and transports plus `list_tools` discovery, and the Claude Code built-in tools.
 
 ## Production tips (Tim's voice)
 

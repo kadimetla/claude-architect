@@ -16,8 +16,40 @@ The mapping is one-to-many on purpose: most architecture skills cross domain bou
 | **2.5** Control Surfaces (self-study) | [`segment-2-5-control-surfaces.ipynb`](../notebooks/segment-2-5-control-surfaces.ipynb) | Three tiers tools come from (server tools, MCP, harness), full `tool_choice` depth + `disable_parallel_tool_use`, `stop_sequences` / `max_tokens` as control levers, **live Claude Console asset surface** (memory_stores, vaults, agents, sessions) | **All five** (D1-D5) | Cross-cutting; this notebook is the exam-stud anchor |
 | **3** Structured Output + Reliability | [`segment-3-invoice-extractor.ipynb`](../notebooks/segment-3-invoice-extractor.ipynb) | Forced `tool_choice` for schema compliance, Pydantic validation with retry, case-facts pinning via `cache_control`, confidence-routing triage | **D4** (20%) + **D5** (15%) | Structured Data Extraction Pipeline |
 | **4** CCA-F Capstone | [`segment-4-cca-f-capstone.ipynb`](../notebooks/segment-4-cca-f-capstone.ipynb) | Cert briefing + **domain-weighted** practice questions + take-home punchlist | D1-D5 (review) | Cross-cutting |
+| **Exam Mastery** (off-clock) | [`cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb) | Every one of the **30 CCA-F task statements** (TS1.1 through TS5.6) mapped to a runnable minimal demo, plus exam mechanics and a one-page cheat sheet | **All five**, by task statement | All six |
 
-**Segment 2.5 is the headliner for CCA-F prep.** It is a self-study deep dive (not on the 4-hour live clock) that ties together every control surface the live segments touch lightly: full `tool_choice` modes including `disable_parallel_tool_use`, every `stop_reason` value including the rare ones (`stop_sequences`, `max_tokens` as control lever, `pause_turn`, `refusal`), MCP `list_tools` runtime discovery, and the live Claude Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`). If you only have one notebook to re-walk before the exam, walk this one.
+## Start here: the exam-mastery notebook
+
+[`cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb) is **the single most exam-aligned artifact in this repo**, and it's the one to open first when you sit down to study. It's a standalone reference, off the 4-hour live clock, in seven parts: one per domain, plus a mechanics-and-coverage part that carries the domain weights, the cheat sheet, and a self-check.
+
+What makes it the anchor:
+
+- It maps **every one of the 30 CCA-F task statements**, TS1.1 through TS5.6, to a minimal demo you can actually run. The notebook audits its own coverage and reports 30/30: D1 7/7, D2 5/5, D3 6/6, D4 6/6, D5 6/6.
+- It's **fully smoke-verified**, 20 of 20 cells green, zero errors.
+- It **creates no billable resources**. Nothing to archive, nothing to leak, no session quietly costing you money while you read.
+
+Walk it once end to end. Then walk the parts your practice questions say you're weak in.
+
+**Segment 2.5 is the depth pass on the control surfaces.** It is a self-study deep dive (also off the live clock) that ties together every control surface the live segments touch lightly: full `tool_choice` modes including `disable_parallel_tool_use`, every `stop_reason` value including the rare ones (`stop_sequences`, `max_tokens` as control lever, `pause_turn`, `refusal`), MCP `list_tools` runtime discovery, and the live Claude Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`). Where exam-mastery gives you breadth across all 30 task statements, 2.5 gives you depth on the levers. Walk exam-mastery first, then this one.
+
+## Two example tracks worth your time
+
+Neither of these is on the live clock, and both are smoke-verified green.
+
+**[`examples/messages_api/`](../examples/messages_api/) is the on-ramp.** Ten short notebooks on the raw Messages API: a single request, the system prompt as a control surface, temperature, streaming, and output control, with `_exercise` variants on three of them. If the agentic loop feels like magic rather than mechanism, this is why. The loop is just `messages.create()` in a while-loop with a `stop_reason` branch, and these notebooks build that primitive one idea at a time. Most relevant to **D1** (the primitive under the loop) and **D4** (`005_controlling_output` and `002_system_prompt` are output control, plainly).
+
+**[`examples/agents_api/`](../examples/agents_api/) is the counterpart.** Six notebooks on the **Managed Agents API**, where Anthropic hosts the loop you otherwise hand-roll. Each is banded to a domain, and each ends by archiving its resources, which you should let it do.
+
+| Notebook | Domain |
+|---|---|
+| [`01_agentic_loop_and_sessions.ipynb`](../examples/agents_api/01_agentic_loop_and_sessions.ipynb) | **D1** |
+| [`02_coordinator_and_subagents.ipynb`](../examples/agents_api/02_coordinator_and_subagents.ipynb) | **D1** |
+| [`03_tools_and_structured_errors.ipynb`](../examples/agents_api/03_tools_and_structured_errors.ipynb) | **D2**, with the D3 bridge |
+| [`04_structured_output_and_validation.ipynb`](../examples/agents_api/04_structured_output_and_validation.ipynb) | **D4** |
+| [`05_context_and_escalation.ipynb`](../examples/agents_api/05_context_and_escalation.ipynb) | **D5** |
+| [`06_cca_f_capstone.ipynb`](../examples/agents_api/06_cca_f_capstone.ipynb) | All domains |
+
+These notebooks make **live, billable, beta-gated** calls, so they're a different budget than exam-mastery. Read the contrast, though: seeing the same loop hosted for you is the fastest way to understand what your hand-rolled version is actually doing.
 
 ## Domain weighting reference
 
@@ -60,10 +92,11 @@ For an authoritative readiness check, use **Anthropic's official Practice Exam**
 
 The four-hour session ends. The exam is whenever you schedule it. A study path that holds up:
 
-1. **Re-walk Segment 2.5 cold.** It is the highest exam-objective density of any notebook in this repo. If anything in it surprises you on the second pass, that is the domain to re-study.
-2. **Re-take the practice questions by domain.** [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) carries 60 questions tagged by primary CCA-F domain. Filter to one domain at a time, get them all right, then mix.
-3. **Explain every wrong answer out loud.** Not "this one was D" but "this one was D because the question stem named a hook lifecycle event, and PostToolUse runs after the result, which means..." If you cannot do that, the domain reference scaffold ([`domain-1-agentic.md`](./domain-1-agentic.md) through [`domain-5-context.md`](./domain-5-context.md)) is the next read.
-4. **Run one cookbook notebook per gap.** [`claude-cookbooks-main/`](../claude-cookbooks-main/) ships in this repo (no second clone). The notebooks Anthropic ships there are authoritative; treat them as the reference set when this workshop's pedagogy and Anthropic's official material disagree (they shouldn't, but if they do, **Anthropic wins**).
-5. **Take Anthropic's Practice Exam before booking the real one.** You get one attempt at the proctored exam. The Practice Exam is your last calibration before that one-shot.
+1. **Walk [`cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb) cold, end to end.** It's the only artifact that touches all 30 task statements, and it costs you nothing but time. Anything in it that surprises you on this pass names the domain you're weakest in.
+2. **Re-walk Segment 2.5 for depth on the control surfaces.** Exam-mastery gives you the map. 2.5 gives you the levers: full `tool_choice`, the rare `stop_reason` values, `list_tools` discovery, the Console assets.
+3. **Re-take the practice questions by domain.** [`PRACTICE-QUESTIONS.md`](./PRACTICE-QUESTIONS.md) carries 60 questions tagged by primary CCA-F domain. Filter to one domain at a time, get them all right, then mix.
+4. **Explain every wrong answer out loud.** Not "this one was D" but "this one was D because the question stem named a hook lifecycle event, and PostToolUse runs after the result, which means..." If you can't do that, the domain reference scaffold ([`domain-1-agentic.md`](./domain-1-agentic.md) through [`domain-5-context.md`](./domain-5-context.md)) is the next read, and each one now points back at its part of the exam-mastery notebook.
+5. **Run one cookbook notebook per gap.** [`claude-cookbooks-main/`](../claude-cookbooks-main/) ships in this repo (no second clone). The notebooks Anthropic ships there are authoritative; treat them as the reference set when this workshop's pedagogy and Anthropic's official material disagree (they shouldn't, but if they do, **Anthropic wins**). Check [`COOKBOOK-INDEX.md`](./COOKBOOK-INDEX.md) first, because two of them currently fail to run on upstream bugs and you don't want to lose an evening to that.
+6. **Take Anthropic's Practice Exam before booking the real one.** You get one attempt at the proctored exam. The Practice Exam is your last calibration before that one-shot.
 
 The exam is one attempt at $99 (partner discount available). Treat it like that.

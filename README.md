@@ -56,6 +56,7 @@ claude-architect/
 ├── docs/                       # Reference scaffolds and instructor/learner guides (moved out of repo root)
 │   ├── INSTRUCTOR-SETUP.md         # Multi-day setup arc (machine config, env vars, repo clone, backup plans)
 │   ├── PRE-CLASS-CHECKLIST.md      # Instructor pre-flight (PowerShell)
+│   ├── EMERGENCY-CARD.md           # One-page live-class recovery card (what to do when a demo goes sideways)
 │   ├── CERT-PROGRAM-BRIEFING.md    # Segment 4 talk-track: exam mechanics, domain weights, week-before punchlist
 │   ├── EXAM-STUDY-PATH.md          # Learner-facing bridge from notebooks to CCA-F domains and scenarios
 │   ├── PRACTICE-QUESTIONS.md       # 60-question practice bank, hand-maintained (cohort take-home)
@@ -67,10 +68,12 @@ claude-architect/
 │   ├── domain-4-prompts.md         # Reference: Prompt Engineering & Structured Output
 │   └── domain-5-context.md         # Reference: Context Management & Reliability
 ├── practice-questions.json     # Machine-readable practice-question source
-├── .mcp.json                   # Segment 2 Demo A anchor (5 servers, 3 transports)
+├── .mcp.json                   # Segment 2 Demo A anchor (6 servers, 3 transports; the course's own server is `oreilly-cca-mcp`)
 ├── .vscode/mcp.json            # VS Code / GitHub Copilot agent-mode MCP config (sibling schema to .mcp.json)
 ├── hooks-example.py            # Agent SDK hooks: compliance enforcement
 ├── coordinator-subagent-sketch.py  # Domain 1 coordinator-subagent scaffold (read-only reference)
+├── start-sidecar-group.ps1     # Brings up the teaching sidecars (JupyterLab, MCP Inspector, MCP CLI REPL); idempotent
+├── stop-sidecar-group.ps1      # Takes the same sidecars back down
 ├── CLAUDE.md                   # Claude Code project instructions for this repo
 ├── notebooks/                  # Tim's seven teaching notebooks (five live + one self-study deep dive + one exam-mastery reference)
 │   ├── segment-0-pre-flight.ipynb
@@ -81,13 +84,19 @@ claude-architect/
 │   ├── segment-4-cca-f-capstone.ipynb
 │   └── cca-f-exam-mastery.ipynb               # off-clock; all five domains, all 30 task statements
 ├── claude-cookbooks-main/      # Vendored snapshot of Anthropic's official Claude Cookbooks (MIT, Copyright (c) 2023 Anthropic). See claude-cookbooks-main/NOTICE.md
-├── examples/                   # Curated reference applications (study material, not core course)
+├── examples/                   # Three runnable example suites (self-paced study, not on the 4-hour clock)
+│   ├── messages_api/           # 10 Messages API primer notebooks - the on-ramp to the raw API
+│   ├── agents_api/             # 6 Managed Agents notebooks - Anthropic hosts the loop, domain-banded
 │   └── mcp_cli/                # Reference MCP CLI (FastMCP server + client + chat), from Anthropic's Skilljar course. See examples/mcp_cli/NOTICE.md
 ├── slides/                     # Course slide deck (rebuilt from scripts/build-deck.py)
 └── scripts/
     ├── build-notebooks.py                 # Rebuilds the seven teaching notebooks from source (sha256-deterministic, idempotent)
+    ├── preflight-class.ps1                # Read-only go/no-go board for class day. Exit 0 = GO. Changes nothing
     ├── run-jupyter.ps1                    # Lifecycle helper: starts JupyterLab on port 8888 with Jupyter AI v3 persona override
     ├── stop-jupyter.ps1                   # Lifecycle helper: port-scoped clean shutdown with PID fallback for Windows half-states
+    ├── run-mcp-cli.ps1                    # Lifecycle helper: bootstraps and starts the vendored MCP CLI REPL
+    ├── run-mcp-inspector.ps1              # Lifecycle helper: starts the MCP Inspector against the FastMCP demo server
+    ├── smoke-cookbooks.ps1                # Smoke-runs the 8 heavy-rotation vendored cookbooks against notebooks/.venv
     ├── voice-lint.ps1                     # Voice-lint sweep (no em dashes, no AWS, etc.) - run via `npm run lint:voice`
     ├── preflight.ps1                      # Instructor pre-flight - run via `npm run preflight`
     ├── build-deck.py                      # Rebuilds the slide deck
@@ -113,9 +122,9 @@ cd claude-architect
 uv run --project notebooks jupyter lab notebooks/
 ```
 
-That is the entire learner setup. **First run** auto-creates `notebooks/.venv/`, installs all dependencies from `notebooks/pyproject.toml`, and launches Jupyter. **Subsequent runs** reuse the venv and start in seconds. The Anthropic cookbook ships in the repo at `claude-cookbooks-main/`, so you do not need a second clone. Instructors who run the voice-lint scripts also need `npm install`; learners do not.
+That is the entire learner setup. **First run** auto-creates `notebooks/.venv/`, installs all dependencies from `notebooks/pyproject.toml`, and launches Jupyter. **Subsequent runs** reuse the venv and start in seconds. The Anthropic cookbook ships in the repo at `claude-cookbooks-main/`, so you don't need a second clone. Instructors who run the voice-lint scripts also need `npm install`; learners don't.
 
-**Fallback** if `uv` is not available: `pip install -r notebooks/requirements.txt` still works; the requirements file is kept in sync with `pyproject.toml`.
+**Fallback** if `uv` isn't available: `pip install -r notebooks/requirements.txt` still works; the requirements file is kept in sync with `pyproject.toml`.
 
 **Interactive teaching sessions** should use the lifecycle helpers instead of a bare Jupyter invocation:
 
@@ -126,7 +135,46 @@ That is the entire learner setup. **First run** auto-creates `notebooks/.venv/`,
 
 `run-jupyter.ps1` sets the Jupyter AI v3 default persona to Jupyternaut so chat messages route to someone (the upstream default points at the older package ID and silently routes to nobody). `stop-jupyter.ps1` matches the server by `root_dir`, falls back to `Stop-Process` on the exact PID if the graceful path hangs (Jupyter AI can leave the server half-interrupted on Windows). For headless smoke runs (`nbconvert --execute`) neither script is needed - nbconvert spawns its own kernel.
 
-### Run the MCP CLI reference app (also one command)
+### Class day: pre-flight and sidecars
+
+Three scripts cover the live-teaching lifecycle. Run them in this order:
+
+```powershell
+.\scripts\preflight-class.ps1        # read-only go/no-go board. Exit 0 = GO
+.\start-sidecar-group.ps1            # brings the teaching sidecars up
+.\stop-sidecar-group.ps1             # takes them back down
+```
+
+[`scripts/preflight-class.ps1`](./scripts/preflight-class.ps1) is **read-only and changes nothing**. It checks tooling, secrets, both venvs, the `claude-architect` kernelspec, both MCP configs, that all seven notebooks parse, and that the ports it needs are free. An exit code of 0 means you're clear to teach.
+
+[`start-sidecar-group.ps1`](./start-sidecar-group.ps1) brings up the three teaching sidecars: **JupyterLab**, the **MCP Inspector**, and the **MCP CLI REPL**. It's **idempotent**, so it skips any sidecar that's already running rather than starting a second copy. Four flags shape what it does: `-Restart` cycles everything, `-SkipPreflight` bypasses the go/no-go check, `-NoMcpCli` leaves the REPL out, and `-NoJupyter` skips the JupyterLab server. **If you teach from VS Code rather than JupyterLab, `-NoJupyter` is the flag you want** - the VS Code Jupyter extension spawns its own kernel and never talks to a JupyterLab server, so starting one just burns a port. [`stop-sidecar-group.ps1`](./stop-sidecar-group.ps1) takes the same set back down.
+
+When a demo goes sideways mid-class, [`docs/EMERGENCY-CARD.md`](./docs/EMERGENCY-CARD.md) is the one-page recovery card. Keep it open on a second monitor.
+
+### The `examples/` suites (self-paced, off the 4-hour clock)
+
+The seven notebooks in [`notebooks/`](./notebooks/) are what gets taught live. [`examples/`](./examples/) is everything that surrounds them: an on-ramp for people new to the raw API, a managed-agents counterpart to the loops the course hand-rolls, and a full MCP reference app. None of it is on the 4-hour clock, and all of it is runnable.
+
+#### `examples/messages_api/` - the API on-ramp
+
+If you've never called the Claude API directly, **start here, before Segment 1**. Ten notebooks in [`examples/messages_api/`](./examples/messages_api/) walk the Messages API one concept at a time: `001_requests`, `002_system_prompt`, `003_temperature`, `004_streaming`, and `005_controlling_output`, with `_exercise` variants of 001, 002, and 005 for hands-on reps, plus [`first_request.ipynb`](./examples/messages_api/first_request.ipynb) and [`multi_turn_conversation.ipynb`](./examples/messages_api/multi_turn_conversation.ipynb) as the two bookends. They're adapted from [jaozc/building-with-the-claude-api](https://github.com/jaozc/building-with-the-claude-api), and every one of them is smoke-verified green against the live API. They request the `claude-architect` kernel, so once the notebook venv exists they open and run without any further setup.
+
+#### `examples/agents_api/` - Anthropic hosts the loop
+
+The live course teaches you to **hand-roll the agentic loop**, because you can't reason about a loop you've never written. The six notebooks in [`examples/agents_api/`](./examples/agents_api/) are the counterpart: the same patterns, but with Anthropic running the loop for you through the **Managed Agents** beta (`anthropic-beta: managed-agents-2026-04-01`). They're banded by exam domain:
+
+| Notebook | Domain focus |
+|---|---|
+| [`01_agentic_loop_and_sessions`](./examples/agents_api/01_agentic_loop_and_sessions.ipynb) | Domain 1: the managed loop and session lifecycle |
+| [`02_coordinator_and_subagents`](./examples/agents_api/02_coordinator_and_subagents.ipynb) | Domain 1: multi-agent coordination |
+| [`03_tools_and_structured_errors`](./examples/agents_api/03_tools_and_structured_errors.ipynb) | Domain 2: tool design and structured errors |
+| [`04_structured_output_and_validation`](./examples/agents_api/04_structured_output_and_validation.ipynb) | Domain 4: schema-guaranteed output |
+| [`05_context_and_escalation`](./examples/agents_api/05_context_and_escalation.ipynb) | Domain 5: context preservation and escalation |
+| [`06_cca_f_capstone`](./examples/agents_api/06_cca_f_capstone.ipynb) | All five domains end to end |
+
+All six are smoke-verified green, and **all six archive the resources they create**, so a full run leaves nothing behind in your Console workspace. Read them after the live segments, not before - the managed loop is much easier to trust once you've written the unmanaged one.
+
+#### `examples/mcp_cli/` - the MCP reference app (one command)
 
 The vendored [`examples/mcp_cli/`](./examples/mcp_cli/) Skilljar reference app gets the same on-rails treatment via a wrapper that auto-bootstraps its `.env` and hands off to `uv`:
 
@@ -134,15 +182,17 @@ The vendored [`examples/mcp_cli/`](./examples/mcp_cli/) Skilljar reference app g
 .\scripts\run-mcp-cli.ps1
 ```
 
-First run creates `examples/mcp_cli/.env` from the template, lifts `ANTHROPIC_API_KEY` from your repo-root `.env`, and then runs `uv run --directory examples/mcp_cli main.py`. Subsequent runs go straight to the REPL. The wrapper sits in [`scripts/run-mcp-cli.ps1`](./scripts/run-mcp-cli.ps1) and never touches the vendored `examples/mcp_cli/` tree, preserving the NOTICE.md modification count at 2.
+First run creates `examples/mcp_cli/.env` from the template, lifts `ANTHROPIC_API_KEY` from your repo-root `.env`, and then runs `uv run --directory examples/mcp_cli main.py`. Subsequent runs go straight to the REPL. The wrapper sits in [`scripts/run-mcp-cli.ps1`](./scripts/run-mcp-cli.ps1) and never touches the vendored `examples/mcp_cli/` tree, preserving the NOTICE.md modification count at 2. Its FastMCP server is what [`.mcp.json`](./.mcp.json) registers as **`oreilly-cca-mcp`**, and it's the server [`scripts/run-mcp-inspector.ps1`](./scripts/run-mcp-inspector.ps1) points the MCP Inspector at.
 
 ### Recommended learning path
 
+0. **New to the Claude API?** Run [`examples/messages_api/`](./examples/messages_api/) first. Ten short notebooks take you from a bare request to streaming and controlled output, which is the vocabulary every later segment assumes.
 1. **Read [COURSE-FLOW.md](./COURSE-FLOW.md)** for the full 4-segment teaching arc.
 2. **Walk the five `domain-*.md` reference files** in order. Each maps to a course segment and points at runnable cookbook notebooks.
-3. **Run the five live-teaching notebooks in [`notebooks/`](./notebooks/)** in order, plus the [`segment-2-5-control-surfaces.ipynb`](./notebooks/segment-2-5-control-surfaces.ipynb) self-study deep dive when time allows. These are the primary teaching surface - markdown cells carry the concepts, code cells run the demos. Anthropic's official cookbooks ship alongside in [`claude-cookbooks-main/`](./claude-cookbooks-main/) as the bundled-in reference library (full attribution in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md)).
-4. **Work through [`CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md)** and the [`PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md) bank if you're aiming at the CCA-F exam.
-5. **Build something.** The reference architectures only land when you wire one of these patterns into a real workflow.
+3. **Run the five live-teaching notebooks in [`notebooks/`](./notebooks/)** in order, plus the [`segment-2-5-control-surfaces.ipynb`](./notebooks/segment-2-5-control-surfaces.ipynb) self-study deep dive when time allows. These are the primary teaching surface - markdown cells carry the concepts, code cells run the demos, and each one closes with a **"Going further"** appendix that links the rest of the repo's assets. Anthropic's official cookbooks ship alongside in [`claude-cookbooks-main/`](./claude-cookbooks-main/) as the bundled-in reference library (full attribution in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md)).
+4. **Then run [`examples/agents_api/`](./examples/agents_api/).** Once you've hand-rolled an agentic loop in Segment 1, these six notebooks show you the same patterns with Anthropic managing the loop. The contrast is the lesson.
+5. **Work through [`CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md)** and the [`PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md) bank if you're aiming at the CCA-F exam.
+6. **Build something.** The reference architectures only land when you wire one of these patterns into a real workflow.
 
 ## Practice scenarios (CCA-F exam pool)
 
@@ -242,12 +292,13 @@ All reachable from the SDK with `anthropic-beta: managed-agents-2026-04-01`:
 
 ## Attribution and licensing
 
-This repo bundles three distinct bodies of work. The split matters for attribution and for reuse:
+This repo bundles several distinct bodies of work. The split matters for attribution and for reuse:
 
-- **Original content by Tim Warner.** Everything in [`notebooks/`](./notebooks/), the five [`domain-*.md`](./docs/domain-1-agentic.md) reference files, [`COURSE-FLOW.md`](./COURSE-FLOW.md), [`CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md), [`PRE-CLASS-CHECKLIST.md`](./docs/PRE-CLASS-CHECKLIST.md), [`INSTRUCTOR-SETUP.md`](./docs/INSTRUCTOR-SETUP.md), [`CLAUDE.md`](./CLAUDE.md), and everything under [`scripts/`](./scripts/) is authored by Tim Warner and licensed under MIT via this repo's [`LICENSE`](./LICENSE) file.
+- **Original content by Tim Warner.** Everything in [`notebooks/`](./notebooks/), [`examples/agents_api/`](./examples/agents_api/), the five [`domain-*.md`](./docs/domain-1-agentic.md) reference files, [`COURSE-FLOW.md`](./COURSE-FLOW.md), [`CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md), [`PRE-CLASS-CHECKLIST.md`](./docs/PRE-CLASS-CHECKLIST.md), [`INSTRUCTOR-SETUP.md`](./docs/INSTRUCTOR-SETUP.md), [`CLAUDE.md`](./CLAUDE.md), and everything under [`scripts/`](./scripts/) is authored by Tim Warner and licensed under MIT via this repo's [`LICENSE`](./LICENSE) file.
 - **Vendored Anthropic content.** [`claude-cookbooks-main/`](./claude-cookbooks-main/) is a vendored copy of Anthropic's official [Claude Cookbooks](https://github.com/anthropics/claude-cookbooks), MIT licensed, **Copyright (c) 2023 Anthropic**. Full attribution, upstream commit reference, and the unmodified MIT license live in [`claude-cookbooks-main/NOTICE.md`](./claude-cookbooks-main/NOTICE.md) and [`claude-cookbooks-main/LICENSE`](./claude-cookbooks-main/LICENSE). It is committed here so learners get the entire reference library on `git clone` without a second clone step.
 - **Reference application from Anthropic's Skilljar course.** [`examples/mcp_cli/`](./examples/mcp_cli/) is a complete MCP CLI application (stdio FastMCP server + client + interactive chat with `@doc-id` retrieval and `/prompt-name` commands) distributed as starter material with Anthropic's [Claude with the Anthropic API](https://anthropic.skilljar.com/claude-with-the-anthropic-api/) Skilljar course. Treated as Anthropic-authored instructional reference; full attribution and the two minor modifications (rename `.env` to `.env.example`, add `NOTICE.md`) are documented in [`examples/mcp_cli/NOTICE.md`](./examples/mcp_cli/NOTICE.md). Segment 2 of the course opens its `mcp_server.py` source during Demo A.
 - **Practice bank with split provenance.** In [`PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md) the question stems, options, and correct answers are community-sourced from Paul Larionov's study repo; the answer explanations are this repo's own work, grounded in Anthropic documentation. The file is hand-maintained (see the [Disclaimer](#disclaimer) below for the full provenance and calibration-only framing).
+- **Adapted community content.** The primer notebooks in [`examples/messages_api/`](./examples/messages_api/) are adapted from [jaozc/building-with-the-claude-api](https://github.com/jaozc/building-with-the-claude-api), with three portability fixes for this repo: the install cell shells out to `uv pip install` rather than `%pip` (uv venvs ship without pip), the model is pinned to `claude-haiku-4-5` per this repo's model policy, and the demo prompts are Azure-first. Attribution is in each notebook's first cell and in [`examples/README.md`](./examples/README.md). The managed-agents notebooks in [`examples/agents_api/`](./examples/agents_api/) are original work by Tim Warner and fall under this repo's MIT license.
 - **Point-in-time snapshots, not submodules.** Both [`claude-cookbooks-main/`](./claude-cookbooks-main/) and [`examples/mcp_cli/`](./examples/mcp_cli/) are static snapshots, not git submodules. Refresh procedures are documented in each directory's `NOTICE.md`.
 
 ## Disclaimer

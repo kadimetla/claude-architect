@@ -28,7 +28,7 @@ The pattern that scales:
 - **Keep full verbatim history ONLY for the active, unresolved issue.** Resolved means resolved. Stop carrying it.
 - **Prune verbose tool outputs.** A raw API response with 40 fields where you used 5 is 35 fields of context tax. Filter the `tool_result` content application-side before adding it to the conversation.
 
-Tool context pruning is **application-side**, the model cannot do it for you. Reference `automatic-context-compaction.ipynb` for a worked example.
+Tool context pruning is **application-side**, the model can't do it for you. Reference `automatic-context-compaction.ipynb` for a worked example, with one caveat: that vendored cookbook currently **fails to run** on an upstream SDK-drift bug, where it reads `block.text` but the newer SDK returns a dict. Read it for the pattern, don't expect a green run, and don't patch vendored content to force one. Details are in [`COOKBOOK-INDEX.md`](./COOKBOOK-INDEX.md).
 
 ### Escalation design
 
@@ -91,12 +91,24 @@ When synthesis agents combine outputs from multiple subagents, the financial age
 
 The two load-bearing Domain 5 concepts (case-facts pinning + tool-output pruning, and escalation triage) are taught live in **COURSE-FLOW.md Segment 3** alongside Domain 4. The compaction demo is **post-class self-study**, not a live segment. The Segment 4 capstone is the CCA-F cert briefing + practice questions; see [`./CERT-PROGRAM-BRIEFING.md`](./CERT-PROGRAM-BRIEFING.md). Code references:
 
-- `../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb`, self-study lab (run after class)
+- `../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb`, self-study lab. Currently **FAILS to run** (upstream SDK drift); read it for the pattern.
 - `../claude-cookbooks-main/tool_use/memory_cookbook.ipynb`, memory and recall patterns
 - `../claude-cookbooks-main/managed_agents/CMA_gate_human_in_the_loop.ipynb`, human review gating
 - `../claude-cookbooks-main/managed_agents/CMA_remember_user_preferences.ipynb`, preference persistence
 - `../claude-cookbooks-main/claude_agent_sdk/02_The_observability_agent.ipynb`, observability for production agents
 - `../claude-cookbooks-main/claude_agent_sdk/03_The_site_reliability_agent.ipynb`, SRE patterns
+
+### Escalation, running
+
+[`examples/agents_api/05_context_and_escalation.ipynb`](../examples/agents_api/05_context_and_escalation.ipynb) is the Domain 5 counterpart on the managed-agents surface. It runs the exact rule this page argues for, routing on **problem shape and not on sentiment**, alongside context-window discipline. If the sentiment-versus-complexity distinction still reads as an opinion rather than a mechanism, run that notebook and watch it decide.
+
+### Context that survives a restart
+
+[`segment-2-5-control-surfaces.ipynb`](../notebooks/segment-2-5-control-surfaces.ipynb) covers the persistence tier this page only gestures at. Its Console-asset section works the live **memory store** (`oreilly-memory-store`), which is context that outlives the process, not just the turn. Everything above is in-window discipline; a memory store is what you reach for when the window isn't the boundary that matters.
+
+### Task-statement coverage
+
+[`notebooks/cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb) **Part 5** covers all six Domain 5 task statements (TS5.1 through TS5.6): the three counters to long-session rot, the three legitimate escalation triggers, error propagation across multi-agent systems, confidence calibration, and provenance. It creates no billable resources.
 
 ## Production tips (Tim's voice)
 

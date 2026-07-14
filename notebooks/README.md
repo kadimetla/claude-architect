@@ -14,7 +14,15 @@ The seven teaching notebooks for the four-hour O'Reilly live training: five live
 | `segment-4-cca-f-capstone.ipynb` | Segment 4: CCA-F Certification Capstone | 50 min |
 | `cca-f-exam-mastery.ipynb` | **Exam-mastery reference: all five domains, all 30 task statements (post-class study)** | *off-clock* |
 
-Each segment notebook ships with **Learning Objectives**, **Concept** markdown cells, **Demo** code cells, **Exercise** prompts, **Key Takeaways**, and a **Bridge to next segment**. The four-hour class is the five live segments in order plus three ten-minute breaks. Segment 2.5 is a deep-dive self-study notebook that ties together every control surface the live segments touch lightly: all four `tool_choice` modes plus `disable_parallel_tool_use`, `stop_sequences`, `max_tokens` as a control lever, MCP `list_tools` discovery, and the live Claude Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`). Walked end to end it runs about 75 minutes against the live API.
+Each segment notebook ships with **Learning Objectives**, **Concept** markdown cells, **Demo** code cells, **Exercise** prompts, **Key Takeaways**, a **Bridge to next segment**, and a **"Going further" appendix** that links the repo's other teaching assets (the `../examples/` suites, the vendored cookbook, and the domain reference scaffolds). The four-hour class is the five live segments in order plus three ten-minute breaks. Segment 2.5 is a deep-dive self-study notebook that ties together every control surface the live segments touch lightly: all four `tool_choice` modes plus `disable_parallel_tool_use`, `stop_sequences`, `max_tokens` as a control lever, MCP `list_tools` discovery, and the live Claude Console asset surface (`memory_stores`, `vaults`, `agents`, `sessions`). Walked end to end it runs about 75 minutes against the live API.
+
+**Reworked 2026-07-14.** The five live notebooks got a teachability pass: markdown trimmed roughly 30% so the prose supports the talk track instead of competing with it, and **Segment 1 gained a "one tool call, no loop" rung** that sits between the bare Messages API call and the full agentic loop, so learners see the single hop before they see the cycle.
+
+## The exam-mastery notebook is the most exam-aligned artifact here
+
+`cca-f-exam-mastery.ipynb` is fully smoke-verified: **20 of 20 cells run clean**, zero errors, and the final cell self-audits its own coverage at **30 of 30 CCA-F task statements** (Domain 1 7/7, Domain 2 5/5, Domain 3 6/6, Domain 4 6/6, Domain 5 6/6). Every task statement maps to a runnable minimal demo. It **creates no billable resources**: the Console cells only *list* memory stores and vaults, so there's nothing to clean up after a run. If you want one artifact to study from after class, this is it.
+
+**Known-and-fine, so don't "fix" it:** the notebook's live MCP `list_tools` cell **is skipped under headless `nbconvert`**. `stdio_client` spawns a subprocess wired to `sys.stdin` and `sys.stdout`, and nbconvert swaps those for in-memory buffers with no OS file descriptor behind them, so `.fileno()` raises `io.UnsupportedOperation`. **In a real kernel** (JupyterLab or VS Code) the cell **runs live** and discovers tools `['read_doc_contents', 'edit_document']`, resource `docs://documents`, and prompt `format`. The code is correct. Only the headless path skips it.
 
 ## Cookbook anchor (optional self-study)
 
@@ -44,6 +52,24 @@ pip install -r notebooks\requirements.txt
 ```
 
 The `requirements.txt` file is kept in sync with `pyproject.toml` as a fallback path; either works.
+
+### Class day: the on-rails path
+
+Three scripts own the class-day lifecycle. Run them from the repo root, in this order:
+
+```powershell
+.\scripts\preflight-class.ps1        # read-only go/no-go board. Exit 0 = GO.
+.\start-sidecar-group.ps1            # brings up JupyterLab, MCP Inspector, MCP CLI
+.\stop-sidecar-group.ps1             # takes them all back down
+```
+
+[`preflight-class.ps1`](../scripts/preflight-class.ps1) **changes nothing**. It reads the environment, prints a board, and exits 0 when you're clear to teach, so it's safe to run mid-recording. [`start-sidecar-group.ps1`](../start-sidecar-group.ps1) is **idempotent**: re-running it won't stack duplicate processes on the same ports.
+
+**If you run notebooks from VS Code, start the group with `-NoJupyter`.** The VS Code Jupyter extension spawns its own kernel and never connects to a JupyterLab server, so the Jupyter sidecar would just sit there holding port 8888 for nobody:
+
+```powershell
+.\start-sidecar-group.ps1 -NoJupyter
+```
 
 Pinned versions:
 
@@ -88,7 +114,7 @@ Remove-Item notebooks\_smoke-*.ipynb
 
 **Exit code 0 is not enough.** Read the printed counters on any cell that asserts an observable API behavior (`cache_creation_input_tokens`, `cache_read_input_tokens`, `stop_reason`, `tool_use` blocks). See [`../CLAUDE.md`](../CLAUDE.md#demo-verification-norm-smoke-before-commit) for the demo-verification norm and the cache-floor gotcha.
 
-Each run must finish with no exceptions. If anything fails, fix it **before** class.
+Each run must finish with no exceptions. If anything fails, fix it **before** class. The one expected skip is the exam-mastery notebook's MCP `list_tools` cell, explained above. The `_smoke-*.ipynb` artifacts are **gitignored** and transient by design, so the trailing `Remove-Item` is housekeeping, not a safety net.
 
 ## Voice lint (zero hits required)
 
@@ -129,8 +155,9 @@ uv run --project notebooks jupyter nbconvert --clear-output --inplace notebooks\
 
 Before each cohort delivery, in order:
 
-1. `uv run --project notebooks python -c "import anthropic; print(anthropic.__version__)"` (catches SDK drift early; auto-syncs the venv if `pyproject.toml` changed)
-2. `$env:ANTHROPIC_API_KEY` set in the shell you will record from
-3. Run the smoke command above (budget ~$1)
-4. Run the voice lint (must return zero hits)
-5. Read `..\docs\PRE-CLASS-CHECKLIST.md` for everything outside this directory
+1. `.\scripts\preflight-class.ps1` from the repo root (read-only go/no-go board; exit 0 means GO)
+2. `uv run --project notebooks python -c "import anthropic; print(anthropic.__version__)"` (catches SDK drift early; auto-syncs the venv if `pyproject.toml` changed)
+3. `$env:ANTHROPIC_API_KEY` set in the shell you will record from
+4. Run the smoke command above (budget ~$1)
+5. Run the voice lint (must return zero hits)
+6. Read [`../docs/PRE-CLASS-CHECKLIST.md`](../docs/PRE-CLASS-CHECKLIST.md) for everything outside this directory

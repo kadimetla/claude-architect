@@ -36,7 +36,7 @@ Decomposition is a design call, not a default. Sometimes the agent is better off
 
 ## Demo anchor
 
-See **COURSE-FLOW.md Segment 1** for the live build. Code references:
+See **COURSE-FLOW.md Segment 1** for the live build, which is taught from [`segment-1-customer-support-agent.ipynb`](../notebooks/segment-1-customer-support-agent.ipynb). Code references:
 
 - `../claude-cookbooks-main/tool_use/customer_service_agent.ipynb` - primary demo anchor (4 tools, hook-enforced policy)
 - `../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb` - coordinator-subagent example
@@ -44,6 +44,23 @@ See **COURSE-FLOW.md Segment 1** for the live build. Code references:
 - `../claude-cookbooks-main/managed_agents/CMA_coordinate_specialist_team.ipynb` - specialist team coordination
 - `../hooks-example.py` - Tim's `enforce_refund_policy` hook ($500 cap)
 - `../coordinator-subagent-sketch.py` - coordinator-subagent scaffold (read-only reference)
+
+### Before the loop: the Messages API primitive
+
+If the raw `messages.create()` call still feels like magic, start at [`examples/messages_api/`](../examples/messages_api/). Ten short notebooks build the primitive the agentic loop wraps: [`001_requests.ipynb`](../examples/messages_api/001_requests.ipynb) is a single round trip, [`multi_turn_conversation.ipynb`](../examples/messages_api/multi_turn_conversation.ipynb) is the same call with an accumulating `messages` list, and that accumulation **is** the loop once you branch on `stop_reason`. Everything Domain 1 teaches sits one layer above these files.
+
+### The other half of the loop: let Anthropic host it
+
+Everything above is the **hand-rolled** loop, where your code owns the while-loop and the `stop_reason` branch. The **Managed Agents API** hosts that same loop server-side, and two notebooks in [`examples/agents_api/`](../examples/agents_api/) are the Domain 1 counterparts:
+
+- [`01_agentic_loop_and_sessions.ipynb`](../examples/agents_api/01_agentic_loop_and_sessions.ipynb) - the create, send, stream, idle, teardown spine, plus server-side **session** memory across turns. Compare its idle event to the `stop_reason` branch you write by hand.
+- [`02_coordinator_and_subagents.ipynb`](../examples/agents_api/02_coordinator_and_subagents.ipynb) - a coordinator with `multiagent` config delegating to specialists, which is the same isolated-context orchestration this domain teaches, minus the plumbing.
+
+Both notebooks archive their resources in a teardown cell. A live session is a billable runtime, so run that cell.
+
+### Task-statement coverage
+
+[`notebooks/cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb) **Part 1** maps all seven Domain 1 task statements (TS1.1 through TS1.7) to runnable minimal demos: the `stop_reason` state machine, prompt chaining versus dynamic decomposition, hub-and-spoke coordination, hooks as guarantees, the Task tool, and session resume versus fork. It creates no billable resources, so it's the cheapest way to rehearse this domain cold.
 
 ## Production tips (Tim's voice)
 

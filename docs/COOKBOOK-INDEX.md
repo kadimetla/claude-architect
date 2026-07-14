@@ -36,6 +36,23 @@ Three of these cookbooks (`customer_service_agent`, `tool_use_with_pydantic`, `e
 - **`parallel_tools.ipynb`** and **`automatic-context-compaction.ipynb`** are documented **upstream bugs**, not environment problems. All their import-level dependencies are satisfied in `notebooks\.venv`, so both **load and render fine in VS Code** - the FAIL is a runtime error in a later cell. Do not patch the vendored notebooks to fix them - the correct path is an upstream PR to `anthropics/claude-cookbooks`. The smoke script's FAIL flipping to PASS confirms the upstream fix when the snapshot is re-pulled.
 - **`01_The_chief_of_staff_agent.ipynb`** is the only cookbook with a genuinely missing dependency: `claude-agent-sdk` is not in `notebooks\.venv`. The notebook opens and renders in VS Code, but its first code cell errors on run. It also needs the Claude Code CLI on PATH. Treat it like `examples/mcp_cli/` - a separate setup, not part of the notebook environment.
 
+**If you need a green run of these three patterns**, this repo has one for each:
+
+| Cookbook that doesn't run | Pattern it teaches | Runnable substitute in this repo |
+|---|---|---|
+| `parallel_tools.ipynb` | Parallel tool calls, and turning them off | [`segment-2-5-control-surfaces.ipynb`](../notebooks/segment-2-5-control-surfaces.ipynb), the `disable_parallel_tool_use` section |
+| `automatic-context-compaction.ipynb` | Keeping a long session under the window | [`cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb) Part 5 (TS5.1), plus [`segment-3-invoice-extractor.ipynb`](../notebooks/segment-3-invoice-extractor.ipynb) for case-facts pinning |
+| `01_The_chief_of_staff_agent.ipynb` | Coordinator delegating to specialists | [`examples/agents_api/02_coordinator_and_subagents.ipynb`](../examples/agents_api/02_coordinator_and_subagents.ipynb), or [`coordinator-subagent-sketch.py`](../coordinator-subagent-sketch.py) to read rather than run |
+
+## Where the course's own notebooks fit
+
+The cookbooks above are Anthropic's, vendored and authoritative. The notebooks below are this repo's, and they're the ones that were built to run on your box:
+
+- **[`notebooks/cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb)** - all 30 CCA-F task statements, one runnable demo each, 20 of 20 cells verified green, **no billable resources created**. The first thing to open when studying.
+- **[`notebooks/segment-2-5-control-surfaces.ipynb`](../notebooks/segment-2-5-control-surfaces.ipynb)** - the depth pass on `tool_choice`, `stop_reason`, `list_tools`, and the Claude Console asset surface.
+- **[`examples/messages_api/`](../examples/messages_api/)** - ten short notebooks on the raw Messages API. The on-ramp if the cookbooks assume more than you have.
+- **[`examples/agents_api/`](../examples/agents_api/)** - six notebooks on the Managed Agents API, where Anthropic hosts the loop. These make **live, billable, beta-gated** calls, and each one archives its resources in a teardown cell. Let it run.
+
 ## The `No module named pip` message
 
 `uv`-created venvs ship **without `pip`** by design - `uv` is the installer. When a cookbook's `%pip install` cell runs, it prints `No module named pip` and installs nothing. This is harmless: the packages are already in `notebooks\.venv` from `uv.lock`. **Skip the `%pip` cell** and start from the first code cell. To make `%pip` magic resolve everywhere without editing vendored content, add `pip` to the venv once: `uv pip install pip --python notebooks\.venv\Scripts\python.exe`.

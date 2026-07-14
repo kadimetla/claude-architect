@@ -5,6 +5,7 @@ The full setup arc for the 4-hour O'Reilly live training, from "course was appro
 - **This file** - one-time and multi-day setup (machine config, env vars, dep installs, asset verification, broadcast rehearsal)
 - **[`./PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md)** - the 30-minutes-before-go-live ritual (verifies the work this file did is still intact)
 - **[`../COURSE-FLOW.md`](../COURSE-FLOW.md)** - the live teaching reference Tim reads from during the session
+- **[`./EMERGENCY-CARD.md`](./EMERGENCY-CARD.md)** - the one-page recovery sheet for when something goes down while the cohort watches
 
 If you've never taught this course before, work top-to-bottom. If you've taught it before, skim to **"Day-of timeline"** at the bottom.
 
@@ -230,6 +231,63 @@ npm run preflight
 
 Expect: 15 of 16 checks pass. The one expected fail is "Working tree clean" if you have in-flight changes; everything else should be green.
 
+### 2.6 Learn the class-day lifecycle scripts
+
+Three scripts carry every teaching session. Learn them once here so that on class day you're typing, not reading.
+
+| Script | Location | What it does |
+|---|---|---|
+| **`preflight-class.ps1`** | `scripts/` | **Read-only go/no-go board.** Prints PASS / WARN / FAIL rows, exits 0 only on **GO**. |
+| **`start-sidecar-group.ps1`** | **repo root** | Brings up the teaching sidecars, each in its own window. **Idempotent.** |
+| **`stop-sidecar-group.ps1`** | **repo root** | Takes them back down. |
+
+**`preflight-class.ps1`** checks tooling (uv, node, npx, git), secrets (both `.env` files plus `GITHUB_TOKEN`), both venvs, the `claude-architect` kernelspec's `argv[0]`, both MCP configs (they parse, and the demo-server name is in sync across them), that all seven notebooks parse, and ports 8888 / 6274 / 6277. It **changes nothing, starts nothing, and stops nothing**, so run it as often as you like. It's the diagnostic, not the fix.
+
+```powershell
+cd C:\github\claude-architect
+.\scripts\preflight-class.ps1
+```
+
+**`start-sidecar-group.ps1`** brings up **JupyterLab** (8888), the **MCP Inspector** (6274 web UI, 6277 proxy), and the **MCP CLI REPL**. Because it's idempotent, it skips any sidecar whose port is already held, which means re-running it repairs a gap rather than stacking duplicates. Flags: `-Restart`, `-SkipPreflight`, `-NoMcpCli`, `-NoJupyter`.
+
+```powershell
+.\start-sidecar-group.ps1
+```
+
+**Practice the recovery command now, not on stage.** Kill the Inspector window on purpose, then run this and watch it come back in about 15 seconds. That muscle memory is the whole point.
+
+```powershell
+cd C:\github\claude-architect
+.\start-sidecar-group.ps1 -NoJupyter
+```
+
+Two traps worth internalizing before class day:
+
+- **Don't run `scripts\run-mcp-inspector.ps1` directly mid-class.** It clears ports 6274 and 6277 **before** it launches, so it kills a working Inspector on the way in. Go through `start-sidecar-group.ps1`, which skips anything already healthy.
+- **`-NoJupyter` is the correct flag when you're teaching from VS Code.** The VS Code Jupyter extension spawns its **own kernel process** and never connects to a JupyterLab server on 8888, so that sidecar is dead weight in that workflow.
+
+The one-page live recovery sheet is [`./EMERGENCY-CARD.md`](./EMERGENCY-CARD.md). Read it once now, keep it on the second monitor on class day.
+
+### 2.7 Verify the post-class example suites
+
+Two validated notebook suites ship in [`../examples/`](../examples/). You won't teach from either one on the clock, but the live teaching notebooks link them from their **"Going further" appendices**, and you'll point the cohort at them in the close. Know what they are so you can describe them in one sentence each.
+
+| Suite | Count | What it's for |
+|---|---|---|
+| [`../examples/messages_api/`](../examples/messages_api/) | 10 notebooks | The **on-ramp**. Messages API primers for anyone who needs the fundamentals before the agentic material lands. All smoke-verified green. |
+| [`../examples/agents_api/`](../examples/agents_api/) | 6 notebooks | The **"Anthropic hosts the loop"** counterpart. Managed Agents. All six smoke-verified green, and all six archive their own resources when they finish, so a cohort member can't leave a bill running. |
+
+Verify both are present:
+
+```powershell
+@('examples/messages_api','examples/agents_api') |
+  ForEach-Object { "$_ : $((Get-ChildItem "C:/github/claude-architect/$_" -Filter *.ipynb).Count) notebooks" }
+```
+
+Expect `10` and `6`.
+
+The **strongest single post-class study asset** is a different file: [`../notebooks/cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb). It self-audits **30 of 30 CCA-F task statements** and creates no billable resources. Anyone in the cohort who's serious about sitting the exam should run that one first. Say so explicitly in the close.
+
 ---
 
 ## Phase 3: One week before class
@@ -267,7 +325,7 @@ uv export --project notebooks --no-hashes --no-emit-project --output-file notebo
 
 ### 3.4 Dry-run every teaching notebook
 
-Open each notebook in VS Code, **Run All Cells**, verify no errors. The class is taught live from segments 0-4; segment-2-5 is a self-study deep dive but should also dry-run clean. Cookbook notebooks at `claude-cookbooks-main/...` are post-class self-study, not part of this dry-run.
+Open each notebook in VS Code, **Run All Cells**, verify no errors. The class is taught live from segments 0-4. Two more ship alongside and stay off the 4-hour clock but should still dry-run clean: `segment-2-5` (self-study deep dive) and `cca-f-exam-mastery` (post-class study reference). Cookbook notebooks at `claude-cookbooks-main/...` are post-class self-study, not part of this dry-run.
 
 | Segment | Notebook | Expected runtime |
 |---|---|---|
@@ -277,11 +335,12 @@ Open each notebook in VS Code, **Run All Cells**, verify no errors. The class is
 | 2.5 | `notebooks/segment-2-5-control-surfaces.ipynb` | 4-5 min (self-study; not on the 4-hour clock) |
 | 3 | `notebooks/segment-3-invoice-extractor.ipynb` | 2-3 min |
 | 4 | `notebooks/segment-4-cca-f-capstone.ipynb` | < 1 min (no live API calls) |
+| off-clock | `notebooks/cca-f-exam-mastery.ipynb` | 3-4 min. 20 cells, self-audits **30/30 CCA-F task statements** (D1 7/7, D2 5/5, D3 6/6, D4 6/6, D5 6/6). **Creates no billable resources**, so there's nothing to tear down. |
 
-Or run all six from PowerShell in one shot:
+Or run all seven from PowerShell in one shot:
 
 ```powershell
-foreach ($n in 'segment-0-pre-flight','segment-1-customer-support-agent','segment-2-tool-design-and-mcp','segment-2-5-control-surfaces','segment-3-invoice-extractor','segment-4-cca-f-capstone') {
+foreach ($n in 'segment-0-pre-flight','segment-1-customer-support-agent','segment-2-tool-design-and-mcp','segment-2-5-control-surfaces','segment-3-invoice-extractor','segment-4-cca-f-capstone','cca-f-exam-mastery') {
     uv run --project notebooks jupyter nbconvert --to notebook --execute "notebooks/$n.ipynb" --output "_smoke-$n.ipynb"
 }
 Remove-Item notebooks/_smoke-*.ipynb
@@ -295,7 +354,14 @@ If any notebook errors, fix it now. Notebooks are easier to repair on a quiet Su
 claude mcp list
 ```
 
-Expect: `filesystem`, `github`, `context7`, `internal-knowledge-base` (or whichever subset you've actually provisioned). Any "failed to connect" needs a fix - usually a missing env var.
+`.mcp.json` carries **six servers across three transports**: `filesystem`, `github`, `context7`, `internal-knowledge-base`, `oreilly-cca-mcp`, and `cca-study-mcp`. Expect all of them to connect **except one**, and that exception is expected. Note that **`oreilly-cca-mcp` is the course's own FastMCP demo server**; it was previously named `document-mcp`, so disregard the old name if you find it in a stale note.
+
+Two known non-bugs, so you don't burn a Sunday on them:
+
+- **`internal-knowledge-base` will never connect.** It points at `mcp.example.com` and is a deliberate **teaching prop** for SSE transport plus `${ENV_VAR}` expansion. Nothing in the course depends on it.
+- **An MCP Inspector `404` plus `Unexpected token < ... not valid JSON`** means the endpoint returned an **HTML error page** where JSON was expected, which is what "nothing is listening at that URL" looks like. It gets labeled "oauth" only because discovery is the first step attempted. Since **stdio servers can't return an HTTP 404**, a healthy stdio server alongside a failing HTTP or SSE one is the expected signature.
+
+Any *other* "failed to connect" is a real fix, and it's usually a missing env var.
 
 ### 3.6 Rehearse Segment 3 demo cold
 
@@ -369,22 +435,26 @@ You will refer to it constantly during the session. Don't navigate to it mid-dem
 - [ ] Open COURSE-FLOW.md in preview mode, navigate to Segment 1
 - [ ] Open all five live-teaching demo notebooks in tabs (don't run them yet, just have them ready). Optionally open segment-2-5-control-surfaces.ipynb too if you may reach for it during Q&A overflow.
 - [ ] Open PowerShell terminal in VS Code, font size at least 16pt
+- [ ] Open [`./EMERGENCY-CARD.md`](./EMERGENCY-CARD.md) on the second monitor and leave it there
 
 ### T-30 minutes: run PRE-CLASS-CHECKLIST
 
 Walk **[`./PRE-CLASS-CHECKLIST.md`](./PRE-CLASS-CHECKLIST.md)** top to bottom. Every `[ ]` checked, every **Expect:** matched. If a step fails, fix it before moving on.
 
-The fastest way to run the automated portion:
+The fastest way to run the automated portion is the class-day go/no-go board plus the sidecar launch:
 
 ```powershell
-npm run preflight
+cd C:\github\claude-architect
+.\scripts\preflight-class.ps1        # read-only. Must end in GO.
+.\start-sidecar-group.ps1            # add -NoJupyter if you're teaching from VS Code
+npm run preflight                    # the older machine/repo/asset sweep, still useful
 ```
 
 Then manually verify the remaining items:
 
 - [ ] Sample invoice fixtures for Segment 3 (Option A pre-saved OR Option B inline JSON)
 - [ ] O'Reilly platform tab open, screen-share rehearsed
-- [ ] `claude mcp list` shows servers connected
+- [ ] `claude mcp list` shows servers connected (`internal-knowledge-base` failing is expected; see 3.5)
 
 ### T-15 minutes: broadcast setup
 
@@ -409,7 +479,18 @@ Open with the cold-open from COURSE-FLOW.md Segment 1. Follow the punchlist. Tru
 
 ## Backup plans
 
-Document each failure mode once, recover fast when it happens.
+Document each failure mode once, recover fast when it happens. The live one-page version is [`./EMERGENCY-CARD.md`](./EMERGENCY-CARD.md); read that on stage, read this one at the desk.
+
+### If a sidecar goes down (Inspector, JupyterLab, MCP CLI)
+
+1. Run the recovery command. It's idempotent, so it repairs only the missing sidecar and leaves the healthy ones alone.
+   ```powershell
+   cd C:\github\claude-architect
+   .\start-sidecar-group.ps1 -NoJupyter
+   ```
+2. Give it about 15 seconds. Keep talking while it comes up.
+3. **Don't** reach for `scripts\run-mcp-inspector.ps1` here. It clears ports 6274 and 6277 **before** launching, which kills a working Inspector on the way in.
+4. If it refuses because a port is held by an orphan process, run `.\stop-sidecar-group.ps1` first, then the recovery command again.
 
 ### If `ANTHROPIC_API_KEY` rate-limits during a live build
 
@@ -470,23 +551,27 @@ Document each failure mode once, recover fast when it happens.
 
 ---
 
-## Reference: the npm scripts in this repo
+## Reference: the scripts in this repo
 
 | Command | What it does | When to run |
 |---|---|---|
+| `.\scripts\preflight-class.ps1` | **Read-only** class-day go/no-go board. Tooling, secrets, both venvs, kernelspec `argv[0]`, both MCP configs, all seven notebooks parse, ports 8888 / 6274 / 6277. PASS / WARN / FAIL rows; exits 0 only on **GO**. Changes nothing, starts nothing, stops nothing. | Before every class |
+| `.\start-sidecar-group.ps1` | Brings up the teaching sidecars (JupyterLab 8888, MCP Inspector 6274 / 6277, MCP CLI REPL), each in its own window. **Idempotent**, so re-running repairs gaps instead of stacking duplicates. Flags: `-Restart`, `-SkipPreflight`, `-NoMcpCli`, `-NoJupyter`. | T-30, and as the mid-class recovery command |
+| `.\stop-sidecar-group.ps1` | Takes the sidecars back down. | Post-class teardown |
 | `npm run preflight` | 16 automated machine + repo + asset checks. Exits non-zero on any fail. | Day-of, T-30 |
 | `npm run lint:voice` | Scans every MD file for em dashes, AWS mentions, glazing openers. Exits non-zero on any violation. | Before every commit, day-before-class |
 
-Both scripts have comment-based help (`Get-Help ./scripts/preflight.ps1 -Full`).
+The two sidecar scripts sit at the **repo root**, not in `scripts/`. Both preflight scripts have comment-based help (`Get-Help ./scripts/preflight.ps1 -Full`).
 
 ---
 
-## Reference: the three instructor docs
+## Reference: the four instructor docs
 
 | Doc | Purpose | When to use |
 |---|---|---|
 | **INSTRUCTOR-SETUP.md** (this file) | Multi-day setup arc, machine config, env vars, repo clone, backup plans | One-time per machine, then refresh weekly |
 | **PRE-CLASS-CHECKLIST.md** | 30-minute pre-flight ritual | T-30, day-of |
 | **COURSE-FLOW.md** | Live teaching reference, segment-by-segment | During the live session |
+| **EMERGENCY-CARD.md** | One-page recovery sheet, no scrolling, no thinking | Mid-class, while the cohort watches |
 
-If a setup task is in this file, it doesn't need to repeat in the other two. If it's in PRE-CLASS-CHECKLIST, this file should point at it, not duplicate it.
+If a setup task is in this file, it doesn't need to repeat in the other three. If it's in PRE-CLASS-CHECKLIST, this file should point at it, not duplicate it.

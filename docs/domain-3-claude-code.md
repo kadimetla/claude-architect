@@ -91,13 +91,26 @@ The progressive-development loop: small change, `claude -p "review"`, apply feed
 
 ## Demo anchor
 
-See **COURSE-FLOW.md Segment 2** for the live walkthrough. Code references in this repo:
+See **COURSE-FLOW.md Segment 2** for the live walkthrough, taught from [`segment-2-tool-design-and-mcp.ipynb`](../notebooks/segment-2-tool-design-and-mcp.ipynb). Code references in this repo:
 
-- `../CLAUDE.md`. This repo's own project-level CLAUDE.md as a worked example.
-- `./scenario-cicd-integration.md`. `claude -p` in a CI pipeline.
-- `../hooks-example.py`. Agent SDK hook pattern (same mental model as `settings.json` hooks).
-- `../settings.json`. Editor settings example for the repo.
+- [`../CLAUDE.md`](../CLAUDE.md). This repo's own project-level CLAUDE.md as a worked example.
+- [`./scenario-cicd-integration.md`](./scenario-cicd-integration.md). `claude -p` in a CI pipeline.
+- [`../hooks-example.py`](../hooks-example.py). Agent SDK hook pattern (same mental model as `settings.json` hooks).
+- [`../.claude/settings.json`](../.claude/settings.json). This repo's real Claude Code settings file, which is where permissions, hooks, and env belong.
+- [`../.mcp.json`](../.mcp.json). Project-scope MCP servers, including the course-owned **`oreilly-cca-mcp`** stdio server.
 - `../claude-cookbooks-main/skills/`. Anthropic skill examples (vendored, MIT; see `claude-cookbooks-main/NOTICE.md`).
+
+**Where the settings actually are.** Claude Code reads `.claude/settings.json` for permissions, hooks, and env, and it reads the repo-root `.mcp.json` for project-scope MCP servers. Those are two files with two jobs, and putting server definitions in the first one won't work. The file at the repo root named `settings.json` isn't a Claude Code settings file at all, so don't reach for it.
+
+### Go deeper on the harness boundary
+
+[`segment-2-5-control-surfaces.ipynb`](../notebooks/segment-2-5-control-surfaces.ipynb) draws the line this domain depends on: which tools come from Anthropic's servers, which come from your MCP servers, and which belong to the Claude Code harness itself and therefore can't be reached from the API. It also walks the live **Claude Console asset surface** (memory stores, vaults, agents, sessions), where the vault is the Domain 3 answer to keeping secrets out of source, notebooks included.
+
+Domain 3 is CLI and configuration, so the [`examples/agents_api/`](../examples/agents_api/) notebooks deliberately don't fake it. The one honest bridge they draw: an agent's `system` prompt is a versioned artifact, exactly like CLAUDE.md.
+
+### Task-statement coverage
+
+[`notebooks/cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb) **Part 3** covers all six Domain 3 task statements (TS3.1 through TS3.6): the CLAUDE.md hierarchy, path-specific rules in `.claude/rules/`, slash commands and Skills, plan mode versus direct execution, iterative refinement, and Claude Code in CI/CD.
 
 ## Production tips (Tim's voice)
 

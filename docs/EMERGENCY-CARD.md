@@ -2,7 +2,7 @@
 
 Read this while the cohort watches. One page, no scrolling, no thinking.
 
-**The one thing to remember:** every launcher is idempotent and port-scoped. When something dies, **run the same command again**. It repairs the gap and leaves everything else alone.
+**The one thing to remember:** every launcher is idempotent and port-scoped. When something goes down, **run the same command again**. It repairs the gap and leaves everything else alone.
 
 ```powershell
 cd C:\github\claude-architect
@@ -44,7 +44,7 @@ You are pointed at a server that is not running (this is what WARNERCO does - it
 
 ---
 
-## MCP CLI REPL died
+## MCP CLI REPL stopped
 
 ```powershell
 .\scripts\run-mcp-cli.ps1
@@ -69,7 +69,7 @@ You are on the machine-wide Python, not the repo venv. Reselect the kernel in VS
 
 **Kernel picker -> Python Environments -> `notebooks/.venv`**
 
-That error is the tell: the system Python is not writable, so the `uv pip install` cell dies.
+That error is the tell: the system Python isn't writable, so the `uv pip install` cell fails.
 
 ---
 

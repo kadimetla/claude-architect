@@ -140,12 +140,22 @@ Cost is roughly **3x baseline** but catches systematic biases that a single pass
 
 ## Demo anchor
 
-See **COURSE-FLOW.md Segment 3** for the live build (invoice extractor). Segment 3 now also covers Domain 5 (context preservation, escalation triage), so the demo is tightened to a single notebook on screen. Code references:
+See **COURSE-FLOW.md Segment 3** for the live build (invoice extractor), taught from [`segment-3-invoice-extractor.ipynb`](../notebooks/segment-3-invoice-extractor.ipynb). Segment 3 now also covers Domain 5 (context preservation, escalation triage), so the demo is tightened to a single notebook on screen. Code references:
 
 - `../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` - primary structured-output pattern, opened live
 - `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` - Pydantic + tool_use integration, referenced inline (not opened live)
 - `../claude-cookbooks-main/patterns/agents/evaluator_optimizer.ipynb` - multi-pass review pattern, self-study
-- `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel extraction, self-study
+- `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel extraction, self-study. Read it for the pattern; it currently **fails to run** on an upstream bug (see [`COOKBOOK-INDEX.md`](./COOKBOOK-INDEX.md)).
+
+### The control surfaces underneath
+
+Before forced tool use, there are plainer levers, and [`examples/messages_api/`](../examples/messages_api/) walks them one per notebook: [`002_system_prompt.ipynb`](../examples/messages_api/002_system_prompt.ipynb) treats the **system prompt as a control surface** rather than decoration, [`003_temperature.ipynb`](../examples/messages_api/003_temperature.ipynb) shows what the temperature dial does and doesn't buy you, and [`005_controlling_output.ipynb`](../examples/messages_api/005_controlling_output.ipynb) is output control in its simplest form. Each has an `_exercise` variant. Work these first if the Pydantic-plus-forced-tool pattern below feels like it arrived from nowhere.
+
+For the managed-agent version, [`examples/agents_api/04_structured_output_and_validation.ipynb`](../examples/agents_api/04_structured_output_and_validation.ipynb) pulls JSON out of an agent turn and runs the same validate-then-retry-once discipline, including the null-if-not-stated rule.
+
+### Task-statement coverage
+
+[`notebooks/cca-f-exam-mastery.ipynb`](../notebooks/cca-f-exam-mastery.ipynb) **Part 4** covers all six Domain 4 task statements (TS4.1 through TS4.6): explicit criteria over vague instructions, few-shot for ambiguous cases, tool-use JSON schema enforcement, forced extraction with bounded retry, the Message Batches API, and multi-pass review.
 
 ## Production tips (Tim's voice)
 

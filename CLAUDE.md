@@ -25,6 +25,10 @@ The repo ships these artifacts:
 - `docs/CERT-PROGRAM-BRIEFING.md` - Segment 4 talk-track reference (exam mechanics, domain weights, week-before punchlist, all public-sourced)
 - `docs/PRACTICE-QUESTIONS.md` - 60-question cohort take-home. **Hand-maintained.** Question stems are community-sourced; the answer explanations are repo-authored, with per-distractor rationale and Anthropic-doc citations grounded via Context7.
 - `docs/INSTRUCTOR-SETUP.md`, `docs/EXAM-STUDY-PATH.md`, `docs/COOKBOOK-INDEX.md`, `docs/scenario-cicd-integration.md` - supporting reference docs (instructor setup, study-path map, cookbook wire-up index, CI/CD scenario walkthrough)
+- `docs/EMERGENCY-CARD.md` - one-page live-class recovery card. What to run when a sidecar drops mid-segment.
+- `scripts/preflight-class.ps1` - **read-only** go/no-go board, run before class. Checks tooling (`uv`, `node`, `npx`, `git`), secrets (both `.env` files plus `GITHUB_TOKEN`), both venvs, the `claude-architect` kernelspec's `argv[0]`, both MCP configs (they parse, and the demo-server name is in sync across them), that all seven notebooks parse, and the sidecar ports. Exit 0 means GO. It **changes nothing**, so it is safe to run repeatedly.
+- `start-sidecar-group.ps1` (repo root) - brings up the three class-day sidecars, each in its own window: JupyterLab (8888), MCP Inspector (6274 web UI plus 6277 proxy), and the MCP CLI REPL. **Idempotent**: it skips any sidecar whose port is already held, so a re-run repairs gaps instead of stacking duplicates. Flags: `-Restart`, `-SkipPreflight`, `-NoMcpCli`, `-NoJupyter`.
+- `stop-sidecar-group.ps1` (repo root) - delegates to `scripts/stop-jupyter.ps1`, then frees 6274 and 6277. It deliberately does **not** stop the MCP CLI REPL: that process holds no port, so the only way to find it is pattern-matching `pwsh`, which risks closing the instructor's own terminal.
 - `practice-questions.json` - machine-readable practice-question source, hand-maintained (Segment 4 notebook samples 10 from this). Stays at repo root, not in docs/. Its explanations are the shorter originals; the enriched per-distractor rationale lives only in `docs/PRACTICE-QUESTIONS.md`, so the two diverge by design.
 - `scripts/extract-practice-questions.py` - **RETIRED.** Was the build-time extractor for the two practice-question files; retired because a regeneration from the upstream HTML would overwrite the hand-authored explanations in `docs/PRACTICE-QUESTIONS.md`. Both files are now hand-maintained; edit them directly.
 - `.mcp.json` - Segment 2 MCP config anchor (6 servers, 3 transports, env-var expansion). **This is the only project-scoped MCP file Claude Code reads.** There is no `.claude/mcp.json`; that path is silently ignored. `.claude/settings.json` holds permissions, hooks, and env only - its sole MCP-adjacent keys are the `enabledMcpjsonServers` / `disabledMcpjsonServers` approval toggles, never server definitions. The other two scopes (local and user) both live in `~/.claude.json`, outside this repo. Two servers here are course-owned and stdio: `oreilly-cca-mcp` points Claude Code at the course's own FastMCP demo (`examples/mcp_cli/mcp_server.py`), and `cca-study-mcp` points at the CCA Cert Buddy server (`cca-cert-buddy/mcp-server/index.ts`).
@@ -33,7 +37,7 @@ The repo ships these artifacts:
 - `coordinator-subagent-sketch.py` - Domain 1 coordinator-subagent scaffold (renamed from the old `testing.md`)
 - `examples/mcp_cli/` - vendored reference MCP CLI app from Anthropic's Skilljar course (Segment 2 anchor; separate uv project with its own `pyproject.toml`, `uv.lock`, and `.python-version` pinning 3.13). Attribution in `examples/mcp_cli/NOTICE.md`.
 - `examples/messages_api/` - ten Messages API primer notebooks (`001_requests` through `005_controlling_output` plus three `_exercise` variants, `first_request.ipynb`, and `multi_turn_conversation.ipynb`), adapted from [jaozc/building-with-the-claude-api](https://github.com/jaozc/building-with-the-claude-api/tree/main). Three portability fixes vs. the upstream source: the install cell shells out to `uv pip install --python sys.executable` instead of `%pip` (uv venvs ship without pip); `model = "claude-haiku-4-5"` per repo model policy; and the streaming/controlled-output demo prompts are Azure-first (Event Grid, Azure CLI). They read `examples/.env` via `python-dotenv` and request the `claude-architect` kernel (see below). Attribution lives in each notebook's first cell and in `examples/README.md`.
-- `examples/agents_api/` - managed-agents notebooks (Console asset surface). **Built by a separate session; do NOT edit these unless explicitly asked.**
+- `examples/agents_api/` - managed-agents notebooks (Console asset surface). **Validated and in the teaching path**: all six are committed, all six are smoke-verified green against the live API, and all six archive the resources they create, so a run leaves nothing behind. The live notebooks' "Going further" appendices link them. Coordinate before large structural edits; small fixes are fine.
 - `claude-architect` **Jupyter kernel** - a user-scoped kernelspec whose `argv[0]` is the absolute path to `notebooks/.venv/Scripts/python.exe`, so it always lands in the writable uv venv regardless of PATH. The `examples/messages_api/` notebooks stamp `kernelspec.name = "claude-architect"` so the correct kernel auto-selects on open. Register on a fresh clone with `uv run --project notebooks python -m ipykernel install --user --name claude-architect --display-name "Claude Architect (notebooks/.venv)"`. The trap it avoids: a bare `"python"` in `argv` resolves to whatever is first on PATH (on Tim's box, the non-writable machine-wide `C:\Python314`), which makes the uv install cell fail with an Access-denied `os error 5`.
 - `claude-cookbooks-main/` - vendored copy of Anthropic's official Claude Cookbooks (MIT, Copyright (c) 2023 Anthropic). Attribution in `claude-cookbooks-main/NOTICE.md`.
 - `slides/warner-claude-architect-july-2026.pptx` - course deck for the July 2026 delivery (89 slides). **Hand-authored**, not emitted by `scripts/build-deck.py` (that script generates a smaller scaffold cut and would overwrite the shipped file). No PDF is committed; export fresh from the `.pptx` if a cohort needs one.
@@ -57,6 +61,26 @@ For interactive teaching sessions, prefer the **lifecycle helper scripts** over 
 ```
 
 `run-jupyter.ps1` sets `PersonaManager.default_persona_id` to the Jupyter AI v3 Jupyternaut so chat messages route to someone (the upstream default points at the older package ID and silently routes to nobody). `stop-jupyter.ps1` matches the server by `root_dir` so it never stops an unrelated Jupyter on the box, and falls back to `Stop-Process` on the exact PID if the graceful path hangs (Jupyter AI can leave the server half-interrupted on Windows). For headless smoke runs (`nbconvert --execute`) you do not need either script - nbconvert spawns its own kernel.
+
+### Class-day lifecycle (the July 2026 delivery pattern)
+
+On class day the sequence is three commands:
+
+```powershell
+.\scripts\preflight-class.ps1        # read-only go/no-go board. Exit 0 = GO. Changes nothing.
+.\start-sidecar-group.ps1            # JupyterLab 8888, MCP Inspector 6274/6277, MCP CLI REPL
+.\stop-sidecar-group.ps1             # teardown (Jupyter + Inspector ports; leaves the REPL alone)
+```
+
+`start-sidecar-group.ps1` is idempotent: it skips any sidecar whose port is already bound, so re-running it after a mid-class drop repairs only the gap. `docs/EMERGENCY-CARD.md` is the one-page recovery card for exactly that moment.
+
+**Tim teaches the notebooks from VS Code, not JupyterLab.** The VS Code Jupyter extension spawns its own kernel process and never connects to the JupyterLab server on 8888, so that sidecar is dead weight in his actual workflow. Start with `-NoJupyter` when he is teaching from VS Code.
+
+### The `wt.exe` no-op gotcha (record this; it is the same family as the cache-floor lesson)
+
+`wt.exe` on PATH is usually the **Store app execution alias** under `WindowsApps`, which is a zero-byte reparse point rather than a real executable. From a non-interactive or sandboxed host, `Start-Process wt` **silently no-ops**: it returns success, no window appears, and nothing binds. `start-sidecar-group.ps1` therefore **polls the ports to confirm the service actually bound**, and falls back to plain `pwsh` windows when `wt` no-ops.
+
+The general rule for this repo: **never treat a launcher's exit code as proof a service is up. Probe the port.** This is the same failure shape as the cache-floor gotcha below, where `nbconvert` exits 0 while the demo silently proves nothing.
 
 Smoke tests run via `uv run` too: `uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/segment-0-pre-flight.ipynb --output _smoke-0.ipynb` (budget ~$0.05 per notebook against the live API). Builder scripts (`scripts/build-notebooks.py` and `scripts/_notebooks/*.py`) are pure Python with no third-party deps; they run with the system Python directly, no venv required.
 
@@ -122,7 +146,7 @@ uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/s
 
 Then read the cell's output and confirm it matches what the printed assertion claims. **A passing exit code is not enough** - `nbconvert` exits 0 as long as no cell raised, even if the demo's printed numbers contradict the surrounding markdown (this is exactly what happened with the segment-2 cache demo: the cell ran clean but produced `cache_read=0` when the prose promised a cache hit).
 
-Smoke artifacts (`notebooks/_smoke-*.ipynb`) are gitignored - they are transient by design.
+Smoke artifacts are gitignored - they are transient by design. `.gitignore` covers three trees: `notebooks/_smoke-*.ipynb`, `claude-cookbooks-main/**/_smoke-*.ipynb`, and `examples/**/_smoke-*.ipynb`.
 
 Rule of thumb: if the markdown above a cell makes a concrete claim ("the second call reads from cache", "stop_reason flips to end_turn"), the cell must be smoke-verified. Voice-lint and `python scripts/build-notebooks.py` confirm structure; only a live API run confirms behavior.
 
@@ -134,6 +158,22 @@ Any cell that demonstrates `cache_control` must clear the **model-specific cache
 - **Haiku 4.5**: 4096 tokens (4x higher - the trap when flipping demos from Sonnet to Haiku)
 
 When changing a notebook's default model, audit every cache demo for prefix size. The 2026-05 Sonnet 4.6 -> Haiku 4.5 flip broke both segment-2 (tool block ~1280 tokens) and segment-3 (vendor policy ~250 tokens) because the cached prefix sat between the two floors. The fix in both cases was to enlarge the cacheable content with **realistic production prose** (system prompt, policy block, escalation playbook) targeting **+25% above the floor** so tokenizer drift does not push you back under.
+
+### Exam-mastery notebook: verified state and two things not to "fix"
+
+`notebooks/cca-f-exam-mastery.ipynb` is fully smoke-verified: **20 of 20 cells, zero errors**, and its final cell self-audits **30 of 30 CCA-F task statements covered** (D1 7/7, D2 5/5, D3 6/6, D4 6/6, D5 6/6). Two properties are deliberate:
+
+- **It creates no billable resources.** It only *lists* memory stores and vaults. There is nothing to tear down after a run, so do not add teardown code.
+- **Its live MCP `list_tools` cell is skipped under headless `nbconvert`.** MCP stdio transport needs a real file descriptor; `nbconvert` replaces stdin and stdout with in-memory buffers, so `.fileno()` raises `io.UnsupportedOperation`. The cell **runs fine in a real kernel** (JupyterLab or VS Code). The skip guard is correct. Do not "repair" it.
+
+## Notebook-authoring rules (the 2026-07-14 rework, commit `7ea55ac`)
+
+The five live notebooks were substantially reworked. These rules govern every future notebook edit:
+
+- **Markdown cells in a live-taught notebook are cue cards, not essays.** Tim speaks the elaboration; the cell gives him the skeleton to speak from. The four live notebooks were cut from **8,145 to 5,645 markdown words** (about 30%, roughly 19 minutes of read-aloud time recovered at ~130 wpm). The symptoms of bloat: any markdown cell over ~120 words, two or more markdown cells back-to-back with no code between them, and enumerable content written as paragraphs instead of tables.
+- **One idea per code cell.** Segment 1's coordinator-subagent demo used to be a **191-line single cell** carrying two near-identical subagent functions. It is now one parameterized `run_subagent(role, task)` driven by a role table, split across three runnable cells (61, 37, and 77 lines). **No cell exceeds 80 lines.**
+- **The teaching ladder must have no missing rungs. Show the primitive bare before automating it.** Segment 1 used to jump from a bare `messages.create()` with no tools straight to a 76-line cell carrying the agentic loop, three `stop_reason` branches, a dispatcher, and the `tool_result` contract. **Every `tools=` call in the notebook was already inside a `for` loop.** A new cell now sits between them: **one tool call, `tools=` attached, no loop**, printing the `stop_reason` flip from `end_turn` to `tool_use` and the raw `tool_use` block. The audience includes GenAI specialists who are not Python developers, so an unexplained loop hides the primitive it is looping over.
+- **Every live notebook ends with a "Going further" appendix** linking the repo's teaching assets (cookbooks, `examples/`, the domain scaffolds). Repo-internal links went from 27 to **72**, and all 72 are verified to resolve. Verify any link you add.
 
 ## Cookbook wire-up status (the 2026-05-21 sprint)
 
@@ -235,6 +275,24 @@ uv run --project notebooks jupyter nbconvert --to notebook --execute notebooks/c
 # (scripts/extract-practice-questions.py) is RETIRED - a regeneration would
 # clobber the authored explanations in PRACTICE-QUESTIONS.md. Edit the two
 # files directly; do not run the extractor.
+```
+
+Class-day lifecycle (PowerShell 7, from the repo root):
+
+```powershell
+# Read-only go/no-go board. Exit 0 = GO. Changes nothing, so run it as often as you like.
+.\scripts\preflight-class.ps1
+
+# Bring up the sidecars: JupyterLab 8888, MCP Inspector 6274/6277, MCP CLI REPL.
+# Idempotent - skips any sidecar whose port is already held.
+.\start-sidecar-group.ps1
+.\start-sidecar-group.ps1 -NoJupyter          # Tim teaches from VS Code; skip the 8888 sidecar
+.\start-sidecar-group.ps1 -Restart            # force a clean relaunch of everything
+.\start-sidecar-group.ps1 -SkipPreflight      # skip the go/no-go board
+.\start-sidecar-group.ps1 -NoMcpCli           # skip the MCP CLI REPL window
+
+# Teardown. Stops Jupyter and frees 6274/6277. Leaves the MCP CLI REPL running by design.
+.\stop-sidecar-group.ps1
 ```
 
 There is no build or test suite, but `package.json` ships two real scripts: `npm run lint:voice` (runs the voice-lint sweep above) and `npm run preflight` (executes `scripts/preflight.ps1`). The repo's "tests" are these scripts plus the live PRE-CLASS-CHECKLIST run-through.

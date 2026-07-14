@@ -15,6 +15,8 @@ The 4-hour instructor punchlist for the O'Reilly live training. Skills-first, de
 
 **Pre-class verification:** [`./docs/PRE-CLASS-CHECKLIST.md`](./docs/PRE-CLASS-CHECKLIST.md). Run it the day before. Don't skip it.
 
+**Class-day tooling:** [`./scripts/preflight-class.ps1`](./scripts/preflight-class.ps1) is the read-only go/no-go board, and [`./start-sidecar-group.ps1`](./start-sidecar-group.ps1) brings up the teaching sidecars (JupyterLab on 8888, MCP Inspector on 6274/6277, and the MCP CLI REPL). When something goes down mid-class, [`./docs/EMERGENCY-CARD.md`](./docs/EMERGENCY-CARD.md) is the one-page recovery sheet.
+
 ## Course roadmap
 
 We move outside-in. **Segment 1** builds an **agent** that decides what to do. **Segment 2** drops down into the **tools** that agent uses, and the Claude Code surface where you author them on a real team. **Segment 3** tightens what comes out, with **prompts**, **structured output schemas**, and the **context-and-escalation** patterns that keep long sessions honest. **Segment 4** is the **CCA-F certification capstone**: a briefing on Anthropic's exam program plus a weighted practice-question session so you leave knowing your weakest domain.
@@ -33,6 +35,33 @@ Run [`./docs/PRE-CLASS-CHECKLIST.md`](./docs/PRE-CLASS-CHECKLIST.md) end-to-end 
 - **Notebook environment bootstrapped:** the on-rails command is `uv run --project notebooks jupyter lab notebooks/` from repo root. First run creates `notebooks/.venv/` and installs deps from `notebooks/pyproject.toml`. Subsequent runs reuse the venv. Fallback if `uv` is unavailable: `pip install -r notebooks/requirements.txt`. The class is taught **from the five live-teaching notebooks in `./notebooks/`** (a sixth notebook, `segment-2-5-control-surfaces.ipynb`, is a self-study deep dive that ships alongside but is not on the 4-hour clock). The upstream `claude-cookbooks-main/` ships **committed at the repo root** (no clone needed) and the notebooks reference it via `../claude-cookbooks-main/...` paths.
 
 If any of those fail, fix them before segment 1. We will not pause class to install Node.
+
+## Class-day tooling (run these, in this order)
+
+Three scripts carry the class-day lifecycle. Learn the order once and you never think about it again.
+
+1. **`.\scripts\preflight-class.ps1`** - the **read-only go/no-go board**. It checks tooling (uv, node, npx, git), secrets (both `.env` files plus `GITHUB_TOKEN`), both venvs, the `claude-architect` kernelspec's `argv[0]`, both MCP configs (they parse, and the demo-server name matches across them), all seven notebooks parse, and ports 8888 / 6274 / 6277. It prints **PASS / WARN / FAIL** rows and exits 0 only on **GO**. It changes nothing, starts nothing, and stops nothing. Run it before every class.
+2. **`.\start-sidecar-group.ps1`** (repo root) - brings up the teaching sidecars, each in its own window: **JupyterLab** (8888), the **MCP Inspector** (6274 web UI, 6277 proxy), and the **MCP CLI REPL**. It's **idempotent**: it skips any sidecar whose port is already held, so re-running repairs gaps instead of stacking duplicates. Useful flags: `-Restart`, `-SkipPreflight`, `-NoMcpCli`, `-NoJupyter`.
+3. **`.\stop-sidecar-group.ps1`** (repo root) - takes them all back down when the session ends.
+
+**The recovery command to memorize.** When a sidecar goes down mid-class, this is the whole answer. It restores a killed Inspector in about 15 seconds.
+
+```powershell
+cd C:\github\claude-architect
+.\start-sidecar-group.ps1 -NoJupyter
+```
+
+The one-page live recovery sheet is [`./docs/EMERGENCY-CARD.md`](./docs/EMERGENCY-CARD.md). Keep it open on the second monitor.
+
+### Two traps that will cost you class time
+
+- **Don't run `scripts\run-mcp-inspector.ps1` directly mid-class.** It clears ports 6274 and 6277 **before** it launches, which means it kills a working Inspector on the way in. Go through `start-sidecar-group.ps1` instead, because that one skips anything already healthy.
+- **`-NoJupyter` is the correct flag when you're teaching from VS Code.** The VS Code Jupyter extension spawns its **own kernel process** and never connects to a JupyterLab server on 8888, so that sidecar is dead weight in the VS Code workflow.
+
+### Known non-bugs, so you don't chase them on stage
+
+- The **`internal-knowledge-base`** server in `.mcp.json` points at `mcp.example.com` and will never connect. It's a **teaching prop** that demonstrates SSE transport plus `${ENV_VAR}` expansion, and nothing in the course depends on it. Say so out loud when a sharp-eyed attendee spots it.
+- An MCP Inspector error reading `404` plus `Unexpected token < ... not valid JSON` means the endpoint returned an **HTML error page** where JSON was expected, which is to say nothing is listening at that URL. It gets labeled "oauth" only because discovery is the first step attempted. Note that **stdio servers can't produce an HTTP 404**, so a working stdio server sitting next to a failing HTTP or SSE one is the expected signature, not a mystery.
 
 ---
 
@@ -68,6 +97,7 @@ The notebook order earns each concept before it is used. We make one bare call, 
 3. **Tools and the synthetic database** (8 minutes)
    - Four tool definitions. The description is the contract, not the name.
    - Local Python dispatch against in-memory dicts so tool execution is deterministic and cheap.
+   - **One tool call, no loop.** Before any `while` shows up, a single call with tools attached prints the `stop_reason` flip (`end_turn` -> `tool_use`) and the raw `tool_use` block. The loop is then just this, repeated.
 
 4. **The loop runs - Scenario A (no hook yet)** (8 minutes)
    - Define `run_agent`, branch on `stop_reason`, dispatch tools, watch the trace.
@@ -86,6 +116,7 @@ The notebook order earns each concept before it is used. We make one bare call, 
 
 7. **Coordinator-subagent live demo** (3 minutes)
    - Bare Messages API simulation, no Agent SDK install. CI-triage coordinator with two scoped subagents (research + synthesis).
+   - Three runnable cells now, not one long block: **setup**, a single parameterized `run_subagent(role, task)` that both subagents share, and the **coordinator** with the isolation proof.
    - The dispatcher runs nested `client.messages.create` loops for each subagent. The print at the end asserts **zero subagent `tool_use` blocks leaked into the coordinator's array** - context isolation, made visible.
    - The Agent SDK `Task` primitive packages this pattern; we run the shape by hand so attendees know what `Task` actually does.
 
@@ -106,14 +137,16 @@ Test-Path "C:/github/claude-architect/notebooks/segment-1-customer-support-agent
 2. **Loop + stop_reason concept cells.** Two markdown cells, no code. Just the decision tree.
 3. **Tool definitions.** Walk the four tools. Pause on `process_refund` and show that the description is where policy belongs, not the name.
 4. **Synthetic DB.** Show the in-memory dicts. Tool execution is deterministic; the model still has to decide which tool to call.
-5. **`run_agent` (no hook).** Walk the loop. Stop on the `print(f"[iter {i}] stop_reason=...")` line so attendees know what to watch.
-6. **Scenario A.** $80 refund. Confirm trace: `tool_use -> tool_use -> tool_use -> end_turn`. **The loop works without a hook.**
-7. **"Why we need a backstop" cell.** Frame the next cells: production cannot rely on the model cooperating.
-8. **Hook concept + `enforce_refund_policy`.** Cap is $500. Anything above returns a structured error.
-9. **`run_agent_with_hook`.** Same loop, plus the PreToolUse gate. Defense in depth.
-10. **Scenario B.** Aggressive system prompt + $750 demand. Model usually holds the line via the description; if it doesn't, the hook fires. Either outcome is a teaching moment.
-11. **Hook stress test.** Call `enforce_refund_policy` directly with the over-cap input. No model. Prove the gate is deterministic.
-12. **Coordinator-subagent live demo.** CI-triage scenario. Coordinator with `delegate_to_subagent` only; research and synthesis subagents with their own scoped tools. The print at the end asserts that **zero subagent `tool_use` blocks** appear in the coordinator's `messages` array. Context isolation, made visible.
+5. **"One tool call, no loop."** Hand the model a tool and a single request, then stop. The cell prints the `stop_reason` flip from `end_turn` to `tool_use` and dumps the raw `tool_use` block. **This is the whole loop, minus the loop.** Attendees see the exact API surface the next cell is going to wrap in a `while`, so `run_agent` lands as plumbing rather than magic.
+6. **`run_agent` (no hook).** Walk the loop. Stop on the `print(f"[iter {i}] stop_reason=...")` line so attendees know what to watch.
+7. **Scenario A.** $80 refund. Confirm trace: `tool_use -> tool_use -> tool_use -> end_turn`. **The loop works without a hook.**
+8. **"Why we need a backstop" cell.** Frame the next cells: production cannot rely on the model cooperating.
+9. **Hook concept + `enforce_refund_policy`.** Cap is $500. Anything above returns a structured error.
+10. **`run_agent_with_hook`.** Same loop, plus the PreToolUse gate. Defense in depth.
+11. **Scenario B.** Aggressive system prompt + $750 demand. Model usually holds the line via the description; if it doesn't, the hook fires. Either outcome is a teaching moment.
+12. **Hook stress test.** Call `enforce_refund_policy` directly with the over-cap input. No model. Prove the gate is deterministic.
+13. **Coordinator-subagent live demo, three cells.** CI-triage scenario, now split so you can narrate each piece instead of scrolling a wall of code. **Cell one** is setup (the scoped tool lists). **Cell two** is a single parameterized `run_subagent(role, task)` that both subagents reuse. **Cell three** is the coordinator, whose closing print asserts that **zero subagent `tool_use` blocks** appear in the coordinator's `messages` array. Context isolation, made visible.
+14. **"Going further" appendix.** Every live notebook now closes with one, linking the repo's other teaching assets. Point at it, don't read it.
 
 **What attendees see:** the loop works on its own, then becomes safer when the hook is added, then scales out via scoped subagents. The hook is a **backstop**, not the centerpiece. The subagent split is **context isolation**, not a clever trick. The guarantees come from your code.
 
@@ -192,9 +225,10 @@ By the end of this segment, attendees will be able to:
 **Live demo:**
 1. Open `C:/github/claude-architect/notebooks/segment-2-tool-design-and-mcp.ipynb` in VS Code. The notebook IS the segment; run cells alongside the discussion.
 2. Tool-design cells first: walk the **thin vs opinionated `get_weather` description** comparison and the **four `tool_choice` modes** demo. Pause on the `structured error` helper.
-3. Open `C:/github/claude-architect/.mcp.json` in a split editor. Walk the `mcpServers` object server-by-server. Four servers, three transports: **filesystem** (stdio, no auth), **github** (stdio with `${GITHUB_TOKEN}`), **context7** (HTTP with header auth), **internal-knowledge-base** (SSE with bearer token). For each, name the **transport**, the **command or URL**, and the **env-var expansion** points.
+3. Open `C:/github/claude-architect/.mcp.json` in a split editor. Walk the `mcpServers` object server-by-server. **Six servers, three transports:** **filesystem** (stdio, no auth), **github** (stdio with `${GITHUB_TOKEN}`), **context7** (HTTP with header auth), **internal-knowledge-base** (SSE with bearer token), **oreilly-cca-mcp** (stdio, this course's own FastMCP demo server at `examples/mcp_cli/mcp_server.py`), and **cca-study-mcp** (stdio, the CCA Cert Buddy server). For each, name the **transport**, the **command or URL**, and the **env-var expansion** points.
 4. Run the notebook cell that loads `.mcp.json` and pretty-prints transport + env-var refs for every server. This is config-as-data; no MCP client invocation needed.
 5. Show what happens when `${GITHUB_TOKEN}` is unset: server fails to start with a readable error. Set it, restart, server comes up.
+   - **Expected non-bug, name it before someone asks.** `internal-knowledge-base` points at `mcp.example.com` and will never connect. It's a **teaching prop** for SSE transport plus env-var expansion, not a dependency. The MCP Inspector's `404` plus `Unexpected token < ... not valid JSON` on that server means an HTML error page came back where JSON was expected, which is what "nothing is listening there" looks like. Note that stdio servers can't return an HTTP 404, so **`oreilly-cca-mcp` staying green while the SSE prop fails is the expected picture.**
 6. Run the **tool-caching cell**: same `OPINIONATED_WEATHER` tool with `cache_control: {"type": "ephemeral"}` on it, called twice. Point at the printed counters - `cache_creation_input_tokens` on call 1, `cache_read_input_tokens` on call 2. This is the same shape Segment 3 will reuse on the system block.
 7. **MCP server source walkthrough** (built into the notebook): the cell after the `.mcp.json` walk reads `examples/mcp_cli/mcp_server.py` and prints the structurally interesting lines (the `@mcp.tool`, `@mcp.resource`, `@mcp.prompt` decorators, plus `mcp.run(transport="stdio")`). The cohort sees a real FastMCP server's source, not just the client config. Reference app comes from Anthropic's "Claude with the Anthropic API" Skilljar course; attribution in `examples/mcp_cli/NOTICE.md`. Optional deeper dive: open `claude-cookbooks-main/managed_agents/cma-mcp/` for Anthropic's cookbook-side example.
 
@@ -425,10 +459,15 @@ Anticipated questions to invite:
 
 ### Taking it further
 
-1. **This week:** wire one of today's agents into a real production workflow. Do not let the demo code die in a notebook.
+Every live notebook closes with a **"Going further" appendix** that links these. Point the cohort at the appendix rather than reading the list aloud.
+
+1. **This week:** wire one of today's agents into a real production workflow. Don't let the demo code sit unused in a notebook.
 2. **Next:** read the 5 domain reference files in this repo for deeper dives on each area.
-3. **Toward the exam:** work through [`./docs/CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md), take the Anthropic Practice Exam (target >900/1000), then schedule. Remember it is one attempt only.
-4. **Calibration practice:** use [`./docs/PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md) (community-sourced, calibration only) to self-assess between Anthropic Practice Exam attempts.
+3. **The strongest study asset in the repo:** [`./notebooks/cca-f-exam-mastery.ipynb`](./notebooks/cca-f-exam-mastery.ipynb). Twenty cells, zero errors, and it self-audits **30 of 30 CCA-F task statements** (D1 7/7, D2 5/5, D3 6/6, D4 6/6, D5 6/6). It **creates no billable resources**, so there's nothing to tear down afterward. Anyone serious about the exam runs this one.
+4. **If the Messages API is still new to you:** [`./examples/messages_api/`](./examples/messages_api/) is the on-ramp. Ten primer notebooks, all smoke-verified green.
+5. **The counterpart, where Anthropic hosts the loop:** [`./examples/agents_api/`](./examples/agents_api/). Six Managed Agents notebooks, all six smoke-verified green, and all six archive their own resources when they finish.
+6. **Toward the exam:** work through [`./docs/CERT-PROGRAM-BRIEFING.md`](./docs/CERT-PROGRAM-BRIEFING.md), take the Anthropic Practice Exam (target >900/1000), then schedule. Remember it's one attempt only.
+7. **Calibration practice:** use [`./docs/PRACTICE-QUESTIONS.md`](./docs/PRACTICE-QUESTIONS.md) (community-sourced, calibration only) to self-assess between Anthropic Practice Exam attempts.
 
 Thanks for spending four hours. Now go ship something that does not lie.
 
