@@ -59,9 +59,43 @@ async def main():
         await cli.run()
 
 
+def _silence_proactor_finalizer_noise():
+    """Stop Ctrl+C from printing a wall of tracebacks on Windows.
+
+    The tracebacks are emitted from asyncio's __del__ finalizers, NOT from the
+    try/except below. On the Windows Proactor loop, Ctrl+C tears the event loop
+    down while the MCP stdio subprocess transports are still open. The garbage
+    collector then reaps those transports, __del__ tries to build a repr for the
+    ResourceWarning, and repr calls .fileno() on a pipe that is already closed:
+
+        ValueError: I/O operation on closed pipe
+
+    Because __del__ runs during interpreter shutdown, after asyncio.run() has
+    already returned, no except clause can reach it. The exception is swallowed
+    ("Exception ignored in: ...") and the process still exits 0 - the shutdown is
+    already clean and the noise is pure cosmetics. But a cohort watching a demo
+    reads a red traceback as a crash, so route these finalizer-time exceptions to
+    a no-op instead of stderr.
+
+    Deliberately narrow: it only suppresses unraisable exceptions raised from a
+    __del__ during teardown. A real exception on a live code path still prints.
+    """
+    if sys.platform != "win32":
+        return
+
+    def _ignore_unraisable(unraisable):
+        exc = unraisable.exc_value
+        if isinstance(exc, ValueError) and "closed pipe" in str(exc):
+            return
+        sys.__unraisablehook__(unraisable)
+
+    sys.unraisablehook = _ignore_unraisable
+
+
 if __name__ == "__main__":
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    _silence_proactor_finalizer_noise()
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

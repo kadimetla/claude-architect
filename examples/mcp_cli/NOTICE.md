@@ -49,10 +49,17 @@ uv run main.py
 
 ## Modifications from the original
 
-This copy is **as-distributed by Anthropic's course**, with two exceptions:
+This copy is **as-distributed by Anthropic's course**, with three exceptions:
 
 1. The committed `.env` template has been renamed to `.env.example` so the inner `.gitignore` does its job on the empty-key template too. No code changes.
 2. This `NOTICE.md` has been added.
+3. **`main.py` has a Windows-only clean-shutdown patch.** Two additions, both confined to the `__main__` block:
+   - A `try/except KeyboardInterrupt` around `asyncio.run(main())` that prints a shutdown line instead of a traceback.
+   - A `sys.unraisablehook` (`_silence_proactor_finalizer_noise`) that drops the `ValueError: I/O operation on closed pipe` noise Windows emits at teardown.
+
+   **Why:** on the Windows Proactor event loop, Ctrl+C tears down the loop while the MCP stdio subprocess transports are still open. The GC then reaps them, and `__del__` calls `.fileno()` on an already-closed pipe. Those tracebacks come from finalizers running *after* `asyncio.run()` returns, so no `except` clause can catch them, and the process still exits 0. Purely cosmetic, but a red traceback mid-demo reads as a crash to a cohort. The hook is narrow: it suppresses only that specific closed-pipe `ValueError` from a finalizer, and any real exception still prints.
+
+   Neither change affects the MCP client, the server, or the chat loop. The upstream Skilljar workflow still runs unmodified on macOS and Linux, where this code path is a no-op.
 
 The on-rails launcher [`../../scripts/run-mcp-cli.ps1`](../../scripts/run-mcp-cli.ps1) lives **outside** this directory and is not counted as a modification to the vendored tree. It interacts with `examples/mcp_cli/` only by reading `.env.example` and writing `.env` (which is gitignored), and by invoking `uv run` against `pyproject.toml` as a black box.
 
