@@ -38,13 +38,18 @@
         "Authorization": "Bearer ${INTERNAL_KB_TOKEN}"
       }
     },
-    "document-mcp": {
-      "_comment": "stdio transport. The course's own FastMCP demo server (examples/mcp_cli/mcp_server.py), the same DocumentMCP you run under `mcp dev` with the Inspector. `uv run --directory` makes uv resolve the examples/mcp_cli/ project and its .venv, then runs the script, whose __main__ guard calls mcp.run(transport='stdio'). No auth: it runs as your user, in-process docs, no network.",
+    "oreilly-cca-mcp": {
+      "_comment": "stdio transport. The course's own FastMCP demo server (examples/mcp_cli/mcp_server.py), the same DocumentMCP you run under `mcp dev` with the Inspector. Exposes all three MCP primitives: tools (read_doc_contents, edit_document), resources (docs://documents plus the templated docs://documents/{doc_id}), and a prompt (format). `uv run --directory` makes uv resolve the examples/mcp_cli/ project and its .venv, then runs the script, whose __main__ guard calls mcp.run(transport='stdio'). The path is absolute via ${PROJECT_ROOT} so the server starts the same way whether Claude Code launches from the repo root or a subdirectory. No auth: it runs as your user, in-process docs, no network.",
       "command": "uv",
-      "args": ["run", "--directory", "examples/mcp_cli", "mcp_server.py"]
+      "args": [
+        "run",
+        "--directory",
+        "${PROJECT_ROOT}/examples/mcp_cli",
+        "mcp_server.py"
+      ]
     },
     "cca-study-mcp": {
-      "_comment": "stdio transport. The CCA Cert Buddy app's own MCP server (cca-cert-buddy/mcp-server/index.ts), a TypeScript counterpart to the Python document-mcp above. It exposes all three MCP primitives - tools (score_answer, validate_question, lookup_domain_ref), resources (cca://domains, cca://progress, cca://bank/{domain}, cca://domain-ref/{id}), and prompts (/quiz, /exam, /explain-domain). `cwd` is set to cca-cert-buddy/ so `node --import tsx` resolves the tsx package from that project's node_modules; tsx then runs the .ts entry directly. No auth: it runs as your user against the local question bank. Run `npm install` in cca-cert-buddy/ once before first use.",
+      "_comment": "stdio transport. The CCA Cert Buddy app's own MCP server (cca-cert-buddy/mcp-server/index.ts), a TypeScript counterpart to the Python oreilly-cca-mcp above. It exposes all three MCP primitives - tools (score_answer, validate_question, lookup_domain_ref), resources (cca://domains, cca://progress, cca://bank/{domain}, cca://domain-ref/{id}), and prompts (/quiz, /exam, /explain-domain). `cwd` is set to cca-cert-buddy/ so `node --import tsx` resolves the tsx package from that project's node_modules; tsx then runs the .ts entry directly. No auth: it runs as your user against the local question bank. Run `npm install` in cca-cert-buddy/ once before first use.",
       "command": "node",
       "args": ["--import", "tsx", "mcp-server/index.ts"],
       "cwd": "${PROJECT_ROOT}/cca-cert-buddy"

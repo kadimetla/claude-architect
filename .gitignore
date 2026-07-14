@@ -242,3 +242,4 @@ ENHANCEMENTS.md
 # Claude Code personal project settings (per-machine overrides, never committed).
 # .claude/settings.json IS committed for team-wide config; .local.json is yours alone.
 .claude/settings.local.json
+slides/~$warner-claude-architect-july-2026.pptx

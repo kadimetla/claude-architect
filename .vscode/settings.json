@@ -8,7 +8,7 @@
   // the six teaching notebooks plus the vendored cookbooks all expect this env.
   "python.defaultInterpreterPath": "${workspaceFolder}/notebooks/.venv/Scripts/python.exe",
   "chat.mcp.serverSampling": {
-    "claude-architect/.vscode/mcp.json: oreilly-document-mcp": {
+    "claude-architect/.vscode/mcp.json: oreilly-cca-mcp": {
       "allowedModels": ["copilot/auto", "copilotcli/claude-sonnet-4.6"]
     }
   }

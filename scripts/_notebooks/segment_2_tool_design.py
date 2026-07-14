@@ -48,34 +48,32 @@ _title_md = """\
 **Maps to:** CCA-F Domain 2 (Tools/MCP, 18%) + Domain 3 (Claude Code, 20%) = **38% of the exam**
 **References:** [`../docs/domain-2-tools-mcp.md`](../docs/domain-2-tools-mcp.md), [`../docs/domain-3-claude-code.md`](../docs/domain-3-claude-code.md)
 
-In Segment 1 you wrote the agent. Now we go one level deeper: the **tools** the agent calls, the **MCP servers** that ship those tools to multiple agents, and the **Claude Code instruction hierarchy** that lets a team enforce conventions without writing them in every prompt.
+Segment 1 built the agent. This one goes a level deeper: the **tools** it calls, the **MCP servers** that ship those tools to multiple agents, and the **CLAUDE.md hierarchy** that enforces team conventions without restating them in every prompt.
 """
 
 _lo_md = """\
 ## Learning objectives
 
-- Write **tool definitions** whose `description` and `input_schema` carry the contract, not the name
-- Use **`tool_choice`** modes (`auto`, `any`, `tool`, `none`) to constrain agent behavior
-- Return **structured tool errors** so the model can decide to retry, reformulate, or escalate
-- Configure **`.mcp.json`** for stdio, SSE, and HTTP transports with `${ENV_VAR}` expansion
-- Read a real **MCP server's source code** (`examples/mcp_cli/mcp_server.py`) and identify the FastMCP `@tool`, `@resource`, `@prompt` decorators and the stdio entrypoint
-- Reason about the **CLAUDE.md hierarchy** (user, project, subtree, local) and its precedence
-- Cache **tool definitions** with `cache_control` to amortize a large tool list across requests
-- Run Claude Code **non-interactively** with `claude -p` for CI/CD
+- Write **tool definitions** whose `description` and `input_schema` carry the contract
+- Use the four **`tool_choice`** modes to constrain agent behavior
+- Return **structured tool errors** so the model can retry, reformulate, or escalate
+- Configure **`.mcp.json`** for stdio, SSE, and HTTP with `${ENV_VAR}` expansion
+- Read a real **FastMCP server's source** and name its `@tool`, `@resource`, `@prompt` decorators
+- Reason about the **CLAUDE.md hierarchy** and its precedence
+- Cache a large tool block with **`cache_control`**
+- Run Claude Code headless with **`claude -p`** for CI/CD
 """
 
 _concept_description_md = """\
 ## The description is the contract
 
-The Messages API tool shape is `name`, `description`, `input_schema`, and optional `cache_control`. Names are labels. **The description is the contract.** Spell out:
+The tool shape is `name`, `description`, `input_schema`, optional `cache_control`. Names are labels. **The description is the contract.** Spell out:
 
-- What the tool does
-- When the agent should call it
-- When the agent should **not** call it
+- What the tool does, and **when not** to call it
 - What each input means
-- What the success and failure shapes look like
+- What success and failure look like
 
-Thin descriptions ("gets weather") leak responsibility into the prompt and the agent's improvisation. Opinionated descriptions let you delete prompt instructions you used to need.
+Thin descriptions leak responsibility into the prompt. **Opinionated descriptions let you delete prompt instructions you used to need.**
 """
 
 _concept_tool_choice_md = """\
@@ -94,40 +92,36 @@ Set `disable_parallel_tool_use: true` when one tool's output feeds the next.
 _concept_structured_errors_md = """\
 ## Structured tool errors
 
-When a tool returns an error, return it **as a structured object**, not a string:
+Return errors as a **structured object**, never a bare string. The model reads `errorCategory` and `isRetryable` to decide what to do next.
 
 ```json
-{
-  "isError": true,
-  "errorCategory": "transient | permanent | policy",
-  "isRetryable": true,
-  "message": "..."
-}
+{ "isError": true, "errorCategory": "transient|permanent|policy",
+  "isRetryable": true, "message": "..." }
 ```
 
-The model reads `errorCategory` and `isRetryable` to decide. Categories:
+| Category | Model's move | Example |
+|---|---|---|
+| **`transient`** | retry with backoff | network blip, rate limit |
+| **`permanent`** | reformulate | bad input, unknown ID |
+| **`policy`** | escalate | over-cap refund, unauthorized action |
 
-- **`transient`** - retry with backoff (network blip, rate limit)
-- **`permanent`** - do not retry; reformulate (bad input, unknown ID)
-- **`policy`** - do not retry; escalate (over-cap refund, unauthorized action)
-
-This is the same shape Segment 1's `enforce_refund_policy` hook returned. Same pattern, different surface.
+Same shape Segment 1's `enforce_refund_policy` hook returned.
 """
 
 _concept_mcp_md = """\
 ## MCP: three transports, one variable-expansion rule
 
-**Model Context Protocol** (MCP) is how you ship tools to *multiple* agents from a single server. The client config is just JSON:
+**Model Context Protocol** ships tools to *multiple* agents from one server. The client config is plain JSON.
 
 | Transport | Use case | Shape |
 |---|---|---|
 | **stdio** | Local servers, scripts | `{"command": "npx", "args": [...], "env": {"VAR": "${VAR}"}}` |
-| **SSE** | Streaming events, server push | `{"type": "sse", "url": "https://...", "headers": {...}}` |
-| **HTTP** | Request/response, simple integration | `{"type": "http", "url": "...", "headers": {...}}` |
+| **SSE** | Streaming, server push | `{"type": "sse", "url": "https://...", "headers": {...}}` |
+| **HTTP** | Request/response | `{"type": "http", "url": "...", "headers": {...}}` |
 
-**`${ENV_VAR}` expansion** works in `env`, `args`, and `headers`. This is how secrets stay out of the file. **Never** commit a literal token; always use `${GITHUB_TOKEN}` (or similar) and source it from the shell.
+**`${ENV_VAR}` expansion** works in `env`, `args`, and `headers`, and it's how secrets stay out of the file. Never commit a literal token.
 
-The file goes at `.mcp.json` (project) or `~/.claude.json` (user). Project values override user values at the server level.
+Config lives at `.mcp.json` (**project**) or `~/.claude.json` (**user**), and project wins per server.
 """
 
 _concept_claude_md_hierarchy_md = """\
@@ -144,18 +138,13 @@ Four tiers, in precedence order from broadest to most specific:
 
 The Agent SDK loads user + project when you pass `settingSources=["user", "project"]`.
 
-**Subtree files are the unsung hero.** A frontend rule does not need to pollute a backend file. Put React conventions in `frontend/CLAUDE.md`; they only load when you read frontend files.
+**Subtree files are the underrated tier.** Put React conventions in `frontend/CLAUDE.md` and they only load when you touch frontend files.
 """
 
 _demo_setup_md = """\
-## Demo: tool definitions, tool_choice modes, and the structured error contract
+## Demo: descriptions, tool_choice, and the error contract
 
-We will exercise each concept above with a small live call. Keep an eye on:
-
-- How the same tool behaves differently with a **thin** vs **opinionated** description
-- How `stop_reason` changes when you flip `tool_choice` modes
-- How the model reacts to a `policy` error vs a `transient` error
-- How `.mcp.json` reads as plain JSON config (no MCP client invocation here, just config-as-data)
+Watch for three things as we go: how a **thin** vs **opinionated** description changes behavior, how **`stop_reason`** flips with `tool_choice`, and how the model treats a **`policy`** error differently from a **`transient`** one.
 """
 
 _imports_code = """\
@@ -181,9 +170,9 @@ MODEL = "claude-haiku-4-5"
 _demo_description_md = """\
 ## Thin vs opinionated descriptions
 
-**Analogy:** the tool description is a **job posting** the model reads to decide whether to apply. "Software engineer" is a thin posting; you'll get every developer, even the wrong-skills ones, applying. "Senior backend engineer, Python + PostgreSQL, must have experience with high-throughput event ingestion, you will not be doing front-end work" is an opinionated posting; you'll get fewer applicants but the *right ones, for the right reasons*. The model is your applicant pool. **Write the posting accordingly.**
+The description is a **job posting** the model reads before deciding to apply. "Software engineer" pulls every developer on the market; a posting that names the stack, the scope, and the work you *won't* be doing pulls fewer applicants and better ones.
 
-Same tool name, two descriptions. Same user prompt. Watch how the second version changes the model's behavior **without changing the prompt**.
+Same tool name, same prompt, two descriptions. The second one changes behavior **without touching the prompt**.
 """
 
 _description_code = """\
@@ -270,11 +259,11 @@ for label, tool in [("thin", THIN_WEATHER), ("opinionated", OPINIONATED_WEATHER)
 _demo_tool_choice_md = """\
 ## All four `tool_choice` modes
 
-**Analogy:** `tool_choice` is a **traffic light** at the intersection where the model decides to call a tool. `auto` is a green light. `any` is a green light with a tow truck behind you (must move, you pick the lane). `{type: "tool", name: "X"}` is a forced left turn (only one legal move). `none` is a red light (stay put, explain yourself). Same intersection, four very different guarantees.
+`tool_choice` is the **traffic light** at the intersection where the model decides to call a tool. **`auto`** is green, **`any`** is green with a tow truck behind you, **`tool`** is a forced left turn, and **`none`** is red.
 
-Run the same prompt against each mode. Notice how `stop_reason` flips between `tool_use` and `end_turn` based purely on the mode.
+One prompt, four modes. Watch `stop_reason` flip between `tool_use` and `end_turn` on the mode alone.
 
-> Segment 2.5 goes deeper on each mode with separate A/B demos, plus `disable_parallel_tool_use`. This cell is the **summary table in code form**.
+> Segment 2.5 goes deeper, including `disable_parallel_tool_use`.
 """
 
 _tool_choice_code = """\
@@ -325,9 +314,9 @@ for mode in modes:
 _demo_structured_error_md = """\
 ## Structured error contract
 
-**Analogy:** an HTTP status code vs. a plain-text error page. A 503 with "Service Unavailable, retry-after: 30" tells your client EXACTLY what to do (wait 30s, retry). A page that says "Something went wrong, sorry!" forces your client to guess. Structured errors are the 503; bare strings are the apology page. The model is your client. **Give it status codes.**
+A **503 with `retry-after: 30`** tells a client exactly what to do. "Something went wrong, sorry" makes it guess. The model is the client, so give it status codes.
 
-A helper to build the structured error payload. We show two cases: a **transient** error (the model should retry) and a **policy** error (the model must not).
+The helper below builds the payload. Two cases: **transient** (retry) and **policy** (don't).
 """
 
 _structured_error_code = """\
@@ -368,7 +357,7 @@ print(json.dumps(make_tool_error("policy",
 _demo_mcp_config_md = """\
 ## `.mcp.json` as config-as-data
 
-Open `../.mcp.json` and pretty-print its structure. Four servers, three transports, env-var expansion in the right places. This is the file the cohort can copy and modify for their own projects.
+We'll pretty-print `../.mcp.json`: several servers, three transports, env-var expansion in the right places. **Copy this file into your own project and edit it.**
 """
 
 _mcp_config_code = """\
@@ -404,15 +393,13 @@ for name, spec in servers.items():
 """
 
 _mcp_server_source_md = """\
-## What an MCP server actually looks like (source code, not config)
+## What an MCP server actually looks like (source, not config)
 
-`.mcp.json` told us the **client side**: which servers to start, what transport, which env vars. The **server side** is real Python. We did not stand one up in a Jupyter kernel because the stdio handshake cross-talks with the notebook's own stdio, but we can read the source of a complete, runnable example.
+`.mcp.json` is the **client side**. The **server side** is real Python, and `../examples/mcp_cli/mcp_server.py` is a complete **FastMCP** one in ~95 lines: six documents as resources, a `read_doc_contents` tool, an `edit_document` tool, and a `format` prompt, all over **stdio**.
 
-`../examples/mcp_cli/mcp_server.py` is a **FastMCP** server: ~95 lines, exposes six dummy documents as resources, plus a `read_doc_contents` tool, an `edit_document` tool, and a `format` prompt. It runs over **stdio** when invoked by an MCP client. This is the exact shape your `.mcp.json` stdio servers conform to.
+Four idioms to spot in the printout: **`@mcp.tool`**, **`@mcp.resource`**, **`@mcp.prompt`**, and the **`mcp.run(transport="stdio")`** entrypoint.
 
-This code is reference material from Anthropic's "Claude with the Anthropic API" Skilljar course. Attribution lives at [`../examples/mcp_cli/NOTICE.md`](../examples/mcp_cli/NOTICE.md). After class, run it locally with `uv run main.py` from `examples/mcp_cli/` to see the same client-server protocol round-trip in your own terminal.
-
-The next cell prints the file so you can read the key idioms inline: `@mcp.tool(...)`, `@mcp.resource(...)`, `@mcp.prompt(...)`, and the trailing `mcp.run(transport="stdio")`.
+> Reference material from Anthropic's Skilljar course; see [`NOTICE.md`](../examples/mcp_cli/NOTICE.md). Run it after class with `uv run main.py` from `examples/mcp_cli/`.
 """
 
 _mcp_server_source_code = """\
@@ -437,7 +424,7 @@ else:
 _demo_claude_md_hierarchy_md = """\
 ## CLAUDE.md hierarchy walk
 
-We will not call the API here - we just print what each tier covers in this repo.
+No API call here. We just print which tiers are present in **this repo** and what each one covers.
 """
 
 _claude_md_hierarchy_code = """\
@@ -454,23 +441,20 @@ for tier, path, purpose in tiers:
 """
 
 _claude_p_md = """\
-## `claude -p`: the headless surface (Domain 3, plan mode)
+## `claude -p`: the headless surface (Domain 3)
 
-The Claude Code CLI runs interactively *and* headlessly. `claude -p "<prompt>"` is the bridge to CI/CD. This is **plan mode for automation**: no terminal, no human in the loop, just a one-shot run that returns text or JSON.
-
-Common shapes:
+The CLI runs interactively **and** headlessly. **`claude -p "<prompt>"`** is the bridge to CI/CD: one shot, no human in the loop, text or JSON back.
 
 ```powershell
-# audit the project CLAUDE.md
 claude -p "audit ./CLAUDE.md against repo conventions. List 3 specific improvements."
 
-# JSON output for scripting, with an allowlist
+# JSON output plus a tool allowlist - the shape you put in a GitHub Actions step
 claude -p "list all Python files with missing docstrings" --output-format json --allowedTools "Read,Grep,Glob"
 ```
 
-Pipe the JSON into a GitHub Actions step and you have an LLM-backed lint that runs on every PR.
+Pipe that JSON into an Actions step and you've got an **LLM-backed lint on every PR**.
 
-The next cell shells out via `subprocess` to prove the surface works. It falls back gracefully if `claude` is not on the path - which it often is not inside a Jupyter kernel that loaded its own environment. **Read the output, do not depend on the command running.**
+The next cell shells out to prove the surface, and it skips gracefully when `claude` isn't on the kernel's PATH, which is common. **The shape is the point, not the side effect.**
 """
 
 _claude_p_code = """\
@@ -508,27 +492,29 @@ else:
 _demo_tool_caching_md = """\
 ## Tool caching with `cache_control`
 
-When the tool block is large (a dozen tools, opinionated descriptions, schemas), you pay tokens for it on **every** request. `cache_control` marks a prefix of the request as cacheable; subsequent calls within the cache lifetime hit the cache and skip re-billing those input tokens.
-
-Anthropic supports two patterns. **Automatic caching** (recommended) is a single top-level kwarg on `messages.create()` that lets the SDK place the cache breakpoint for you. **Explicit breakpoints** put `cache_control` on individual content or tool blocks for fine-grained control (up to 4 breakpoints per request). We demo the automatic pattern because it is one line and it is what Anthropic's own cookbook recommends.
+A big tool block gets re-billed on **every** request. **`cache_control`** marks a prefix as cacheable so later calls read it instead of paying for it again. **Automatic caching** is one top-level kwarg and the SDK places the breakpoint for you.
 
 ```python
-# Automatic caching - one kwarg, breakpoint placed for you
 resp = client.messages.create(
     model=MODEL,
-    cache_control={"type": "ephemeral"},
+    cache_control={"type": "ephemeral"},   # automatic caching
     tools=tools,
     messages=[{"role": "user", "content": prompt}],
 )
 ```
 
-The response carries `cache_creation_input_tokens` when the cache is written and `cache_read_input_tokens` when it is hit. When caching engages, `input_tokens` drops dramatically because the tool block is no longer counted as fresh input.
+**Watch two counters:** `cache_creation_input_tokens` on the write, `cache_read_input_tokens` on the hit.
 
-**The minimum-size gotcha is real.** On **Sonnet 4.x** the cacheable prefix must clear **1024 tokens**; on **Haiku 4.5** it is **4096 tokens** (per the Anthropic cookbook). Below the floor, `cache_control` is silently ignored - no creation, no reads, no warning. A single small tool plus a short prompt will *look* like caching is broken when really the request never crossed the threshold. Production tool blocks routinely carry a dozen opinionated tools, which is exactly when caching pays for itself.
+**The minimum-size floor is the trap.** Below it, `cache_control` is silently ignored: no creation, no reads, no warning.
 
-Cookbook anchor: `../claude-cookbooks-main/misc/prompt_caching.ipynb` (Anthropic's canonical caching walkthrough; `cache_control` as kwarg, multi-turn, and explicit breakpoints).
+| Model | Minimum cacheable prefix |
+|---|---|
+| **Sonnet 4.x** | 1024 tokens |
+| **Haiku 4.5** | 4096 tokens |
 
-We run a **four-tool** block (weather + forecast + air quality + sun times) twice with `cache_control` as a top-level kwarg. First call writes the cache. Second call reads it. Watch the counters flip.
+That's why this demo carries **four tools plus a realistic enterprise system prompt**. One small tool never clears the floor, and caching only pays for itself at production size anyway.
+
+> Cookbook anchor: `../claude-cookbooks-main/misc/prompt_caching.ipynb`
 """
 
 _tool_caching_code = '''\
@@ -842,22 +828,20 @@ Deliverable: three file paths plus three one-liners in chat.
 _key_takeaways_md = """\
 ## Key takeaways
 
-- **Tool descriptions are the contract**, names are just labels. Spell out behavior, inputs, error shapes, and when *not* to call.
-- **Tool scoping is subagent design.** When an agent's tool list grows past ~5, split into a coordinator with scoped subagents (Segment 1's live demo). Each subagent sees only the tools its role needs; the coordinator's surface stays small.
-- The four **`tool_choice`** modes are `auto`, `any`, `tool`, `none`. `tool` is the lever for forced structured output (Segment 3).
-- **Structured errors** with `errorCategory` and `isRetryable` let the model decide. Bare strings force it to guess.
-- **MCP transports** are stdio / SSE / HTTP, and `${ENV_VAR}` expansion keeps secrets out of source.
-- **CLAUDE.md hierarchy** layers from user to project to subtree to local. Use subtree files to keep frontend rules off backend files.
-- **Prompt caching** is one kwarg: `cache_control={"type": "ephemeral"}` on `messages.create()` (automatic caching, recommended). Floor is **1024 tokens** on Sonnet 4.x and **4096** on Haiku 4.5; below the floor the marker is silently ignored. First call writes, second call reads (~5-min TTL). Cache writes cost 1.25x base input; reads cost 0.1x.
-- `claude -p` is your CI/CD answer. The CLI runs headless with `--output-format json` for scripting.
+- **Descriptions are the contract**, names are labels.
+- **Tool scoping is subagent design.** Past ~5 tools, split into a coordinator with scoped subagents.
+- **`tool_choice`**: `auto`, `any`, `tool`, `none`. `tool` is the forced-structured-output lever in Segment 3.
+- **Structured errors** (`errorCategory`, `isRetryable`) let the model decide; bare strings make it guess.
+- **MCP** is stdio / SSE / HTTP, and `${ENV_VAR}` expansion keeps secrets out of source.
+- **CLAUDE.md** layers user, project, subtree, local.
+- **Caching** is one kwarg. Floors: **1024** on Sonnet 4.x, **4096** on Haiku 4.5. Writes cost 1.25x, reads 0.1x, TTL ~5 min.
+- **`claude -p --output-format json`** is the CI/CD surface.
 
-**Cookbook anchors for further study:**
-- `../claude-cookbooks-main/tool_use/tool_choice.ipynb` (the four modes, runnable)
-- `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` (parallel + caching, runnable)
-- `../claude-cookbooks-main/tool_use/customer_service_agent.ipynb` (Anthropic's reference for the Segment 1 agent shape)
-
-**Reference application for further study:**
-- `../examples/mcp_cli/` - complete MCP CLI app (stdio FastMCP server + client + interactive chat). Reference material from Anthropic's "Claude with the Anthropic API" Skilljar course; attribution in `../examples/mcp_cli/NOTICE.md`. Run it locally to see the same protocol round-trip we walked as config-as-data.
+**Further study:**
+- `../claude-cookbooks-main/tool_use/tool_choice.ipynb` - the four modes, runnable
+- `../claude-cookbooks-main/tool_use/parallel_tools.ipynb` - parallel calls plus caching
+- `../claude-cookbooks-main/tool_use/customer_service_agent.ipynb` - the Segment 1 agent shape
+- `../examples/mcp_cli/` - full MCP CLI app (FastMCP server + client + chat); see `NOTICE.md`
 """
 
 _bridge_md = """\

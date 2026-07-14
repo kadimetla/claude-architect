@@ -50,93 +50,87 @@ _title_md = """\
 **Maps to:** CCA-F Domain 4 (Prompts + Structured Output, 20%) + Domain 5 (Context + Reliability, 15%)
 **References:** [`../docs/domain-4-prompts.md`](../docs/domain-4-prompts.md), [`../docs/domain-5-context.md`](../docs/domain-5-context.md)
 
-Segment 1 built the agent. Segment 2 wired its hands. Segment 3 makes the **outputs trustworthy**. We will use the **forced-tool-call pattern** to extract typed `Invoice` objects from messy raw text, with a bounded retry loop, then close on the context and escalation patterns that keep long sessions honest.
+Segment 1 built the agent, Segment 2 wired its hands, and Segment 3 makes the **outputs trustworthy**. We'll extract typed `Invoice` objects from messy text with the **forced-tool-call pattern**, then close on the context and escalation levers that keep long sessions honest.
 """
 
 _lo_md = """\
 ## Learning objectives
 
 - Write **precise prompts** that specify format, edge cases, and missing-data behavior up front
-- Use the **forced-tool-call pattern** to enforce a Pydantic-derived JSON schema, with a max-retry ceiling
-- Pin **few-shot examples** to lock in corner-case behavior that prose alone cannot describe
-- Attach a **per-row confidence score** and route low-confidence rows to a human review queue
-- Preserve **case facts** via `cache_control` on the system block, and prune **verbose tool outputs** so long conversations stay coherent
-- Distinguish **explicit human requests** (escalate now) from **sentiment signals** (don't escalate on frustration alone)
+- Use the **forced-tool-call pattern** to enforce a Pydantic-derived JSON schema behind a max-retry ceiling
+- Pin **few-shot examples** to lock corner-case behavior that prose can't describe
+- Attach a **confidence score** and route low-confidence rows to human review
+- Preserve **case facts** with `cache_control` and **prune verbose tool outputs**
+- Separate **explicit human requests** from **sentiment signals** when deciding to escalate
 """
 
 _concept_precise_prompts_md = """\
 ## Precise prompts beat clever prompts
 
-"Be accurate" is a wish, not a prompt. **Specify upfront:**
+"Be accurate" is a wish, not a prompt. Specify four things up front:
 
-- **Format** - JSON? Markdown table? Plain prose? Pick one and say so.
-- **Edge cases** - what does the output look like when the input is empty? malformed? ambiguous?
-- **Missing data** - what should each field be when the source is silent? `null`? omitted? a sentinel?
-- **Multiple interpretations** - if the input could mean two things, which one does the model pick?
+- **Format** - JSON, table, or prose. Pick one, say so.
+- **Edge cases** - the output shape on empty or malformed input.
+- **Missing data** - `null`, omitted, or a sentinel when the source is silent.
+- **Ambiguity** - which reading wins when the input supports two.
 
-**Two or three input-output examples** pin behavior more reliably than any temperature change. Few-shot is load-bearing.
+**Two or three worked examples** pin behavior more reliably than any temperature change.
 """
 
 _concept_forced_tool_md = """\
 ## The forced-tool-call pattern for structured output
 
-This is the canonical pattern for "the model must return data in *this exact shape*":
+The canonical pattern for "return data in *this exact shape*":
 
 1. Define a **Pydantic model**.
-2. Convert it to **JSON Schema** (`Model.model_json_schema()` does this for free).
-3. Register the schema as a **tool's `input_schema`**.
-4. Set `tool_choice={"type": "tool", "name": "<your_tool>"}` - the model **must** call it.
-5. Validate the model's tool input against the Pydantic model. On `ValidationError`, append the error back and retry.
-6. **Hard ceiling on retries.** Without it, a genuinely bad source burns 20 calls in a row.
+2. Convert it to **JSON Schema** with `Model.model_json_schema()`.
+3. Register that as a **tool's `input_schema`**.
+4. Force the call with **`tool_choice={"type": "tool", "name": "<your_tool>"}`**.
+5. **Validate** the tool input. On `ValidationError`, append the error back and retry.
+6. Enforce a **hard retry ceiling**, or a bad source burns 20 calls.
 
-The schema does the typing. The forced `tool_choice` does the shape. Your retry loop closes the gap.
+The schema does the typing, the forced `tool_choice` does the shape, and the retry loop closes the gap.
 """
 
 _concept_context_md = """\
 ## Case facts and tool-output pruning
 
-Long sessions rot in three ways:
+Long sessions rot three ways, and each has a counter:
 
-- **Case facts drift** - the account ID, the product, the environment all blur as turns pile up
-- **Tool outputs bloat** - an 8KB JSON response of which you read three fields stays in context forever
-- **Resolved sub-issues clutter** - turn 12 still carries the verbose discussion from turn 3
+| Failure | Counter |
+|---|---|
+| **Case facts drift** as turns pile up | **Pin them** in the system prompt. The model attends hardest to the window's top and bottom. |
+| **Tool outputs bloat** - 8KB in, three fields read | **Prune** before appending. |
+| **Resolved sub-issues clutter** later turns | **Summarize** them. Keep only the active issue verbatim. |
 
-Three counters:
-
-1. **Pin case facts at the top.** The model attends harder to the top and bottom of the window. Put fixed context (account ID, product, environment) in the first user turn or in the system prompt.
-2. **Summarize resolved turns.** Once a sub-issue is done, replace its turns with a one-line summary. Keep verbatim only the active issue.
-3. **Prune tool outputs.** If a tool returned 8KB and you used three fields, strip the rest before appending to context.
-
-**Compaction** (the SDK's automatic summarization) is a fallback, not a strategy. Use it when window pressure hits despite the three counters above. The `automatic-context-compaction.ipynb` notebook in the upstream Anthropic cookbook is a post-class self-study lab.
+**Compaction** is the fallback for when window pressure hits anyway, not the strategy.
 """
 
 _concept_escalation_md = """\
 ## Escalation triage (the four real triggers)
 
-Escalate to a human reviewer on:
+Escalate to a human on exactly four triggers:
 
 | Trigger | Example |
 |---|---|
 | **Policy** | Refund above the agent cap |
-| **Complexity** | Multi-system failure with no single owner |
+| **Complexity** | Multi-system failure, no single owner |
 | **Risk** | Security incident, compliance flag |
 | **Explicit request** | "I want a human NOW" |
 
-Do **not** escalate on sentiment. Frustration is not complexity. A customer saying "I'm frustrated" is venting; a customer saying "I want a human" is routing. The first is not a signal, the second is.
-
-When you escalate, pass a **structured summary**, not the raw transcript. Human reviewers do not want to read 40 turns. They want: who, what, what has been tried, what is blocked.
+**Don't escalate on sentiment.** "I'm frustrated" is venting, "I want a human" is routing. When you do escalate, hand over a **structured summary** rather than the raw transcript: who, what, what's been tried, what's blocked.
 """
 
 _demo_setup_md = """\
 ## Demo: invoice extractor with retry
 
-We will build the structured-output pattern end to end. Three invoices in order:
+Three invoices, in order of nastiness:
 
-1. **Clean** - all fields present, validates first try
-2. **Missing field** - no PO number, `Optional[str]` handles it, no retry needed
-3. **Ambiguous** - first pass fails validation, error is appended back, retry succeeds
+1. **Clean** - all fields present, validates first try.
+2. **Missing field** - no PO number, `Optional[str]` handles it, no retry.
+3. **Ambiguous** - first pass fails, the error goes back, the retry succeeds.
 
-Hard retry ceiling: **1**. A real bad document should fail loudly, not silently burn $20 in retries.
+The retry ceiling is **1**, because a truly bad document should fail loudly instead of burning $20 in silence.
 """
 
 _imports_code = """\
@@ -165,9 +159,11 @@ MODEL = "claude-sonnet-4-6"
 _demo_pydantic_md = """\
 ## Step 1: the Pydantic model
 
-**Analogy:** the Pydantic model is the **passport form**. Every field is either *required* (you cannot enter the country without it) or *optional* (you may leave it blank). Each field has a *description* the applicant reads to know what to write. The form itself is the schema; the validator is the customs agent who refuses incomplete or wrong-typed entries. We're going to hand this form to the model and force it to fill it out.
+**Analogy: the passport form.** Required fields get you turned away at the border, optional fields you may leave blank, and every field carries a description telling you what to write.
 
-Required fields drive validation errors. `Optional[]` fields say "this can be `None`". `Field(description=...)` strings flow into the JSON Schema, which the model reads to understand what each field means.
+- **Required fields** drive the validation errors.
+- **`Optional[]`** says "`None` is legal here."
+- **`Field(description=...)`** flows into the JSON Schema the model actually reads.
 """
 
 _pydantic_code = """\
@@ -211,13 +207,13 @@ print(json.dumps(schema, indent=2))
 _demo_extract_function_md = """\
 ## Step 2: register as a tool, force the call, retry on ValidationError
 
-**Analogy:** the **customs counter**. The model walks up with the passport form (the Pydantic schema). The agent (Pydantic validator) reads every field. If something is missing or wrong-typed, the agent hands the form back: "Field X is required; field Y must be a number, not 'about $500'." The traveler (model) gets ONE chance to fix it. Two strikes and the case escalates to a supervisor (we raise).
+**Analogy: the customs counter.** Pydantic reads every field and hands the form back with red ink if anything's missing or wrong-typed. The traveler gets one correction, then the case goes to a supervisor.
 
 Three load-bearing lines:
 
-- `tool_choice={"type": "tool", "name": "extract_invoice"}` - the model **must** call this tool (forced left turn)
-- `Invoice(**block.input)` - the validation gate (customs counter)
-- `max_retries=1` - the ceiling, hard-coded (one strike, then escalate)
+- **`tool_choice={"type": "tool", "name": "extract_invoice"}`** - the model must call this tool.
+- **`Invoice(**block.input)`** - the validation gate.
+- **`max_retries=1`** - the ceiling, hard-coded.
 """
 
 _extract_function_code = """\
@@ -367,7 +363,7 @@ print(f"\\nResult: {invoice.model_dump_json(indent=2)}")
 _demo_missing_md = """\
 ## Scenario B: missing field (Optional handles it, no retry)
 
-No PO number on this invoice. The `Optional[str]` field comes back `None`. Validation succeeds on the first attempt because `po_number` was never required.
+No PO number here, so the **`Optional[str]`** field comes back `None` and validation passes on the first attempt.
 """
 
 _missing_code = """\
@@ -397,9 +393,7 @@ print("[OK] po_number is None as expected")
 _demo_ambiguous_md = """\
 ## Scenario C: ambiguous total (first-pass ValidationError, retry succeeds)
 
-This invoice has a handwritten total that could be parsed two ways. The model's first guess may not validate as a `float`. The error gets appended back, the model corrects on attempt 1, the loop exits.
-
-If both attempts fail, we raise. Hard ceiling means we fail loud, not silently.
+The handwritten total parses two ways, so the model's first guess may not validate as a `float`. The **error gets appended back**, the model corrects on attempt 1, and the loop exits. If both attempts fail we raise, because the **hard ceiling** means failing loud beats failing silent.
 """
 
 _ambiguous_code = """\
@@ -430,13 +424,11 @@ except RuntimeError as exc:
 _demo_few_shot_md = """\
 ## Few-shot: pinning corner cases (Domain 4)
 
-Prose instructions describe behavior. **Examples lock it.** When the corner case is one the model gets wrong without examples - subtle numeric formatting, regional date formats, optional fields the model wants to invent - two or three worked examples in the user turn move the needle more than any temperature change.
+Prose describes behavior. **Examples lock it.** For the corner cases prose can't reach - decimal commas, regional date formats, optional fields the model itches to invent - two or three worked examples beat any amount of instruction tuning.
 
-The shape: include a small `system` block plus a chat of past `user` / `assistant` turns where the assistant called the tool *correctly*. The model imitates.
+**The shape:** past `user` / `assistant` turns where the assistant called the tool *correctly*. The model imitates. Below, the **hand-crafted assistant turn** teaches it to respect a German invoice's decimal comma and DD/MM/YYYY date instead of assuming US conventions.
 
-Cookbook anchor: `../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` (Anthropic's structured-extraction reference).
-
-Below we extract a tricky invoice with European-format dates (`15/05/2026` is day-month-year, not month-day-year). Without examples the model often returns `2026-05-15`. With examples it returns `2026-05-15` only when the source confirms it - and `2026-05-15` is correct here only by coincidence; the real lesson is that the assistant turn we hand-craft shows the model how to disambiguate.
+Cookbook anchor: `../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb`.
 """
 
 _few_shot_code = """\
@@ -514,11 +506,9 @@ print("Few-shot examples teach the model to respect the source's conventions.")
 _demo_confidence_md = """\
 ## Confidence scores: routing low-confidence rows to a human
 
-For high-stakes extractions, you do not just want the values - you want a **self-reported confidence** so you can route the bottom 5% to a review queue.
+High-stakes extraction wants more than the values. Add a **`confidence: float`** field to the Pydantic model, and the forced tool call makes the model commit to a number your routing code can read.
 
-The trick: add a `confidence: float` field (0.0 to 1.0) to the Pydantic model. The forced tool call forces the model to commit to a number. Then your downstream code reads the score and routes.
-
-This is **cheap and load-bearing**. It is not calibrated (the model is biased toward overconfidence), but it is *useful*: the lowest-confidence rows really are the ones most worth a second look.
+The score **isn't calibrated** (models skew overconfident), but it's still useful, because the lowest-confidence rows genuinely are the ones worth a second look.
 """
 
 _confidence_code = """\
@@ -572,13 +562,11 @@ for label, text in [("clean", CLEAN_INVOICE), ("ambiguous", AMBIGUOUS_INVOICE)]:
 _demo_case_facts_md = """\
 ## Pinning case facts with `cache_control` (Domain 5)
 
-A long extraction session re-reads the same policy text on every call: vendor rules, currency rules, the company's "do not invent values" prompt. That is wasted tokens.
+A long extraction session re-reads the same vendor rules, currency rules, and "don't invent values" prompt on every call. Those are billed tokens you're spending twice.
 
-`cache_control` on the system block tells Anthropic: cache everything up to this point. The next call within the cache lifetime reads from cache instead of re-billing. Same idea as Segment 2's tool caching, applied to the **system prompt** rather than the tool list.
+**`cache_control` on the system block** means "cache everything up to here," so the next call within the cache lifetime reads from cache instead of re-billing. Same lever as Segment 2's tool caching, moved to the **system prompt**.
 
-Cookbook anchor: `../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb` (the complementary fallback when caching alone is not enough).
-
-We define a 2KB "vendor policy" block, attach `cache_control`, and run two extractions back-to-back. Watch `cache_creation_input_tokens` on call 1 and `cache_read_input_tokens` on call 2.
+Two extractions, back-to-back, against a 2KB vendor policy. Watch **`cache_creation_input_tokens`** on call 1, **`cache_read_input_tokens`** on call 2.
 """
 
 _case_facts_code = """\
@@ -704,7 +692,7 @@ print("Pattern works on system blocks, tool blocks, and large user-turn prefixes
 _demo_pruning_md = """\
 ## Sidebar: tool-output pruning (not executed)
 
-A tool returns 8KB of JSON. You used three fields. The other 7.5KB is paying rent in the context window. Strip it.
+A tool returns 8KB of JSON and you read three fields. The other 7.5KB pays rent in the context window for the rest of the session, so **strip it before appending**.
 """
 
 _pruning_code = """\
@@ -737,37 +725,37 @@ print(f"size: {len(json.dumps(bloated))} -> {len(json.dumps(prune_tool_output(bl
 _exercise_md = """\
 ## Exercise: triage scorecard (5 minutes)
 
-For each failure below, name the **design fix** in one sentence. Pattern recognition is the skill.
+Name the **design fix** for each failure in one sentence. One fix each, no essays.
 
 | # | Failure | Your fix |
 |---|---|---|
-| a | Agent picked the wrong tool for the task | ? |
-| b | Refund processed for $847 against a $500 policy | ? |
-| c | Synthesis output has no source attributions | ? |
+| a | Agent picked the wrong tool | ? |
+| b | Refund of $847 processed against a $500 policy cap | ? |
+| c | Synthesis output carries no source attributions | ? |
 | d | Agent escalated because the user said "I'm frustrated" | ? |
 
-Reference answers:
+Answers:
 
-- **(a)** Tighten **tool descriptions** and/or **scope tools per agent**; consider `tool_choice` to force the right call.
-- **(b)** **Application-layer intercept via a PreToolUse hook**, not a prompt instruction. Policy is code, not vibes.
-- **(c)** Require **structured claim-source mappings** from subagents; coordinator preserves them through synthesis. This is the Segment 1 coordinator-subagent pattern applied here: the synthesis subagent emits structured findings, the coordinator preserves provenance across the handoff.
-- **(d)** Escalate on **policy, complexity, risk, or explicit request**. Sentiment is not a signal.
+- **(a)** Tighter **tool descriptions**, per-agent scoping, `tool_choice` to force the call.
+- **(b)** A **PreToolUse hook**. Policy is code, not a prompt instruction.
+- **(c)** **Structured claim-source mappings** from subagents, preserved through synthesis.
+- **(d)** Escalate on **policy, complexity, risk, or explicit request** only.
 """
 
 _key_takeaways_md = """\
 ## Key takeaways
 
-- **Forced tool calls + Pydantic schemas + max-retry ceiling** are the canonical structured-output pattern.
-- **Few-shot examples** in the message history lock corner-case behavior that prose alone cannot reach.
-- **Self-reported `confidence` field** routes the bottom slice to a human review queue. Not calibrated, still useful.
-- **`cache_control` on the system block** pins case facts cheaply; subsequent calls hit cache. Pruning + compaction are the fallbacks.
-- **Escalation triggers on policy, complexity, risk, or explicit request**. Sentiment is not a signal.
+- **Forced tool call + Pydantic schema + retry ceiling** is the canonical structured-output pattern.
+- **Few-shot examples** lock corner cases prose can't reach.
+- **A `confidence` field** routes the bottom slice to human review. Uncalibrated, still useful.
+- **`cache_control` on the system block** pins case facts cheaply. Pruning and compaction are the fallbacks.
+- **Escalate on policy, complexity, risk, or explicit request.** Sentiment isn't a signal.
 
-**Cookbook anchors for further study:**
-- `../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` (few-shot + structured extraction)
-- `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` (Pydantic-as-schema reference)
-- `../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb` (compaction as a fallback)
-- [`../docs/domain-5-context.md`](../docs/domain-5-context.md) for error propagation, provenance, and confidence calibration depth.
+**Further study:**
+- `../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb` (few-shot extraction)
+- `../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb` (Pydantic-as-schema)
+- `../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb` (compaction fallback)
+- [`../docs/domain-5-context.md`](../docs/domain-5-context.md) for provenance and confidence calibration.
 """
 
 _bridge_md = """\

@@ -37,7 +37,7 @@ _title_md = """\
 **Maps to:** All five CCA-F domains
 **References:** [`../docs/CERT-PROGRAM-BRIEFING.md`](../docs/CERT-PROGRAM-BRIEFING.md), [`../docs/PRACTICE-QUESTIONS.md`](../docs/PRACTICE-QUESTIONS.md)
 
-You have the skills. The exam is how you signal them. This segment is the **CCA-F debrief**: what is on the test, what Anthropic expects, and a weighted live practice run so you leave knowing your weakest domain.
+You have the skills. The **exam** is how you signal them. This is the **CCA-F debrief**: mechanics, weights, and a weighted practice run so you leave knowing your weakest domain.
 """
 
 _lo_md = """\
@@ -45,20 +45,20 @@ _lo_md = """\
 
 - Name the **CCA-F exam mechanics** (60 questions, 120 minutes, $99, one attempt, 720 passing)
 - Recall the **five domain weights** and which two account for 38% of the score
-- Identify your **weakest domain** from the live practice questions, and what to study before sitting the exam
+- Identify your **weakest domain** from the live practice questions
 - Build your own **week-before-the-exam punchlist** from the briefing template
 """
 
 _what_is_md = """\
 ## What CCA-F is
 
-**Claude Certified Architect, Foundations** is Anthropic's first official certification. It targets architects already shipping with the **Agent SDK**, **Claude Code**, the **Claude API**, and **MCP**. Skill level is roughly the 301 mark - past "hello world", not yet "I run distillation pipelines."
+**Claude Certified Architect, Foundations** is Anthropic's first official certification, aimed at architects already shipping with the **Agent SDK**, **Claude Code**, the **Claude API**, and **MCP**. Call it the **301 level**: past "hello world", short of distillation pipelines.
 
-This is a **beta product**. The exam launched in 2026 and Anthropic reserves the right to retire and refresh it. Watch the official cert page for changes.
+It's a **beta product**, so Anthropic reserves the right to retire and refresh it. Watch the official cert page.
 """
 
 _mechanics_md = """\
-## Exam mechanics (the load-bearing facts)
+## Exam mechanics
 
 | Item | Value |
 |---|---|
@@ -67,51 +67,39 @@ _mechanics_md = """\
 | **Scoring** | Scaled 100-1000, **passing = 720**, no penalty for guessing |
 | **Delivery** | ProctorFree, English |
 | **Results** | 2 business days |
-| **Cost** | **$99** |
+| **Cost** | **$99** per attempt |
 | **Attempts** | **One.** This is the policy that catches people. |
-| **Access** | Currently restricted to Anthropic partners (claude.com/partners) |
+| **Access** | Partner-gated as of the 2026 launch (claude.com/partners) |
 
-**Plan around the one-attempt rule.** Do not schedule until your practice scores are consistently >900.
+**Plan around the one-attempt rule.** Don't schedule until your practice scores sit consistently above 900.
 """
 
 _cost_access_md = """\
-## Cost and access
+## Scenario structure
 
-- $99 per attempt
-- One attempt per registration
-- Partner-gated as of the 2026 launch; check the official page for any cohort opening
-- Results in 2 business days, scored 100-1000
+The exam draws **4 scenarios at random** from a pool of **6**, each framing its questions in a production context. Our community study set has the same shape, 4 scenarios x 15 questions:
+
+1. **Multi-agent Research System**
+2. **Customer Support Agent**
+3. **Claude Code for Continuous Integration**
+4. **Code Generation with Claude Code**
 """
 
 _scenario_md = """\
-## Scenario structure
-
-The exam draws **4 scenarios at random** from a pool of **6**. Each scenario frames a set of questions in a realistic production context. The community study set we will use today has 4 scenarios x 15 questions; the same shape, different content.
-
-**The four scenarios in our practice set:**
-
-1. Multi-agent Research System
-2. Customer Support Agent
-3. Claude Code for Continuous Integration
-4. Code Generation with Claude Code
-"""
-
-_domain_weights_md = """\
 ## Domain weights
 
 | Domain | Weight | Notebook |
 |---|---|---|
-| **D1** Agentic Architecture | **27%** (biggest single lever) | Segment 1 |
+| **D1** Agentic Architecture | **27%** | Segment 1 |
 | **D3** Claude Code | **20%** | Segment 2 |
 | **D4** Prompts + Structured Output | **20%** | Segment 3 |
 | **D2** Tool Design + MCP | **18%** | Segment 2 |
 | **D5** Context + Reliability | **15%** | Segment 3 |
 
-**D1 + D3 + D4 = 67% of the exam.** Weight your study time the same way.
-**D2 + D3 = 38%** - that pairing is why we covered both in one segment.
+**D1 + D3 + D4 = 67% of the exam**, so weight your study time the same way. **D2 + D3 = 38%**, which is why they shared one segment.
 """
 
-_prep_stack_md = """\
+_domain_weights_md = """\
 ## The prep stack
 
 | Resource | Purpose |
@@ -122,56 +110,58 @@ _prep_stack_md = """\
 | **Anthropic Academy: Claude Code in Action** | Claude Code CLI + hierarchy (free) |
 | **CCA-F Exam Guide PDF** | Downloaded after registration |
 | **Anthropic Practice Exam** | Target **>900/1000** before scheduling |
-| **Community practice questions** (this notebook) | Calibration only, not predictors |
+| **Community practice questions** | Calibration only, never predictors |
 
-The Anthropic Practice Exam is the authoritative practice signal. Treat community questions (including the 60 in our `PRACTICE-QUESTIONS.md`) as calibration, not as predictors.
+The **Anthropic Practice Exam** is the only authoritative signal here. Everything community-sourced, our 60 questions included, is calibration.
+"""
+
+_prep_stack_md = """\
+## Tim's week-before-the-exam punchlist
+
+Full 13-item version: [`../docs/CERT-PROGRAM-BRIEFING.md`](../docs/CERT-PROGRAM-BRIEFING.md). The headlines:
+
+1. **Score >900** on the Anthropic Practice Exam cold
+2. **Rebuild Segment 1 from memory** in 30 minutes, agent loop and hook, no notes
+3. **Re-read `domain-1-agentic.md`**, the 27% domain
+4. **Skim `domain-3-claude-code.md`** and `domain-4-prompts.md`, the 20% domains
+5. **Verify proctoring setup** the night before (camera, mic, ID)
+6. **Single attempt.** Don't schedule until 1-4 are green.
 """
 
 _week_before_md = """\
-## Tim's week-before-the-exam punchlist
+## How the ten questions are weighted
 
-The full 13-item version lives in [`../docs/CERT-PROGRAM-BRIEFING.md`](../docs/CERT-PROGRAM-BRIEFING.md). The headlines:
-
-1. **Score >900** on the Anthropic Practice Exam cold
-2. **Rebuild Segment 1 from memory** in 30 minutes (you should be able to write the agent loop and a hook without looking)
-3. **Re-read `domain-1-agentic.md`** - it is the 27% domain
-4. **Skim `domain-3-claude-code.md`** and `domain-4-prompts.md` - the 20% domains
-5. **Verify proctoring setup** the night before (camera, mic, ID)
-6. **Single attempt.** Do not schedule until 1-4 are green.
-"""
-
-_subagent_callout_md = """\
-## How we weight the ten questions (by CCA-F domain, not by scenario)
-
-The community practice set has 60 questions across four scenario families. Random sampling across scenarios is **not** the same as random sampling across exam domains - the exam weights are 27/18/20/20/15 across D1-D5, but the scenarios cluster unevenly into domains. (Two of the four scenarios are heavily D3, which would over-test Claude Code workflows and under-test the rest.)
-
-Our sampler draws **by CCA-F domain weight**, matching the exam:
+We sample **by domain weight, not by scenario**, because two of the four scenarios skew heavily **D3**. Sampling uniformly across scenarios would over-test Claude Code and under-test everything else.
 
 | Domain | Weight | Sample | Pattern emphasis |
 |---|---:|---:|---|
-| **D1** Agentic Architecture | 27% | **3 questions** | Coordinator-subagent, stop_reason branching, agent loops |
-| **D2** Tool Design + MCP | 18% | **2 questions** | Tool descriptions, structured errors, MCP discovery |
-| **D3** Claude Code | 20% | **2 questions** | CLAUDE.md hierarchy, skills, headless mode |
-| **D4** Prompts + Structured Output | 20% | **2 questions** | Forced tool_choice, few-shot, prompt engineering |
-| **D5** Context + Reliability | 15% | **1 question** | Escalation, context preservation, error propagation |
+| **D1** Agentic Architecture | 27% | **3** | Coordinator-subagent, stop_reason branching, agent loops |
+| **D2** Tool Design + MCP | 18% | **2** | Tool descriptions, structured errors, MCP discovery |
+| **D3** Claude Code | 20% | **2** | CLAUDE.md hierarchy, skills, headless mode |
+| **D4** Prompts + Structured Output | 20% | **2** | Forced tool_choice, few-shot, prompt engineering |
+| **D5** Context + Reliability | 15% | **1** | Escalation, context preservation, error propagation |
+"""
 
-Because D1 carries the highest weight, **three of your ten will exercise D1 patterns** - the same coordinator-subagent, stop_reason-branching, agent-loop muscles you built in Segment 1, dressed up in exam clothing.
+_subagent_callout_md = """\
+## Weighted live practice (28 minutes)
+
+Ten questions, ~2.5 minutes each. The full 60-question set is take-home in [`../docs/PRACTICE-QUESTIONS.md`](../docs/PRACTICE-QUESTIONS.md).
+
+**Disclaimer (read aloud once):**
+> These are **community-sourced** from Paul Larionov's study repo. They're **calibration practice**, not exam predictors.
+
+**Format per question:**
+1. Read the situation
+2. Cohort votes **A/B/C/D** in chat (30 seconds)
+3. Reveal the answer
+4. Walk the **distractors**: why each one is plausible but wrong
+5. Land it with a production tip from the matching `domain-N-*.md`
 """
 
 _practice_intro_md = """\
-## Weighted live practice (28 minutes)
+## Run the sampler
 
-We will run **10 questions** weighted across the four scenarios in our community study set. The 60-question full set ships as take-home in [`../docs/PRACTICE-QUESTIONS.md`](../docs/PRACTICE-QUESTIONS.md).
-
-**Source disclaimer (read aloud once):**
-> These questions are community-sourced from Paul Larionov's study repo. They are **calibration practice**, not exam predictors. Treat them as a self-assessment.
-
-**Format per question (~2.5 minutes each):**
-1. Read the situation
-2. Cohort votes A/B/C/D in chat (30 seconds)
-3. Reveal the correct answer
-4. Walk through why the distractors are plausible-but-wrong
-5. Color the correct answer with a production tip from the matching `domain-N-*.md` reference
+The next cell draws the ten questions by domain weight. The one after renders them with collapsible answers, so the cohort votes before the reveal.
 """
 
 _practice_loader_code = """\
@@ -276,35 +266,35 @@ for i, q in enumerate(sample, 1):
 _final_qa_md = """\
 ## Final Q&A (10 minutes)
 
-Anticipated questions to invite:
+Seed questions:
 
-- **"How do I monitor an agent in production?"** Log every `stop_reason`, every tool call, every hook block. Three streams, one dashboard, before you ship.
-- **"When do I split a monolithic agent into coordinator + subagents?"** When subtasks have independent success criteria, when context bloat hurts answer quality, or when you want per-agent tool scope. Do not split for theoretical purity.
-- **"What is the cost story for prompt caching?"** `cache_control: {"type": "ephemeral", "ttl": "5m"}` on system prompts and large tool definitions. Hits run roughly 90% cheaper than misses. Cache writes cost more than reads, so do the math before assuming caching is free.
-- **"How do I know when I am ready to sit the exam?"** When the Anthropic Practice Exam scores >900/1000 cold, and when you can rebuild Segment 1 from memory in 30 minutes.
-- **"What is the renewal path?"** Anthropic reserves the right to retire and refresh exams. Per the public Exam Policy, certifications tied to beta products may expire when the production exam goes live. Watch the cert page.
+- **Monitoring** an agent in production
+- **When to split** a monolith into coordinator + subagents
+- The **cost math** on prompt caching
+- **Readiness signals** before you schedule the exam
+- The **renewal path** for a beta-tied certification
 """
 
 _course_recap_md = """\
 ## What you built today
 
 - A **customer support agent** with deterministic policy enforcement via a PreToolUse hook (Segment 1)
-- A configured **Claude Code environment** with CLAUDE.md hierarchy + MCP servers across three transports (Segment 2)
-- An **invoice extraction pipeline** with Pydantic-driven schema enforcement and a bounded retry loop (Segment 3)
-- A **production reliability mental model**: context pinning, output pruning, escalation triage, structured errors
+- A configured **Claude Code environment**: CLAUDE.md hierarchy plus MCP servers across three transports (Segment 2)
+- An **invoice extraction pipeline** with Pydantic schema enforcement and a bounded retry loop (Segment 3)
+- A **reliability mental model**: context pinning, output pruning, escalation triage, structured errors
 
-You can rebuild any of these from this notebook tomorrow. That is the point.
+You can rebuild any of these from this notebook tomorrow. That's the point.
 """
 
 _close_md = """\
 ## Taking it further
 
-1. **This week:** wire one of today's agents into a real production workflow. Do not let the demo code die in a notebook.
-2. **Next:** read the 5 domain reference files in this repo for deeper dives - especially `domain-1-agentic.md` (27% domain) and `domain-5-context.md` (the topics Segment 3 did not have time for).
-3. **Toward the exam:** work through [`../docs/CERT-PROGRAM-BRIEFING.md`](../docs/CERT-PROGRAM-BRIEFING.md), take the Anthropic Practice Exam (target >900/1000), then schedule. **One attempt only.**
-4. **Calibration practice:** use [`../docs/PRACTICE-QUESTIONS.md`](../docs/PRACTICE-QUESTIONS.md) (community-sourced) to self-assess between Anthropic Practice Exam attempts.
+1. **This week:** wire one of today's agents into a real workflow. Don't let demo code rot in a notebook.
+2. **Next:** read the five **domain reference files**, especially `domain-1-agentic.md` (the 27% domain) and `domain-5-context.md`.
+3. **Toward the exam:** work [`../docs/CERT-PROGRAM-BRIEFING.md`](../docs/CERT-PROGRAM-BRIEFING.md), score **>900** on the Anthropic Practice Exam, then schedule. **One attempt only.**
+4. **Calibration:** self-assess with [`../docs/PRACTICE-QUESTIONS.md`](../docs/PRACTICE-QUESTIONS.md).
 
-Thanks for spending four hours. Now go ship something that does not lie.
+Thanks for spending four hours. Now go ship something that doesn't lie.
 
 > **Memento mori. Also, ship the PR.**
 """
