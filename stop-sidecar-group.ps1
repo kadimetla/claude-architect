@@ -7,28 +7,38 @@
 
       Jupyter     via scripts/stop-jupyter.ps1 (graceful, with exact-PID fallback)
       Inspector   by freeing ports 6274 and 6277
+      Windows     the -NoExit sidecar windows those servers were launched from
+      Orphans     any MCP stdio server left behind by a killed window
 
     IDEMPOTENT. Stopping something that is already stopped is a no-op that
     reports and moves on, never an error.
 
-    The MCP CLI REPL is NOT stopped here. It is an interactive foreground
-    process in its own tab with no port to identify it, and killing every pwsh
-    that looks like it could be a REPL is how you accidentally close the window
-    you are teaching from. Close that tab yourself, or type its quit command.
+    Leaves exactly one terminal standing: yours.
 
 .PARAMETER Port
     JupyterLab port to stop. Defaults to 8888.
 
 .EXAMPLE
     .\stop-sidecar-group.ps1
-    Stops Jupyter and the MCP Inspector. Leaves the MCP CLI tab alone.
+    Full teardown. Your own shell survives; every sidecar window does not.
 
 .NOTES
     Author: Tim Warner
 
-    Port-scoped by design. Every stop here targets a specific port or a specific
-    PID resolved from that port, so this can never take down an unrelated Jupyter
-    or Node service running elsewhere on the box.
+    Scoped by design, two different ways.
+
+    Servers are port-scoped: every stop targets a specific port or a PID resolved
+    from that port, so this can never take down an unrelated Jupyter or Node
+    service on the box.
+
+    Windows are cmdline-scoped: a sidecar window carries run-mcp-cli.ps1 or
+    run-mcp-inspector.ps1 literally in its command line, and an instructor's shell
+    does not. This file used to refuse to close the REPL at all, on the grounds
+    that pattern-matching pwsh is how you close the window you are teaching from.
+    That was the right fear aimed at the wrong discriminator: `pwsh` is a guess,
+    the launcher filename is exact. Both sweeps additionally skip this process and
+    every one of its ancestors, because a sweep that matches on command-line text
+    will otherwise match the shell running the sweep.
 #>
 [CmdletBinding()]
 param(
@@ -96,6 +106,82 @@ function Stop-Port {
 Stop-Port -P 6274 -Label 'Inspector UI'
 Stop-Port -P 6277 -Label 'Inspector proxy'
 
+# --- Sidecar windows -------------------------------------------------------
+# Freeing the ports kills the SERVER but not the window that launched it. Those
+# windows are started with -NoExit (on purpose: a crash must leave its stack
+# trace on screen), so every relaunch strands another dead husk. Left alone,
+# a teaching day accumulates a dozen of them.
+#
+# The old note here said "killing every pwsh that looks like a REPL is how you
+# close the window you are teaching from". Correct, and worth keeping. But
+# `pwsh` was never the right discriminator. The sidecar windows carry the
+# launcher script's own filename in their command line; an instructor's shell
+# never does. That string is exact, not a heuristic.
+#
+# Two guard rails, both load-bearing:
+#   1. Require run-mcp-cli.ps1 / run-mcp-inspector.ps1 literally in the cmdline.
+#   2. Never touch this process or any of its ancestors. A sweep that matches on
+#      command-line text WILL match the shell running the sweep. Ask me how I know.
+function Get-SelfAncestry {
+    $chain = [System.Collections.Generic.List[int]]::new()
+    $chain.Add($PID)
+    $p = Get-CimInstance Win32_Process -Filter "ProcessId=$PID" -ErrorAction SilentlyContinue
+    while ($p -and $p.ParentProcessId -and $p.ParentProcessId -ne 0) {
+        $chain.Add([int]$p.ParentProcessId)
+        $p = Get-CimInstance Win32_Process -Filter "ProcessId=$($p.ParentProcessId)" -ErrorAction SilentlyContinue
+    }
+    return $chain
+}
+
+function Stop-SidecarWindows {
+    $self = Get-SelfAncestry
+
+    $windows = Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.CommandLine -match 'run-mcp-cli\.ps1|run-mcp-inspector\.ps1' -and
+            $_.ProcessId -notin $self
+        }
+
+    if (-not $windows) {
+        Write-Host 'No sidecar windows to close.'
+        return
+    }
+
+    foreach ($w in $windows) {
+        $label = if ($w.CommandLine -match 'run-mcp-cli') { 'MCP CLI' } else { 'MCP Inspector' }
+        Write-Host "Closing $label window (PID $($w.ProcessId))."
+        Stop-Process -Id $w.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+}
+
+Stop-SidecarWindows
+
+# The REPL's stdio server is a child of the REPL, so closing the window above
+# normally reaps it. Normally. When a window was killed out from under it, the
+# uv -> python -> python chain survives as an orphan holding nothing, invisible
+# because it has no port to probe. Sweep those too, under the same guard rails.
+function Stop-OrphanedMcpServers {
+    $self = Get-SelfAncestry
+
+    $orphans = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.CommandLine -match 'mcp_server\.py|mcp_cli' -and
+            $_.Name -in @('python.exe', 'uv.exe') -and
+            $_.ProcessId -notin $self
+        }
+
+    if (-not $orphans) {
+        Write-Host 'No orphaned MCP stdio servers.'
+        return
+    }
+
+    foreach ($o in $orphans) {
+        Stop-Process -Id $o.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+    Write-Host "Reaped $(@($orphans).Count) orphaned MCP stdio process(es)."
+}
+
+Stop-OrphanedMcpServers
+
 Write-Host ''
 Write-Host 'Sidecars down.' -ForegroundColor Green
-Write-Host 'The MCP CLI REPL, if open, is a foreground tab - close it yourself.'
