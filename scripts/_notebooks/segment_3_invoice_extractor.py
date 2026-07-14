@@ -40,6 +40,7 @@ def cells() -> list[tuple[str, str]]:
         ("md", _exercise_md),
         ("md", _key_takeaways_md),
         ("md", _bridge_md),
+        ("md", _appendix_md),
     ]
 
 
@@ -764,4 +765,38 @@ _bridge_md = """\
 > "You now have the skills. The exam is how you signal them. Last segment is the certification debrief: what's on it, what Anthropic expects, and ten practice questions to calibrate where you stand."
 
 Open `segment-4-cca-f-capstone.ipynb`.
+"""
+
+_appendix_md = """\
+## Going further
+
+Everything below is optional. Pick the group that matches what you want to get better at.
+
+**Deeper on this segment**
+
+- [`../docs/domain-4-prompts.md`](../docs/domain-4-prompts.md) - the full Domain 4 reference on precise prompts, format control, and few-shot design.
+- [`../docs/domain-5-context.md`](../docs/domain-5-context.md) - the Domain 5 reference on context windows, caching, pruning, and compaction.
+
+**Structured output, more ways**
+
+- [`../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb`](../claude-cookbooks-main/tool_use/extracting_structured_json.ipynb) - Anthropic's own take on the forced-tool-call extraction pattern.
+- [`../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb`](../claude-cookbooks-main/tool_use/tool_use_with_pydantic.ipynb) - Pydantic as the schema authority, which is exactly what we did here.
+- [`../examples/messages_api/005_controlling_output.ipynb`](../examples/messages_api/005_controlling_output.ipynb) - output-shape control at the raw Messages API level, without tools in the way.
+- [`../examples/messages_api/002_system_prompt.ipynb`](../examples/messages_api/002_system_prompt.ipynb) - the system prompt treated as a control surface rather than a greeting.
+
+**Context management**
+
+- [`./segment-2-5-control-surfaces.ipynb`](./segment-2-5-control-surfaces.ipynb) - the self-study deep dive, including the Claude Console `memory_stores` and `vaults` assets that carry the Domain 5 persistence story.
+- [`../claude-cookbooks-main/misc/prompt_caching.ipynb`](../claude-cookbooks-main/misc/prompt_caching.ipynb) - caching beyond the single system block we cached above.
+- [`../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb`](../claude-cookbooks-main/tool_use/automatic-context-compaction.ipynb) - the compaction fallback. It doesn't currently run because of an upstream SDK drift bug, so read it for the pattern rather than executing it.
+
+**The managed-agents counterpart**
+
+- [`../examples/agents_api/04_structured_output_and_validation.ipynb`](../examples/agents_api/04_structured_output_and_validation.ipynb) - the same structured-output problem, solved inside a managed agent.
+- [`../examples/agents_api/05_context_and_escalation.ipynb`](../examples/agents_api/05_context_and_escalation.ipynb) - context management and escalation triage on the managed-agents surface.
+
+**Where to go next**
+
+- [`../docs/EXAM-STUDY-PATH.md`](../docs/EXAM-STUDY-PATH.md) - the domain-by-domain study map.
+- [`../docs/COOKBOOK-INDEX.md`](../docs/COOKBOOK-INDEX.md) - which cookbook backs which course topic.
 """

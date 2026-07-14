@@ -27,6 +27,7 @@ def cells() -> list[tuple[str, str]]:
         ("md", _final_qa_md),
         ("md", _course_recap_md),
         ("md", _close_md),
+        ("md", _appendix_md),
     ]
 
 
@@ -297,4 +298,36 @@ _close_md = """\
 Thanks for spending four hours. Now go ship something that doesn't lie.
 
 > **Memento mori. Also, ship the PR.**
+"""
+
+_appendix_md = """\
+## Going further: your post-class study kit
+
+Four hours buys you the skills. This repo is what you take home. Everything below is already on your disk.
+
+### Study the exam
+
+- [**`../docs/CERT-PROGRAM-BRIEFING.md`**](../docs/CERT-PROGRAM-BRIEFING.md) covers exam mechanics, domain weights, and the full week-before punchlist, all of it public-sourced.
+- [**`../docs/EXAM-STUDY-PATH.md`**](../docs/EXAM-STUDY-PATH.md) maps a study route through the repo if you want someone else's ordering.
+- [**`../docs/PRACTICE-QUESTIONS.md`**](../docs/PRACTICE-QUESTIONS.md) is the 60-question take-home, with per-distractor rationale and Anthropic doc citations. [`../practice-questions.json`](../practice-questions.json) is the machine-readable source this notebook sampled ten from. These questions are **community-sourced calibration**, not predictors, and I don't have insider knowledge of the item bank.
+
+### The two off-clock notebooks
+
+- [**`./cca-f-exam-mastery.ipynb`**](./cca-f-exam-mastery.ipynb) is the **most exam-aligned artifact in this repo** and we never touched it live. Seven parts, one per domain plus a mechanics part, mapping **every task statement from TS1.1 through TS5.6** to a runnable minimal demo. If you only open one file after today, open this one.
+- [**`./segment-2-5-control-surfaces.ipynb`**](./segment-2-5-control-surfaces.ipynb) is the self-study deep dive: all four `tool_choice` modes, `disable_parallel_tool_use`, `stop_sequences` and `max_tokens` as control levers, MCP `list_tools` discovery, and the Claude Console asset surface (memory stores, vaults, agents, sessions).
+
+### The five domain references
+
+One file per exam domain, each a ~1000-word reference with cookbook anchors and production tips: [`domain-1-agentic.md`](../docs/domain-1-agentic.md), [`domain-2-tools-mcp.md`](../docs/domain-2-tools-mcp.md), [`domain-3-claude-code.md`](../docs/domain-3-claude-code.md), [`domain-4-prompts.md`](../docs/domain-4-prompts.md), [`domain-5-context.md`](../docs/domain-5-context.md).
+
+### Keep building
+
+- [**`../examples/messages_api/`**](../examples/messages_api/) holds ten Messages API primer notebooks, `001_requests` through `005_controlling_output` plus exercises. Start here if the raw API still feels shaky.
+- [**`../examples/agents_api/`**](../examples/agents_api/) holds six Managed Agents notebooks, domain-banded 01 through 06 and ending in `06_cca_f_capstone.ipynb`. This is the "Anthropic hosts the loop" counterpart to the loops you hand-rolled today.
+- [**`../examples/mcp_cli/`**](../examples/mcp_cli/) is the vendored reference MCP CLI app from Segment 2.
+- [**`../claude-cookbooks-main/`**](../claude-cookbooks-main/) is Anthropic's official cookbook, vendored under MIT. [`../docs/COOKBOOK-INDEX.md`](../docs/COOKBOOK-INDEX.md) tells you which cookbook backs which segment.
+
+### Course scaffolding
+
+[`../COURSE-FLOW.md`](../COURSE-FLOW.md) is the full instructor punchlist for all four segments. [`../hooks-example.py`](../hooks-example.py) and [`../coordinator-subagent-sketch.py`](../coordinator-subagent-sketch.py) are the reference implementations behind Segment 1. [`../docs/scenario-cicd-integration.md`](../docs/scenario-cicd-integration.md) walks a CI/CD scenario end to end.
 """

@@ -95,6 +95,11 @@ notebooks/_smoke-*.ipynb
 # sibling _smoke-*.ipynb files that never get committed.
 claude-cookbooks-main/**/_smoke-*.ipynb
 
+# Example-suite smoke artifacts. The messages_api/ and agents_api/ notebooks are
+# now linked from the teaching notebooks' "Going further" appendices, so learners
+# and instructors will smoke them too. Same throwaway pattern, third directory.
+examples/**/_smoke-*.ipynb
+
 # One-shot live-API spike scripts written during course-prep recon.
 # Throwaway; not part of the courseware.
 _spikes/

@@ -23,6 +23,9 @@ def cells() -> list[tuple[str, str]]:
     return [
         ("md", _title_md),
         ("md", _lo_md),
+        # Signpost, not a lesson. Learners who have never called the Messages API
+        # need the on-ramp BEFORE the warm-up cell, not buried in the appendix.
+        ("md", _prereq_ramp_md),
         # Warm-up: first Claude call (Haiku 4.5, no tools)
         ("md", _warm_up_md),
         ("code", _warm_up_code),
@@ -103,6 +106,12 @@ By the end of this segment you will be able to:
 - Place **hooks** at the right lifecycle events (**PreToolUse**, **PostToolUse**)
 - Distinguish **prompt-layer guidance** from **application-layer enforcement**
 - Recognize **session resume vs fork**, and build a **coordinator-subagent** topology when subtask isolation pays off
+"""
+
+_prereq_ramp_md = """\
+## New to the Messages API?
+
+This segment assumes you've made a Claude API call before. If you haven't, start with [`../examples/messages_api/001_requests.ipynb`](../examples/messages_api/001_requests.ipynb) and work forward. The full ramp is in the **Going further** appendix at the bottom of this notebook.
 """
 
 _warm_up_md = """\
@@ -1020,12 +1029,44 @@ Open `segment-2-tool-design-and-mcp.ipynb`.
 """
 
 _appendix_md = """\
-## Appendix: going deeper on coordinator-subagent
+## Going further
 
-The production wrapper for what you ran above is the Claude **Agent SDK** `Task` primitive. Canonical references:
+Everything below is optional and self-paced. Pick the group that matches where you are.
 
-- **Agent SDK chief-of-staff example** - `../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb`
-- **Orchestrator-workers pattern** - `../claude-cookbooks-main/patterns/agents/orchestrator_workers.ipynb`
-- **Self-study scaffold** - `../coordinator-subagent-sketch.py` (40-line conceptual outline)
-- **Domain depth** - [`../docs/domain-1-agentic.md`](../docs/domain-1-agentic.md), the "Coordinator-subagent orchestration" section
+### New to the Messages API?
+
+Work these in order. They cover the primitive this whole segment is built on, one idea per notebook.
+
+- [`../examples/messages_api/001_requests.ipynb`](../examples/messages_api/001_requests.ipynb) - the bare request, no SDK sugar, so you see the wire format.
+- [`../examples/messages_api/002_system_prompt.ipynb`](../examples/messages_api/002_system_prompt.ipynb) - where the system prompt goes and what it changes.
+- [`../examples/messages_api/003_temperature.ipynb`](../examples/messages_api/003_temperature.ipynb) - what temperature actually does to output.
+- [`../examples/messages_api/004_streaming.ipynb`](../examples/messages_api/004_streaming.ipynb) - streaming responses token by token.
+- [`../examples/messages_api/005_controlling_output.ipynb`](../examples/messages_api/005_controlling_output.ipynb) - `max_tokens`, `stop_sequences`, and prefill as output controls.
+- [`../examples/messages_api/multi_turn_conversation.ipynb`](../examples/messages_api/multi_turn_conversation.ipynb) - history management, which is the loop's other half.
+
+Three of these ship an `_exercise` variant if you want to type it yourself: `001_requests_exercise.ipynb`, `002_system_prompt_exercise.ipynb`, `005_controlling_output_exercise.ipynb`. There's also a one-cell [`first_request.ipynb`](../examples/messages_api/first_request.ipynb) if you just want to prove your key works.
+
+### Deeper on this segment
+
+- [`../docs/domain-1-agentic.md`](../docs/domain-1-agentic.md) - the full Domain 1 reference, roughly ten times what fit in 50 minutes.
+- [`../hooks-example.py`](../hooks-example.py) - a real **PreToolUse** / **PostToolUse** pair, not a sketch.
+- [`../coordinator-subagent-sketch.py`](../coordinator-subagent-sketch.py) - a 40-line conceptual scaffold of the topology you just ran.
+
+### The managed-agents counterpart
+
+Same architecture, except **Anthropic hosts the loop**. You define the agent and the tools, and the platform runs the `stop_reason` state machine you hand-wrote above.
+
+- [`../examples/agents_api/01_agentic_loop_and_sessions.ipynb`](../examples/agents_api/01_agentic_loop_and_sessions.ipynb) - the managed version of this segment's loop, plus real sessions.
+- [`../examples/agents_api/02_coordinator_and_subagents.ipynb`](../examples/agents_api/02_coordinator_and_subagents.ipynb) - the managed version of the coordinator-subagent demo.
+
+### Cookbook anchors (Anthropic official)
+
+- [`../claude-cookbooks-main/tool_use/customer_service_agent.ipynb`](../claude-cookbooks-main/tool_use/customer_service_agent.ipynb) - Anthropic's own take on the agent we built.
+- [`../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb`](../claude-cookbooks-main/claude_agent_sdk/01_The_chief_of_staff_agent.ipynb) - the **Agent SDK** `Task` primitive, which is the production wrapper for our coordinator.
+- [`../claude-cookbooks-main/patterns/agents/orchestrator_workers.ipynb`](../claude-cookbooks-main/patterns/agents/orchestrator_workers.ipynb) - the orchestrator-workers pattern in its canonical form.
+
+### Keep going
+
+- [`./segment-2-5-control-surfaces.ipynb`](./segment-2-5-control-surfaces.ipynb) - the self-study deep dive on `tool_choice`, `stop_sequences`, and the Console asset surface. It isn't on the class clock.
+- [`../docs/EXAM-STUDY-PATH.md`](../docs/EXAM-STUDY-PATH.md) - the map from these notebooks to the CCA-F domains, if you're sitting the exam.
 """

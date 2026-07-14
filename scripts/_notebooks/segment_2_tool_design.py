@@ -38,6 +38,7 @@ def cells() -> list[tuple[str, str]]:
         ("md", _exercise_md),
         ("md", _key_takeaways_md),
         ("md", _bridge_md),
+        ("md", _appendix_md),
     ]
 
 
@@ -850,4 +851,41 @@ _bridge_md = """\
 > "Tools give the agent hands. Prompts and schemas decide what comes out. Let's make those outputs trustworthy."
 
 Open `segment-3-invoice-extractor.ipynb`.
+"""
+
+_appendix_md = """\
+## Going further
+
+Segment 2 carries **Domains 2 and 3**, the heaviest pairing on the exam at 38% of the weight. Here's where to go next on each thread.
+
+### Deeper on this segment
+
+- [`../docs/domain-2-tools-mcp.md`](../docs/domain-2-tools-mcp.md) - the reference scaffold for tool design and MCP, with production tips.
+- [`../docs/domain-3-claude-code.md`](../docs/domain-3-claude-code.md) - the Claude Code surface, including headless `claude -p` and the CLAUDE.md hierarchy.
+
+### Run the MCP demo yourself
+
+- [`../.mcp.json`](../.mcp.json) - the config anchor we printed: six servers, three transports, `${ENV_VAR}` expansion.
+- [`../examples/mcp_cli/mcp_server.py`](../examples/mcp_cli/mcp_server.py) - the FastMCP server whose source we walked, registered as `oreilly-cca-mcp`.
+- [`../examples/mcp_cli/`](../examples/mcp_cli/) - the full vendored MCP CLI app; attribution is in [`NOTICE.md`](../examples/mcp_cli/NOTICE.md).
+- [`../scripts/run-mcp-cli.ps1`](../scripts/run-mcp-cli.ps1) - starts that CLI app with one command, no venv archaeology.
+- [`../scripts/run-mcp-inspector.ps1`](../scripts/run-mcp-inspector.ps1) - launches the **MCP Inspector** against the demo server and owns ports 6274 and 6277 so you can click through tools, resources, and prompts.
+- [`../.vscode/mcp.json`](../.vscode/mcp.json) - the VS Code and Copilot sibling config. It keys servers under `servers`, while Claude Code's `.mcp.json` uses `mcpServers`, so don't copy one over the other.
+
+### Go further on tool controls
+
+- [`./segment-2-5-control-surfaces.ipynb`](./segment-2-5-control-surfaces.ipynb) - **this is the one to open next.** We only scratched `tool_choice` here. Segment 2.5 covers all four modes end to end, plus `disable_parallel_tool_use`, `stop_sequences` and `max_tokens` as control levers, MCP `list_tools` discovery, and the Claude Console asset surface.
+
+### The managed-agents counterpart
+
+- [`../examples/agents_api/03_tools_and_structured_errors.ipynb`](../examples/agents_api/03_tools_and_structured_errors.ipynb) - the same tool design and structured-error contract, run inside Anthropic's hosted agent loop instead of your own.
+
+### Cookbook anchors (Anthropic official)
+
+- [`../claude-cookbooks-main/tool_use/tool_choice.ipynb`](../claude-cookbooks-main/tool_use/tool_choice.ipynb) - the four modes, runnable.
+- [`../claude-cookbooks-main/tool_use/customer_service_agent.ipynb`](../claude-cookbooks-main/tool_use/customer_service_agent.ipynb) - the agent shape Segment 1 built, with a fuller tool block.
+- [`../claude-cookbooks-main/tool_use/parallel_tools.ipynb`](../claude-cookbooks-main/tool_use/parallel_tools.ipynb) - parallel tool calls alongside caching.
+- [`../claude-cookbooks-main/misc/prompt_caching.ipynb`](../claude-cookbooks-main/misc/prompt_caching.ipynb) - `cache_control` in depth, including the floors that bite you.
+- [`../docs/COOKBOOK-INDEX.md`](../docs/COOKBOOK-INDEX.md) - which cookbook backs which segment.
+- [`../docs/EXAM-STUDY-PATH.md`](../docs/EXAM-STUDY-PATH.md) - the study order if you're sitting the CCA-F.
 """
